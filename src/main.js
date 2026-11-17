@@ -27,7 +27,7 @@ scene.environmentIntensity = 0.4;
 
 // --- Câmera 3/4 de cima ---
 const camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 0.1, 200);
-const CAM_OFFSET = new THREE.Vector3(0, 12.5, 9);
+const CAM_OFFSET = new THREE.Vector3(0, 10.5, 8.2);
 
 // --- Luzes ---
 scene.add(new THREE.HemisphereLight(0xcfd8ff, 0x3a2e2a, 0.7));
@@ -37,6 +37,11 @@ sun.castShadow = true;
 sun.shadow.mapSize.set(2048, 2048);
 Object.assign(sun.shadow.camera, { left: -25, right: 25, top: 25, bottom: -25 });
 scene.add(sun, sun.target);
+// luz de preenchimento vinda da câmera: destaca os heróis do chão
+const fill = new THREE.DirectionalLight(0xc8d4ff, 0.9);
+fill.position.set(0, 10, 12);
+scene.add(fill);
+
 
 // --- Arena de treino ---
 const arena = buildArena(scene);

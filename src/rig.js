@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
+import { bakeCharacter } from './paint.js';
+import { buildDalarian } from './models/dalarian.js';
 
 // =====================================================================
 // Rig de personagem feito por código.
@@ -38,7 +40,15 @@ const STYLE = {
   xama: { build: 'medio', chifres: true, presas: true, manto: true, capa: false, gema: 0x40b0ff },
 };
 
-export function buildCharacter(def) {
+// Monta o personagem e "assa" as peças no visual pintado à mão.
+export function buildCharacter(def, { outline = true } = {}) {
+  const rig = def.id === 'dalarian' ? buildDalarian(def) : buildGeneric(def);
+  for (const n of BONES) if (!rig.bones[n]) { rig.bones[n] = new THREE.Group(); rig.bones[n].userData.rest = new THREE.Vector3(); }
+  bakeCharacter(rig.root, Object.values(rig.bones).filter((b) => b.isGroup && b.parent), { outline });
+  return rig;
+}
+
+function buildGeneric(def) {
   const c = def.cores;
   const st = STYLE[def.id] || { build: 'medio' };
   const B = BUILDS[st.build];
@@ -97,14 +107,12 @@ export function buildCharacter(def) {
     part(aba, rbox(0.18, 0.04, 0.012, 0.005), M.gold, 0, 0.08, 0.012);
     part(aba, new THREE.OctahedronGeometry(0.03, 0), M.gem, 0, 0.08, 0.02);
     part(aba, rbox(0.3, 0.05, 0.03, 0.01), M.gold, 0, -0.36, 0.005);
-    bones.aba = aba;
   }
   if (st.manto) {
     // saia longa de manto
-    const saia = part(hips, new THREE.CylinderGeometry(B.cintura * 0.55, B.cintura * 0.95, 0.85, 12, 1, true), M.cloth, 0, -0.45, 0);
+    const saia = part(hips, new THREE.CylinderGeometry(B.cintura * 0.55, B.cintura * 0.95, 0.85, 14), M.cloth, 0, -0.45, 0);
     saia.scale.z = 0.8;
     part(hips, new THREE.TorusGeometry(B.cintura * 0.95, 0.03, 5, 16), M.gold, 0, -0.86, 0, Math.PI / 2).scale.set(1, 0.8, 1);
-    bones.saia = saia;
   }
   if (st.tanga) {
     part(hips, rbox(0.34, 0.5, 0.03, 0.01), M.cloth, 0, -0.3, 0.19, 0.05);
@@ -131,7 +139,7 @@ export function buildCharacter(def) {
   if (st.capuz) {
     const cap = part(head, new THREE.SphereGeometry(0.25, 12, 10, 0, Math.PI * 2, 0, Math.PI * 0.62), M.cloth, 0, 0.15, -0.02);
     cap.rotation.x = -0.25;
-    part(head, new THREE.ConeGeometry(0.2, 0.32, 10, 1, true), M.cloth, 0, 0.02, -0.12, -2.4).scale.z = 0.7;
+    part(head, new THREE.ConeGeometry(0.2, 0.32, 10), M.cloth, 0, 0.02, -0.12, -2.4).scale.z = 0.7;
     part(head, rbox(0.24, 0.08, 0.04, 0.02), M.dark, 0, 0.04, 0.18);       // máscara
   } else if (st.elmo) {
     part(head, new THREE.SphereGeometry(0.23, 12, 10, 0, Math.PI * 2, 0, Math.PI * 0.55), M.steel, 0, 0.16, 0);
@@ -191,11 +199,11 @@ export function buildCharacter(def) {
   if (st.capa) {
     const w = B.peito * 1.15;
     const c1 = bone('cape1', chest, 0, 0.3, -0.24);
-    part(c1, new THREE.PlaneGeometry(w, 0.5), M.cloth, 0, -0.25, 0);
+    part(c1, rbox(w, 0.5, 0.03, 0.01), M.cloth, 0, -0.25, 0);
     const c2 = bone('cape2', c1, 0, -0.5, 0);
-    part(c2, new THREE.PlaneGeometry(w * 1.08, 0.5), M.cloth, 0, -0.25, 0);
+    part(c2, rbox(w * 1.08, 0.5, 0.03, 0.01), M.cloth, 0, -0.25, 0);
     const c3 = bone('cape3', c2, 0, -0.5, 0);
-    part(c3, new THREE.PlaneGeometry(w * 1.16, 0.45), M.cloth, 0, -0.22, 0);
+    part(c3, rbox(w * 1.16, 0.45, 0.03, 0.01), M.cloth, 0, -0.22, 0);
     part(c3, rbox(w * 1.16, 0.06, 0.02, 0.01), M.gold, 0, -0.43, 0);
     if (st.tabardo) {
       // cruz dourada nas costas

@@ -19,9 +19,12 @@ scene.environmentIntensity = 0.45;
 const camera = new THREE.PerspectiveCamera(35, innerWidth / innerHeight, 0.1, 100);
 const params = new URLSearchParams(location.search);
 const camAng = parseFloat(params.get('ang') || '0.6');
-camera.position.set(Math.sin(camAng) * 7.5, 2.4, Math.cos(camAng) * 7.5);
+const camDist = parseFloat(params.get('dist') || '7.5');
+const camY = parseFloat(params.get('ty') || '0.95');
+camera.position.set(Math.sin(camAng) * camDist, camY + 1.45 * camDist / 7.5, Math.cos(camAng) * camDist);
 const controls = new OrbitControls(camera, renderer.domElement);
-controls.target.set(0, 0.95, 0);
+controls.target.set(0, camY, 0);
+if (params.has('noui')) document.getElementById('ui').style.display = 'none';
 controls.update();
 
 scene.add(new THREE.HemisphereLight(0xffe8c8, 0x403040, 1.0));
