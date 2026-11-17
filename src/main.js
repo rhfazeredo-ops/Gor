@@ -63,11 +63,35 @@ const aimRing = new THREE.Mesh(
 aimRing.rotation.x = -Math.PI / 2;
 scene.add(aimRing);
 
+// Mira automática no celular: inimigo mais próximo, senão a direção do movimento.
+const touchAim = new THREE.Vector3();
+function autoAim() {
+  let best = null, bestD = 7;
+  for (const d of dummies) {
+    if (!d.alive) continue;
+    const dist = d.mesh.position.distanceTo(hero.position);
+    if (dist < bestD) { bestD = dist; best = d; }
+  }
+  if (best) return touchAim.set(best.mesh.position.x, 0, best.mesh.position.z);
+  const mv = input.moveDir();
+  if (mv.lengthSq() > 0.01) touchAim.copy(hero.position).addScaledVector(mv, 3);
+  return touchAim;
+}
+
+// Tela cheia + travar na horizontal (Android).
+document.getElementById('btn-full').addEventListener('click', async () => {
+  try {
+    await document.documentElement.requestFullscreen();
+    await screen.orientation.lock('landscape');
+  } catch (e) { /* iPhone não suporta: jogar pela tela inicial */ }
+});
+
 // --- Loop ---
 const clock = new THREE.Clock();
 function tick() {
   const dt = Math.min(clock.getDelta(), 0.05);
-  const aim = input.updateAim();
+  let aim = input.updateAim();
+  if (input.isTouch) { aim = autoAim(); aimRing.visible = false; }
   aimRing.position.set(aim.x, 0.02, aim.z);
 
   const attacked = hero.update(dt, input, aim);

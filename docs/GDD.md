@@ -11,7 +11,7 @@
 
 ## 1. Visão
 - **Gênero:** ação RPG co-op com câmera de cima em 3/4, como no Drakantos: heróis com papéis, masmorras com ondas de inimigos e chefes.
-- **Plataforma:** navegador (PC primeiro, celular depois).
+- **Plataforma:** **celular na horizontal (landscape) como foco principal**, com joystick virtual. Também roda no PC pelo navegador.
 - **Tecnologia:** Three.js com Vite e JavaScript. Modelos em `.glb`.
 - **Estilo visual:** fantasia estilizada pintada à mão (linha WoW/Hearthstone), cores fortes e silhuetas fáceis de ler de cima.
 
@@ -33,15 +33,25 @@
 Os concept arts estão em `docs/concept-art/`.
 
 ### Kit de habilidades (modelo para todo herói)
-- **Ataque básico:** clique esquerdo.
-- **Habilidade 1 / 2:** Q / E (recarga curta).
-- **Ultimate:** R (recarga longa).
-- **Esquiva:** Espaço.
+- **Ataque básico** (botão grande / clique).
+- **Habilidade 1 e 2** (recarga curta).
+- **Ultimate** (recarga longa).
+- **Esquiva**.
 - **Passiva:** única por herói.
 
 ## 3. Controles e câmera
-- **WASD:** mover. **Mouse:** mirar (o herói vira para o cursor).
-- **Câmera:** fixa em 3/4 de cima (cerca de 55°), seguindo o herói com suavidade.
+### Celular (principal), tela horizontal
+- **Joystick virtual** na metade esquerda da tela: aparece onde o dedo encosta.
+- **Botões à direita:** ataque (grande), esquiva e, depois, Q/E/R em arco em volta do ataque.
+- **Mira automática:** mira no inimigo mais próximo; sem inimigo perto, mira na direção do movimento.
+- Botão de tela cheia (trava na horizontal no Android). Na vertical aparece o aviso "gire o celular".
+- *(futuro)* Suporte a controle físico Bluetooth.
+
+### PC
+- **WASD:** mover. **Mouse:** mirar. **Clique:** atacar. **Espaço:** esquivar. **Q/E/R:** habilidades.
+
+### Câmera
+- Fixa em 3/4 de cima, seguindo o herói com suavidade.
 
 ## 4. Loop de jogo
 **Taverna (lobby) → pegar missão → DG (mapa fechado e curto) → completar objetivo → recompensas → voltar à taverna.**

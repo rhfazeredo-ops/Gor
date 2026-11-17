@@ -1,6 +1,6 @@
 # Terra de Gor
 
-Jogo de ação co-op em 3D, inspirado em Drakantos, feito com **Three.js**.
+Jogo de ação co-op em 3D para **celular (horizontal)** e PC, inspirado em Drakantos, feito com **Three.js**.
 
 ## Rodar
 ```bash
@@ -10,6 +10,7 @@ npm run dev
 Abra o endereço que aparecer no terminal (ex.: http://localhost:5173).
 
 ## Controles
+- **Celular:** joystick à esquerda, ataque e esquiva à direita (mira automática)
 - **WASD:** mover
 - **Mouse:** mirar
 - **Clique:** atacar
