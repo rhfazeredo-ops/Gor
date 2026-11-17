@@ -13,7 +13,7 @@ degradê). As animações são feitas por movimento da pose desenhada (respirar,
 passo, golpe, conjurar...). Quando houver quadros desenhados de verdade, é só
 trocar os PNG gerados.
 """
-import sys, json, argparse
+import sys, json, argparse, math
 from collections import deque
 import numpy as np
 from PIL import Image
@@ -135,6 +135,7 @@ def main():
     ap.add_argument('--frame', type=int, default=128)
     ap.add_argument('--thr', type=float, default=18)
     ap.add_argument('--colors', type=int, default=48)
+    ap.add_argument('--debug', default=None)
     args = ap.parse_args()
     order = args.order.split(',')
     F = args.frame
@@ -167,25 +168,47 @@ def main():
         # topo da cabeça na mesma faixa
         top = rows.min() if len(rows) else 0
         heights.append(foot - top)
-        poses[d] = (crop, m, cx, foot)
+        poses[d] = (crop, m, cx, foot, top)
     scale = args.height / np.median(heights)
 
-    # reduz cada pose (média com alfa) e guarda RGBA float + âncora
-    small = {}
-    for d, (crop, m, cx, foot) in poses.items():
-        h, w = m.shape
+    # reduz uma imagem de alta resolução (RGBA float) para o tamanho do jogo
+    def reduce(rgba):
+        h, w = rgba.shape[:2]
         nh, nw = max(1, round(h * scale)), max(1, round(w * scale))
+        pre = rgba.copy(); pre[..., :3] *= pre[..., 3:4] / 255
+        img = Image.fromarray(np.clip(pre, 0, 255).astype(np.uint8), 'RGBA')
+        small_ = np.asarray(img.resize((nw, nh), Image.BOX)).astype(np.float32)
+        al = small_[..., 3:4] / 255
+        col = np.where(al > 0, small_[..., :3] / np.maximum(al, 1e-3), 0)
+        col = np.clip((col - 128) * 1.08 + 128 + 4, 0, 255)   # um pouco mais vivo
+        return np.dstack([col, np.where(al[..., 0] > 0.45, 255, 0)])
+
+    small = {}
+    hires = {}
+    for d, (crop, m, cx, foot, top) in poses.items():
         rgba = np.dstack([crop * m[..., None], m * 255.0]).astype(np.float32)
-        # pré-multiplicado → reduz → divide
-        img = Image.fromarray(np.clip(rgba, 0, 255).astype(np.uint8), 'RGBA')
-        pre = np.asarray(img.resize((nw, nh), Image.BOX)).astype(np.float32)
-        al = pre[..., 3:4] / 255
-        col = np.where(al > 0, pre[..., :3] / np.maximum(al, 1e-3), 0)
-        # deixa as cores um pouco mais vivas e contrastadas (pixel art)
-        col = np.clip((col - 128) * 1.08 + 128 + 4, 0, 255)
-        small[d] = (np.dstack([col, np.where(al[..., 0] > 0.45, 255, 0)]), cx * scale, foot * scale)
+        hires[d] = (rgba, crop, m, cx, foot, top)
+        small[d] = (reduce(rgba), cx * scale, foot * scale)
+
+    # esqueleto 2D + ciclo de andar (na resolução alta)
+    sys.path.insert(0, __import__('os').path.dirname(__file__))
+    import rig2d
+    PAD = 24
+    walk_hi = {}
+    for d, (rgba, crop, m, cx, foot, top) in hires.items():
+        rig = rig2d.build_rig(crop, m, foot, top, d)
+        walk_hi[d] = [reduce(rig2d.walk_frame(rgba, rig, d, i / 8 * 2 * math.pi, PAD)) for i in range(8)]
+        if args.debug:
+            dbg = np.zeros(m.shape + (3,), np.uint8)
+            dbg[rig['body']] = (90, 90, 110); dbg[rig['legs'][0]] = (230, 80, 80); dbg[rig['legs'][1]] = (80, 200, 90)
+            Image.fromarray(dbg).save(f"{args.debug}/rig_{d}.png")
 
     pal = palette([s[0] for s in small.values()], args.colors)
+    def clean_img(img):
+        q = quantize_outline(img, pal).astype(np.float32)
+        q[..., 3] = np.where(img[..., 3] >= 128, 255, 0)
+        q[q[..., 3] == 0] = 0
+        return q
     # poses já com paleta (sem contorno; o contorno é aplicado em cada quadro final)
     clean = {}
     for d, (img, ax, ay) in small.items():
@@ -195,7 +218,6 @@ def main():
         clean[d] = (q, ax, ay)
 
     # ---------------- animações por movimento da pose ----------------
-    import math
     def frames_for(name, d):
         vx, vy = SCREEN_VEC[d]
         out = []
@@ -209,9 +231,12 @@ def main():
                 b = math.sin(i / 6 * math.pi * 2)
                 fr(fx=0, fy=0, sx=1.0, sy=1.0 + 0.012 * b)
         elif name == 'walk':
-            for i in range(8):
-                p = i / 8 * math.pi * 2
-                fr(fx=round(math.sin(p) * 0.8), fy=-round(abs(math.sin(p)) * 3), sx=1.0, sy=1.0 - 0.02 * abs(math.cos(p)))
+            # quadros do esqueleto (mesmo referencial da pose, deslocado pelo PAD)
+            _, ax, ay = clean[d]
+            for img in walk_hi[d]:
+                c = np.zeros((F, F, 4), np.float32)
+                place(c, clean_img(img), ax + PAD * scale, ay + PAD * scale, fx=0, fy=0)
+                out.append(c)
         elif name in ('ataque', 'ataque2'):
             seq = [(-2, 0, 1.0, 1.0, None), (-3, -1, 0.98, 1.03, None), (4, 0, 1.03, 0.96, ((255, 240, 190), 0.35)),
                    (6, 1, 1.04, 0.95, ((255, 240, 190), 0.2)), (3, 0, 1.0, 0.98, None), (1, 0, 1.0, 1.0, None)]
