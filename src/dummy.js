@@ -6,10 +6,19 @@ export class Dummy {
     this.home = new THREE.Vector3(x, 0, z);
     this.maxHp = 300; this.hp = this.maxHp;
     this.flash = 0; this.respawn = 0;
-    this.mat = new THREE.MeshStandardMaterial({ color: 0x8a6a44, roughness: 0.9 });
+    this.mat = new THREE.MeshStandardMaterial({ color: 0xb08a52, roughness: 0.95, flatShading: true });
     this.mesh = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.5, 1.6, 10), this.mat);
     this.mesh.position.set(x, 0.8, z);
     this.mesh.castShadow = true;
+    // boneco de palha: poste, braços de madeira, cabeça de saco e amarras
+    const wood = new THREE.MeshStandardMaterial({ color: 0x5a3a24, roughness: 0.9, flatShading: true });
+    const rope = new THREE.MeshStandardMaterial({ color: 0x3a2a1a, roughness: 1 });
+    const add = (geo, m, x, y, z, rz = 0) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); o.rotation.z = rz; o.castShadow = true; this.mesh.add(o); return o; };
+    add(new THREE.CylinderGeometry(0.08, 0.1, 2.2, 6), wood, 0, -0.1, 0);
+    add(new THREE.CylinderGeometry(0.06, 0.06, 1.6, 6), wood, 0, 0.35, 0, Math.PI / 2);
+    add(new THREE.SphereGeometry(0.3, 8, 6), this.mat, 0, 1.05, 0);
+    for (const y of [-0.45, 0.1, 0.55]) add(new THREE.TorusGeometry(0.47, 0.03, 4, 12), rope, 0, y, 0).rotation.x = Math.PI / 2;
+    add(new THREE.CylinderGeometry(0.5, 0.6, 0.15, 10), wood, 0, -0.85, 0);
     // barra de vida
     this.bar = new THREE.Group();
     const bg = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 0.14), new THREE.MeshBasicMaterial({ color: 0x220a0a, depthTest: false }));
@@ -46,7 +55,8 @@ export class Dummy {
     // volta devagar para o lugar
     this.mesh.position.x += (this.home.x - this.mesh.position.x) * dt * 0.8;
     this.mesh.position.z += (this.home.z - this.mesh.position.z) * dt * 0.8;
-    this.bar.position.set(this.mesh.position.x, 2.0, this.mesh.position.z);
+    this.bar.position.set(this.mesh.position.x, 2.5, this.mesh.position.z);
+    this.mesh.rotation.z = this.flash > 0 ? 0.12 : this.mesh.rotation.z * 0.9;
     this.bar.quaternion.copy(camera.quaternion);
     const f = Math.max(0, this.hp / this.maxHp);
     this.fill.scale.x = f; this.fill.position.x = -(1 - f) * 0.5;

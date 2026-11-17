@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Terra de Gor · Modelos e animações</title>
+    <style>
+      html, body { margin: 0; height: 100%; overflow: hidden; background: #1a1a22; font-family: system-ui, sans-serif; color: #f3e6c8; }
+      #ui { position: fixed; left: 12px; top: 12px; display: flex; flex-direction: column; gap: 8px; max-width: 360px; }
+      #ui h1 { margin: 0; font-size: 18px; color: #c9a24a; }
+      .row { display: flex; flex-wrap: wrap; gap: 6px; }
+      button { background: #2a1a14; color: #f3e6c8; border: 2px solid #c9a24a; border-radius: 6px; padding: 6px 10px; cursor: pointer; font-size: 13px; }
+      button.on { background: #c9a24a; color: #1a1a22; }
+      label { font-size: 13px; }
+    </style>
+  </head>
+  <body>
+    <div id="ui">
+      <h1>Modelos e animações</h1>
+      <div class="row" id="heroes"></div>
+      <div class="row" id="anims"></div>
+      <label><input type="range" id="speed" min="0" max="2" step="0.05" value="1" /> velocidade</label>
+    </div>
+    <script type="module" src="/src/viewer.js"></script>
+  </body>
+</html>

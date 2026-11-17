@@ -146,7 +146,7 @@ export class FxKit {
   }
 
   // ===== Rastro do golpe (arco de luz que segue o martelo) =====
-  swingTrail(origin, yaw, { radius = 1.7, arc = 2.4, duration = 0.32, tilt = 0.5, height = 1.1 } = {}) {
+  swingTrail(origin, yaw, { radius = 1.7, arc = 2.4, duration = 0.32, tilt = 0.5, height = 1.1, mirror = false } = {}) {
     const N = 32, geo = new THREE.BufferGeometry();
     const pos = [], uv = [], idx = [];
     for (let i = 0; i <= N; i++) {
@@ -175,6 +175,7 @@ export class FxKit {
     const m = new THREE.Mesh(geo, mat);
     m.position.copy(origin); m.position.y = height;
     m.rotation.set(0, yaw, 0); m.rotateX(tilt);
+    if (mirror) m.scale.x = -1;
     this.scene.add(m);
     let age = 0;
     return this.add({

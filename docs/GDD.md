@@ -100,7 +100,7 @@ Mapas fechados e curtos. Cada missão tem **um** objetivo:
 2. Gerar o modelo 3D a partir da imagem (ferramentas como Meshy ou Tripo) ou modelar no Blender.
 3. Rig e animações: Mixamo (andar, correr, atacar, morrer) ou Blender.
 4. Exportar em `.glb` (comprimido) para `public/models/`.
-5. Até lá, o jogo usa formas simples (cápsulas) coloridas com a paleta de cada herói.
+5. Até lá, o jogo usa modelos low-poly feitos por código (`src/rig.js`): esqueleto articulado com peças presas aos ossos e animações procedurais (parado, correr, ataque em combo, Consagração, Proteção, esquiva e dano). Os 10 heróis já têm modelo próprio com paleta, arma e detalhes da facção.
 
 ## 5.1 Pipeline de FX
 - **FX Painter** (`public/fx-editor.html`, também publicado como página no Claude): desenho à mão quadro a quadro, com pincéis de brilho, faísca e sólido, simetria radial, casca de cebola e prévia aditiva.

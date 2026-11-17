@@ -1,11 +1,13 @@
 import * as THREE from 'three';
 import { Input } from './input.js';
-import { Hero, buildHeroModel } from './hero.js';
+import { Hero, buildHeroModel, updateGallery } from './hero.js';
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { Dummy } from './dummy.js';
 import { FxManager } from './fx/sprites.js';
 import { FxKit } from './fx/kit.js';
 import { HEROES } from './data/heroes.js';
 import { showHeroSelect } from './select.js';
+import { buildArena } from './arena.js';
 
 // --- Renderizador e cena ---
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -13,19 +15,23 @@ renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
 document.body.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x2a2633);
 scene.fog = new THREE.Fog(0x2a2633, 30, 60);
+// reflexos suaves para o metal e o ouro das armaduras
+scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
+scene.environmentIntensity = 0.4;
 
 // --- Câmera 3/4 de cima ---
 const camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 0.1, 200);
-const CAM_OFFSET = new THREE.Vector3(0, 15, 10.5);
+const CAM_OFFSET = new THREE.Vector3(0, 12.5, 9);
 
 // --- Luzes ---
-scene.add(new THREE.HemisphereLight(0xffe8c8, 0x403040, 0.9));
-const sun = new THREE.DirectionalLight(0xfff0d0, 1.6);
+scene.add(new THREE.HemisphereLight(0xcfd8ff, 0x3a2e2a, 0.7));
+const sun = new THREE.DirectionalLight(0xffe2b8, 2.0);
 sun.position.set(10, 20, 8);
 sun.castShadow = true;
 sun.shadow.mapSize.set(2048, 2048);
@@ -33,22 +39,7 @@ Object.assign(sun.shadow.camera, { left: -25, right: 25, top: 25, bottom: -25 })
 scene.add(sun, sun.target);
 
 // --- Arena de treino ---
-const tileGeo = new THREE.BoxGeometry(1.95, 0.2, 1.95);
-const tileMats = [0x5a5560, 0x635d68, 0x544f5a].map((c) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.95 }));
-for (let x = -11; x < 11; x++) for (let z = -11; z < 11; z++) {
-  const t = new THREE.Mesh(tileGeo, tileMats[(x * 7 + z * 13) & 1 ? 0 : (x + z) % 3 === 0 ? 2 : 1]);
-  t.position.set(x * 2 + 1, -0.1, z * 2 + 1);
-  t.receiveShadow = true;
-  scene.add(t);
-}
-const pillarMat = new THREE.MeshStandardMaterial({ color: 0x7a7080, roughness: 0.8 });
-for (let i = 0; i < 12; i++) {
-  const a = (i / 12) * Math.PI * 2;
-  const p = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.9, 5, 8), pillarMat);
-  p.position.set(Math.cos(a) * 21, 2.5, Math.sin(a) * 21);
-  p.castShadow = true;
-  scene.add(p);
-}
+const arena = buildArena(scene);
 
 // Galeria: os heróis ainda não jogáveis ficam parados no fundo da arena, em pedestais.
 const pedestalMat = new THREE.MeshStandardMaterial({ color: 0x3a3542, roughness: 0.9 });
@@ -150,7 +141,7 @@ function updateSkillButtons() {
 function handleEvents(events) {
   for (const ev of events) {
     if (ev.tipo === 'swing') {
-      kit.swingTrail(hero.position, hero.yaw, { tilt: 0.55 });
+      kit.swingTrail(hero.position, hero.yaw, { tilt: 0.55, mirror: ev.mirror });
     }
     if (ev.tipo === 'basico-hit') {
       // Ataque básico: alvo único na frente
@@ -241,6 +232,8 @@ function tick() {
     camera.lookAt(0, 0, 0);
   }
 
+  updateGallery(dt);
+  arena.update(clock.elapsedTime);
   dummies.forEach((d) => d.update(dt, camera));
   fx.update(dt);
   kit.update(dt);
