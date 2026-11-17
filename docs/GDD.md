@@ -30,7 +30,7 @@
 | | **Ignara** | Maga de Fogo | DPS em área | Magia de fogo + grimório |
 | | *(sem nome)* | Ladino | DPS corpo a corpo | Duas adagas de dragão |
 
-Os concept arts estão em `docs/concept-art/`.
+Os concept arts estão em `public/concept-art/`.
 
 ### Kit de habilidades (modelo para todo herói)
 - **Ataque básico** (botão grande / clique).
@@ -93,10 +93,16 @@ Mapas fechados e curtos. Cada missão tem **um** objetivo:
 4. Exportar em `.glb` (comprimido) para `public/models/`.
 5. Até lá, o jogo usa formas simples (cápsulas) coloridas com a paleta de cada herói.
 
+## 5.1 Pipeline de FX
+- **FX Painter** (`public/fx-editor.html`, também publicado como página no Claude): desenho à mão quadro a quadro, com pincéis de brilho, faísca e sólido, simetria radial, casca de cebola e prévia aditiva.
+- Exporta uma **tira horizontal de quadros (spritesheet PNG)**, com nome no formato `nome_8f_14fps.png`.
+- No jogo, `src/fx.js` toca a tira como plano aditivo: deitado no chão (impactos) ou virado para a câmera (auras, projéteis).
+- Para efeitos de partículas mais complexos no futuro: **three.quarks** (editor online quarks.art).
+
 ## 6. Roadmap
 - **M0 (base):** cena 3D, chão, herói cápsula andando com WASD, câmera 3/4, mira pelo mouse.
 - **M1 (combate):** ataque básico, inimigos simples que perseguem o herói, vida e dano, barra de HP.
-- **M2 (primeiro herói):** kit completo de 1 herói (Drakhar), esquiva e recargas.
+- **M2 (primeiro herói):** kit completo do **Dalárian** (único jogável por enquanto), esquiva e recargas. Os outros heróis aparecem na seleção como "Em breve".
 - **M3 (missão):** primeira DG com objetivo de caçar, coletar ou chefe, tela de vitória e recompensas.
 - **M3.5 (taverna):** lobby com Mercador, Mestre de Missões e Trocador, mais inventário de artefatos.
 - **M4 (modelos):** trocar as cápsulas por modelos `.glb` animados.

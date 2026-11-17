@@ -19,5 +19,5 @@ Abra o endereço que aparecer no terminal (ex.: http://localhost:5173).
 ## Estrutura
 - `src/`: código do jogo (`main.js` é a cena, `hero.js` o herói, `input.js` os controles)
 - `docs/GDD.md`: documento de design
-- `docs/concept-art/`: concept arts dos heróis e das facções
+- `public/concept-art/`: concept arts dos heróis e das facções
 - `public/models/`: modelos 3D `.glb` (em breve)

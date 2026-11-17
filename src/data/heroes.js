@@ -1,0 +1,40 @@
+// Todos os heróis do jogo. Só os com playable: true podem ser escolhidos.
+// cores: pele, armadura, detalhe (metal), tecido, cabelo
+export const FACTIONS = {
+  humanos: { nome: 'Humanos', cor: '#2f4a8a' },
+  vael: { nome: 'Vaeltharianos', cor: '#6a3a9a' },
+  vark: { nome: 'Vark', cor: '#9a2a22' },
+};
+
+export const HEROES = [
+  { id: 'dalarian', nome: 'Dalárian', titulo: 'Paladino da Luz', faccao: 'humanos', papel: 'Tanque / Suporte', arma: 'martelo',
+    concept: 'humano-dalarian.png', playable: true,
+    cores: { pele: 0xe8b88f, armadura: 0xb8b4bc, detalhe: 0xd9a63a, tecido: 0x2c3f8f, cabelo: 0xe8c068 } },
+  { id: 'aelina', nome: 'Aelina', titulo: 'Sacerdotisa', faccao: 'humanos', papel: 'Cura', arma: 'cetro',
+    concept: 'humano-aelina.jpg', playable: false,
+    cores: { pele: 0xf0c8a0, armadura: 0xe8e0d0, detalhe: 0xd9a63a, tecido: 0x3a4a8a, cabelo: 0xe8c068 } },
+  { id: 'ignara', nome: 'Ignara', titulo: 'Maga de Fogo', faccao: 'humanos', papel: 'DPS em área', arma: 'magia',
+    concept: 'humano-ignara.jpg', playable: false,
+    cores: { pele: 0xf0b890, armadura: 0x8a1e1e, detalhe: 0xd9a63a, tecido: 0xa82a20, cabelo: 0xc8481e } },
+  { id: 'ladino', nome: 'Ladino', titulo: 'Ladino (nome a definir)', faccao: 'humanos', papel: 'DPS corpo a corpo', arma: 'adagas',
+    concept: 'humano-ladino.png', playable: false,
+    cores: { pele: 0xe8b88f, armadura: 0x4a2e2a, detalhe: 0xc9a24a, tecido: 0x4a5236, cabelo: 0xe0c070 } },
+  { id: 'kaedrion', nome: 'Kaedrion', titulo: 'Templário Imperial', faccao: 'vael', papel: 'Tanque', arma: 'espada-escudo',
+    concept: 'vael-kaedrion.png', playable: false,
+    cores: { pele: 0xb894d0, armadura: 0x5a2e8a, detalhe: 0xd9a63a, tecido: 0x4a2470, cabelo: 0xf0e0c8 } },
+  { id: 'nyxara', nome: 'Nyxara', titulo: 'Operativa da Vigília do Eclipse', faccao: 'vael', papel: 'DPS à distância', arma: 'glaives',
+    concept: 'vael-nyxara.png', playable: false,
+    cores: { pele: 0xb894d0, armadura: 0x2a2440, detalhe: 0xc8b48a, tecido: 0x2a3a8a, cabelo: 0xf0e0c8 } },
+  { id: 'vaelyra', nome: 'Vaelyra', titulo: 'Maga Arcana', faccao: 'vael', papel: 'DPS mágico / Controle', arma: 'cajado',
+    concept: 'vael-vaelyra.png', playable: false,
+    cores: { pele: 0xc8a0d8, armadura: 0xe0d8e8, detalhe: 0xd9a63a, tecido: 0x6a2a8a, cabelo: 0xf0e8f0 } },
+  { id: 'drakhar', nome: 'Drakhar', titulo: 'Guerreiro Vark', faccao: 'vark', papel: 'Tanque / Bruiser', arma: 'cutelo',
+    concept: 'vark-drakhar.png', playable: false,
+    cores: { pele: 0xc8402e, armadura: 0x34406a, detalhe: 0xc9a24a, tecido: 0x6a6a30, cabelo: 0xf0e0c0 } },
+  { id: 'karisha', nome: 'Karisha', titulo: 'Guerreira Vark', faccao: 'vark', papel: 'DPS corpo a corpo', arma: 'adagas',
+    concept: 'vark-karisha.png', playable: false,
+    cores: { pele: 0xc8402e, armadura: 0x2a2a40, detalhe: 0xa8884a, tecido: 0x2a3060, cabelo: 0xf0e8e0 } },
+  { id: 'xama', nome: 'Xamã', titulo: 'Xamã Vark (nome a definir)', faccao: 'vark', papel: 'Suporte / Cura', arma: 'cajado',
+    concept: 'vark-xama.png', playable: false,
+    cores: { pele: 0xc8402e, armadura: 0x6a4428, detalhe: 0x8a6a3a, tecido: 0x2a3060, cabelo: 0xf0eae0 } },
+];

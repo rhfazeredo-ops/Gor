@@ -28,3 +28,23 @@ body.touch #btn-full { display: block; position: fixed; right: 16px; top: 16px; 
   body.touch #rotate { display: flex; position: fixed; inset: 0; align-items: center; justify-content: center; text-align: center;
     padding: 30px; background: #1a1a22; color: #f3e6c8; font-size: 22px; z-index: 10; }
 }
+
+/* ---- Seleção de heróis ---- */
+#select { position: fixed; inset: 0; z-index: 5; background: radial-gradient(#2c2636, #120f17); overflow-y: auto;
+  touch-action: pan-y; padding: 14px 18px 24px; color: #f3e6c8; }
+#select.hidden { display: none; }
+#select h1 { margin: 0 0 10px; font-size: 22px; color: #c9a24a; text-align: center; letter-spacing: .04em; }
+#select .grid { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+.faction { display: flex; flex-direction: column; gap: 8px; }
+.faction h3 { margin: 0; font-size: 13px; text-transform: uppercase; letter-spacing: .1em; border-bottom: 3px solid; padding-bottom: 3px; }
+.faction { flex-direction: row; flex-wrap: wrap; max-width: 520px; }
+.faction h3 { width: 100%; }
+.card { width: 112px; height: 150px; border-radius: 8px; border: 2px solid #c9a24a; padding: 0; position: relative; overflow: hidden;
+  background-size: auto 165%; background-position: 2% 12%; background-color: #000; cursor: pointer; color: #f3e6c8; text-align: left; }
+.card .info { position: absolute; left: 0; right: 0; bottom: 0; padding: 18px 6px 5px; background: linear-gradient(transparent, #000d); }
+.card b { display: block; font-size: 14px; }
+.card small { display: block; font-size: 9.5px; opacity: .85; line-height: 1.15; }
+.card em { display: block; font-size: 10px; font-style: normal; color: #ffd86b; margin-top: 2px; }
+.card.locked { filter: grayscale(.85) brightness(.6); border-color: #555; cursor: default; }
+.card:not(.locked) { box-shadow: 0 0 14px #ffd86b88; animation: pulse 1.6s infinite alternate; }
+@keyframes pulse { to { box-shadow: 0 0 24px #ffd86bcc; } }
