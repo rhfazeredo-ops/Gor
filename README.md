@@ -1,6 +1,6 @@
 # Terra de Gor
 
-Jogo de ação co-op em 3D para **celular (horizontal)** e PC, inspirado em Drakantos, feito com **Three.js**.
+Jogo de ação co-op **2D isométrico em pixel art** (8 direções) para **celular (horizontal)** e PC, no gênero do Drakantos, com heróis próprios.
 
 ## Rodar
 ```bash
@@ -29,3 +29,11 @@ Visual em pixel art 3D usando o [pixelart-gaussiansplat](https://github.com/coba
 2. `npm run pixel:convert -- caminho/dalarian.glb dalarian` gera `public/models/dalarian.psf.bin` e `.rig.glb`.
 3. (opcional) `npm run pixel:island -- dalarian ruins` cria uma ilha para ele ficar em cima.
 4. Abra `/pixel.html#dalarian`.
+
+## Versão 2D (atual)
+- `index.html` + `src/iso/`: motor isométrico em canvas (tiles 64x32, pixel art nítido, ordem por profundidade, colisão).
+- `src/iso/maps.js`: mapas em texto (legenda no arquivo). `src/iso/art.js`: tiles, objetos e gosmas desenhados por código.
+- Sprites dos heróis em `public/sprites/<heroi>/` (uma imagem por animação, linhas = 8 direções).
+  - A partir de um desenho com as 8 direções: `python3 tools/import-sprite-sheet.py desenho.png public/sprites/dalarian --order NE,S,SE,E,N,NW,SW,W`
+  - A partir do modelo 3D: `tools/bake-sprites.html?hero=dalarian`
+- A versão 3D antiga continua em `prototipo-3d.html`.

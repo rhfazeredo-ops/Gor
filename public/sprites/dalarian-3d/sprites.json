@@ -1,0 +1,60 @@
+{
+  "frame": 112,
+  "anchor": [
+    56,
+    94
+  ],
+  "pxPerUnit": 25,
+  "dirs": [
+    "S",
+    "SE",
+    "E",
+    "NE",
+    "N",
+    "NW",
+    "W",
+    "SW"
+  ],
+  "anims": {
+    "idle": {
+      "frames": 8,
+      "fps": 2.8,
+      "loop": true
+    },
+    "walk": {
+      "frames": 8,
+      "fps": 12.1,
+      "loop": true
+    },
+    "ataque": {
+      "frames": 6,
+      "fps": 14.3,
+      "loop": false
+    },
+    "ataque2": {
+      "frames": 6,
+      "fps": 14.3,
+      "loop": false
+    },
+    "consagracao": {
+      "frames": 10,
+      "fps": 11.1,
+      "loop": false
+    },
+    "protecao": {
+      "frames": 6,
+      "fps": 10.9,
+      "loop": false
+    },
+    "esquiva": {
+      "frames": 4,
+      "fps": 18.2,
+      "loop": false
+    },
+    "dano": {
+      "frames": 3,
+      "fps": 12,
+      "loop": false
+    }
+  }
+}

@@ -2,24 +2,28 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <title>Terra de Gor</title>
-    <link rel="stylesheet" href="/src/style.css" />
+    <link rel="stylesheet" href="/src/iso/style.css" />
   </head>
   <body>
-    <div id="hud">
+    <canvas id="game"></canvas>
+    <div id="hud" class="hidden">
       <div id="hero-name"></div>
-      <div class="bar"><div id="hp-fill"></div></div>
-      <div id="help">WASD mover · Mouse mirar · Clique atacar · Q Consagração · E Proteção · Espaço esquivar</div>
+      <div class="bar"><div id="hp-fill"></div><span id="hp-text"></span></div>
+      <div id="help">WASD andar · Mouse mirar · Clique atacar · Q Consagração · E Proteção · Espaço esquivar</div>
     </div>
+    <div id="objective"></div>
+    <div id="banner"></div>
+    <div id="dead">Você caiu… voltando em instantes</div>
     <!-- Seleção de heróis -->
     <div id="select" class="hidden">
       <h1>Escolha seu herói</h1>
       <div class="grid"></div>
     </div>
-    <!-- Controles de toque (só aparecem no celular) -->
+    <!-- Controles de toque -->
     <div id="joy-zone"><div id="joy-base"><div id="joy-knob"></div></div></div>
     <div id="buttons" class="hidden">
       <button id="btn-attack" class="btn big skill"><span class="key">Clique</span></button>
@@ -28,9 +32,8 @@
       <button id="btn-e" class="btn mid skill"><span class="key">E</span></button>
       <button id="btn-r" class="btn mid skill locked">?<span class="key">R</span></button>
     </div>
-    <div id="dmg-layer"></div>
     <button id="btn-full" class="btn tiny">⛶</button>
     <div id="rotate">Gire o celular para jogar na horizontal ↻</div>
-    <script type="module" src="/src/main.js"></script>
+    <script type="module" src="/src/iso/main.js"></script>
   </body>
 </html>
