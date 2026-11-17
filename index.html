@@ -12,7 +12,7 @@
     <div id="hud">
       <div id="hero-name"></div>
       <div class="bar"><div id="hp-fill"></div></div>
-      <div id="help">WASD mover · Mouse mirar · Clique atacar · Espaço esquivar</div>
+      <div id="help">WASD mover · Mouse mirar · Clique atacar · Q Consagração · E Proteção · Espaço esquivar</div>
     </div>
     <!-- Seleção de heróis -->
     <div id="select" class="hidden">
@@ -21,10 +21,14 @@
     </div>
     <!-- Controles de toque (só aparecem no celular) -->
     <div id="joy-zone"><div id="joy-base"><div id="joy-knob"></div></div></div>
-    <div id="buttons">
-      <button id="btn-dash" class="btn small">⇄</button>
-      <button id="btn-attack" class="btn big">⚔</button>
+    <div id="buttons" class="hidden">
+      <button id="btn-attack" class="btn big skill"><span class="key">Clique</span></button>
+      <button id="btn-dash" class="btn small">⇄<span class="key">Espaço</span></button>
+      <button id="btn-q" class="btn mid skill"><span class="key">Q</span></button>
+      <button id="btn-e" class="btn mid skill"><span class="key">E</span></button>
+      <button id="btn-r" class="btn mid skill locked">?<span class="key">R</span></button>
     </div>
+    <div id="dmg-layer"></div>
     <button id="btn-full" class="btn tiny">⛶</button>
     <div id="rotate">Gire o celular para jogar na horizontal ↻</div>
     <script type="module" src="/src/main.js"></script>

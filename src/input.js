@@ -7,6 +7,7 @@ export class Input {
     this.mouseNdc = new THREE.Vector2();
     this.attackPressed = false;
     this.dashPressed = false;
+    this.skill = { q: false, e: false, r: false };
     this.camera = camera;
     this.raycaster = new THREE.Raycaster();
     this.groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
@@ -18,6 +19,9 @@ export class Input {
     addEventListener('keydown', (e) => {
       this.keys.add(e.code);
       if (e.code === 'Space') { this.dashPressed = true; e.preventDefault(); }
+      if (e.code === 'KeyQ') this.skill.q = true;
+      if (e.code === 'KeyE') this.skill.e = true;
+      if (e.code === 'KeyR') this.skill.r = true;
     });
     addEventListener('keyup', (e) => this.keys.delete(e.code));
     dom.addEventListener('pointermove', (e) => {
@@ -27,6 +31,15 @@ export class Input {
     dom.addEventListener('pointerdown', (e) => {
       if (e.pointerType === 'mouse' && e.button === 0) this.attackPressed = true;
     });
+
+    // Botões de habilidade (toque e mouse)
+    const bind = (elId, fn) => document.getElementById(elId)
+      .addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); fn(); });
+    bind('btn-attack', () => (this.attackPressed = true));
+    bind('btn-dash', () => (this.dashPressed = true));
+    bind('btn-q', () => (this.skill.q = true));
+    bind('btn-e', () => (this.skill.e = true));
+    bind('btn-r', () => (this.skill.r = true));
 
     if (this.isTouch) this.setupTouch();
   }
@@ -64,10 +77,6 @@ export class Input {
     zone.addEventListener('pointerup', end);
     zone.addEventListener('pointercancel', end);
 
-    const bind = (elId, fn) => document.getElementById(elId)
-      .addEventListener('pointerdown', (e) => { e.preventDefault(); fn(); });
-    bind('btn-attack', () => (this.attackPressed = true));
-    bind('btn-dash', () => (this.dashPressed = true));
   }
 
   // Direção de movimento (x, z).
@@ -88,5 +97,5 @@ export class Input {
     return this.aimPoint;
   }
 
-  consume() { this.attackPressed = false; this.dashPressed = false; }
+  consume() { this.attackPressed = false; this.dashPressed = false; this.skill.q = this.skill.e = this.skill.r = false; }
 }

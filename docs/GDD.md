@@ -32,10 +32,19 @@
 
 Os concept arts estão em `public/concept-art/`.
 
+### Dalárian: habilidades (fichas em `docs/habilidades/`)
+| Slot | Habilidade | Efeito | Valores |
+|---|---|---|---|
+| Ataque | **Ataque Básico** | Golpe com o martelo sagrado, alvo único | 100% do ataque · alcance ≈1,5 m |
+| Q | **Consagração do Martelo** | Martelo de luz cai do céu e consagra a área | 20%/s por 6 s (120% total) · raio 3 m · recarga 18 s |
+| E | **Proteção de Luz** | Bolha dourada: imune a dano | 3 s · recarga 25 s |
+| R | *(a definir)* | | |
+
+FX feitos por código em `src/fx/kit.js`: rastro do golpe, clarão em estrela, faíscas, onda de choque, coluna de luz, martelo de luz, círculo de runas e bolha.
+
 ### Kit de habilidades (modelo para todo herói)
 - **Ataque básico** (botão grande / clique).
-- **Habilidade 1 e 2** (recarga curta).
-- **Ultimate** (recarga longa).
+- **3 habilidades** (Q, E, R).
 - **Esquiva**.
 - **Passiva:** única por herói.
 
