@@ -16,6 +16,7 @@ import { loadModel } from "./viewer/model.js";
 import { loadRig } from "./viewer/rig.js";
 import { loadWorld } from "./viewer/world.js";
 import { extractPalette } from "./viewer/palette.js";
+import { setupPlay } from "./play.js";
 
 THREE.ColorManagement.enabled = false; // palette colours stay exactly as authored
 
@@ -75,7 +76,9 @@ window.addEventListener("resize", resize);
 resize();
 
 // ---- content ---------------------------------------------------------------
-let model = null, rig = null, world = null;
+let model = null, rig = null, world = null, play = null;
+// Terra de Gor: começa no modo jogar (?jogar=0 volta ao visualizador)
+const PLAY = MODEL && params.get("jogar") !== "0";
 const target = new THREE.Vector3();
 let radius = 1; // of everything on screen, for framing and fog
 
@@ -134,7 +137,8 @@ function step(t) {
   rig?.update(t);
   if (world) setLights(world.lights, t, world.meshes[0].visible);
 
-  if (state.idle) {
+  if (play) play.update(t);
+  else if (state.idle) {
     const fit = (radius / Math.tan(THREE.MathUtils.degToRad(15))) * num("fit", 1.12) * portraitFit(camera.aspect);
     // scenes drift in for a close look and back out again
     const zoom = SCENE ? 0.7 + 0.3 * (0.5 + 0.5 * Math.cos(t * 0.11)) : 1 - 0.12 * Math.sin(t * 0.15);
@@ -171,6 +175,7 @@ try {
 }
 loading();
 post.setPalette(...palette());
+if (PLAY && rig) play = setupPlay({ model, rig, world, camera, controls, state });
 
 const common = commonControls({ state, post, spark, resize, canvas: renderer.domElement });
 const repalette = () => post.setPalette(...palette());
