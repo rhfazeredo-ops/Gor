@@ -22,3 +22,10 @@ Abra o endereço que aparecer no terminal (ex.: http://localhost:5173).
 - `docs/GDD.md`: documento de design
 - `public/concept-art/`: concept arts dos heróis e das facções
 - `public/models/`: modelos 3D `.glb` (em breve)
+
+## Pixel art 3D (Gaussian splats)
+Visual em pixel art 3D usando o [pixelart-gaussiansplat](https://github.com/cobanov/pixelart-gaussiansplat) (MIT, código em `pixel/`, licença em `pixel/LICENSE`).
+1. Com `npm run dev` rodando, abra `/tools/export-glb.html?hero=dalarian`: baixa o herói como `.glb` (modelo + esqueleto + animações).
+2. `npm run pixel:convert -- caminho/dalarian.glb dalarian` gera `public/models/dalarian.psf.bin` e `.rig.glb`.
+3. (opcional) `npm run pixel:island -- dalarian ruins` cria uma ilha para ele ficar em cima.
+4. Abra `/pixel.html#dalarian`.
