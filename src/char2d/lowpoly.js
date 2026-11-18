@@ -136,7 +136,7 @@ export class LowPolyPainter {
   shade(base, n, tag) {
     const d = Math.max(0, n.dot(this.light));
     const up = Math.max(0, n.y);
-    let k = 0.52 + 0.55 * d + 0.12 * up;
+    let k = 0.4 + 0.5 * d + 0.08 * up;
     const col = base.clone();
     if (tag === 'glow') k = 1.25;
     const lit = col.clone().multiplyScalar(k);

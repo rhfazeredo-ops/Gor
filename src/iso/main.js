@@ -1,6 +1,6 @@
 import { buildArt, paintGround, RES } from './art-hd.js';
 import { ROOMS, parseMap } from './maps.js';
-import heroMeta from '../assets/sprites/dalarian-hd/sprites.json';
+import { createLiveHero } from '../char2d/live.js';
 import { Input } from './input.js';
 import { Fx } from './fx.js';
 import { World, Hero, Slime, drawWorld, drawObjects, mapLights } from './game.js';
@@ -9,28 +9,6 @@ import { ABILITIES } from '../data/abilities.js';
 import { showHeroSelect } from '../select.js';
 
 const UI = import.meta.glob('../assets/ui/*.png', { query: '?url', import: 'default', eager: true });
-// sprites pintados do herói embutidos no pacote (funciona num HTML único)
-const sheetUrls = import.meta.glob('../assets/sprites/dalarian-hd/*.webp', { query: '?url', import: 'default', eager: true });
-// traço de tinta em volta do herói (silhueta escura deslocada em volta)
-function inkSheet(img, px = 3) {
-  const c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
-  const sil = document.createElement('canvas'); sil.width = img.width; sil.height = img.height;
-  const s = sil.getContext('2d'); s.drawImage(img, 0, 0); s.globalCompositeOperation = 'source-in'; s.fillStyle = 'rgba(16,8,20,0.95)'; s.fillRect(0, 0, c.width, c.height);
-  const g = c.getContext('2d');
-  for (let a = 0; a < 12; a++) { const t = (a / 12) * Math.PI * 2; g.drawImage(sil, Math.cos(t) * px, Math.sin(t) * px); }
-  g.drawImage(img, 0, 0);
-  return c;
-}
-async function loadHeroSprites() {
-  const meta = { ...heroMeta, urls: {} };
-  for (const [path, url] of Object.entries(sheetUrls)) meta.urls[path.split('/').pop().replace('.webp', '')] = url;
-  const sheets = {};
-  await Promise.all(Object.keys(meta.anims).map((name) => new Promise((ok, fail) => {
-    const img = new Image(); img.onload = () => { sheets[name] = inkSheet(img); ok(); }; img.onerror = fail; img.src = meta.urls[name];
-  })));
-  return { meta, sheets };
-}
-
 // =====================================================================
 // Terra de Gor: isométrico pintado, tudo desenhado por código em Canvas 2D.
 // O mundo usa unidades fixas (tile 64x32); a tela aplica zoom para caber
@@ -69,7 +47,7 @@ const toLow = (cx, cy) => [cx * DPR / (zoom * camZoom), cy * DPR / (zoom * camZo
 let sprites = null, heroDef = null, roomIndex = 0, wave = 0, waveTimer = 0, roomState = 'luta', fade = 0, power = 0;
 async function start(def) {
   heroDef = def;
-  sprites = await loadHeroSprites(def.id);
+  sprites = await createLiveHero({ res: 2, height: 92 });
   setupHud(def);
   enterRoom(0);
 }
@@ -80,8 +58,8 @@ function enterRoom(n) {
   world = new World(map, art, fx);
   world.ground = paintGround(map);
   world.doorOpen = false; world.reward = map.recompensa; world.hitstop = 0; world.punch = 0;
-  hero = new Hero(world, sprites, heroDef);
-  hero.anim.scale = 92 / 196;
+  hero = new Hero(world, null, heroDef);
+  hero.anim = sprites;
   if (prev) { hero.hp = prev.hp; hero.cd = prev.cd; }
   hero.atk = 20 * (1 + power * 0.25);
   // começa perto da borda de baixo, entrando na sala

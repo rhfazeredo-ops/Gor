@@ -62,6 +62,7 @@ export class Hero {
     if (Math.abs(dx) + Math.abs(dy) < 1e-4) return;
     const l = Math.hypot(dx, dy); this.face = { x: dx / l, y: dy / l };
     this.anim.dir = dirFromTileVec(dx, dy);
+    this.anim.yawTarget = Math.atan2(dx - dy, dx + dy);
   }
   start(type, anim, dur) {
     this.action = { type, t: 0, dur, fired: false, swung: false };

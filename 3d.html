@@ -6,24 +6,25 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <title>Terra de Gor</title>
-    <link rel="stylesheet" href="/src/iso/style.css" />
+    <link rel="stylesheet" href="/src/g3d/style.css" />
   </head>
   <body>
     <canvas id="game"></canvas>
+    <div id="fade"></div>
     <div id="hud" class="hidden">
+      <div id="portrait"></div>
       <div id="hero-name"></div>
       <div class="bar"><div id="hp-fill"></div><span id="hp-text"></span></div>
-      <div id="help">WASD andar · Mouse mirar · Clique atacar · Q Consagração · E Proteção · Espaço esquivar</div>
     </div>
+    <div id="help">WASD correr · Mouse mirar · Clique atacar · Q Consagração · E Proteção · Espaço rolar</div>
     <div id="objective"></div>
     <div id="banner"></div>
-    <div id="dead">Você caiu… voltando em instantes</div>
-    <!-- Seleção de heróis -->
+    <div id="dead">Você caiu… voltando à sala</div>
+    <div id="loading">Forjando o paladino…</div>
     <div id="select" class="hidden">
       <h1>Escolha seu herói</h1>
       <div class="grid"></div>
     </div>
-    <!-- Controles de toque -->
     <div id="joy-zone"><div id="joy-base"><div id="joy-knob"></div></div></div>
     <div id="buttons" class="hidden">
       <button id="btn-attack" class="btn big skill"><span class="key">Clique</span></button>
@@ -34,6 +35,6 @@
     </div>
     <button id="btn-full" class="btn tiny">⛶</button>
     <div id="rotate">Gire o celular para jogar na horizontal ↻</div>
-    <script type="module" src="/src/iso/main.js"></script>
+    <script type="module" src="/src/g3d/main.js"></script>
   </body>
 </html>

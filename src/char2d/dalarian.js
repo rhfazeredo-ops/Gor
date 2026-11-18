@@ -7,8 +7,8 @@ import { box, prism, gem, spike, place } from './lowpoly.js';
 // pele #da9162 / #ed996f.
 // =====================================================================
 const C = {
-  blue: 0x2d397e, blueD: 0x232c66, gold: 0xf29c27, goldD: 0xc9771b, steel: 0xbc9da8, steelD: 0x8f7a8a,
-  under: 0x6a5a6e, leather: 0x82492f, leatherD: 0x5e3420, skin: 0xe39a6a, hair: 0xf2b53a, hairD: 0xd9952a,
+  blue: 0x2d397e, blueD: 0x232c66, gold: 0xf29c27, goldD: 0xc9771b, steel: 0xa8909e, steelD: 0x7a6676,
+  under: 0x4a3e52, leather: 0x82492f, leatherD: 0x5e3420, skin: 0xe39a6a, hair: 0xf2b53a, hairD: 0xd9952a,
   beard: 0x9a5a2a, eye: 0x2a1c22, gemB: 0x3f86ff, wood: 0x6b3a26,
 };
 const metal = { tag: 'metal' };
