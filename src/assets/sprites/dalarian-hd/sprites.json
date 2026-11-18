@@ -1,10 +1,10 @@
 {
-  "frame": 220,
-  "frameW": 220,
-  "frameH": 250,
+  "frame": 300,
+  "frameW": 300,
+  "frameH": 300,
   "anchor": [
-    110,
-    236
+    150,
+    262
   ],
   "dirs": [
     "S",
@@ -18,14 +18,14 @@
   ],
   "style": "pintado",
   "anims": {
-    "idle": {
-      "frames": 6,
-      "fps": 5,
+    "corrida": {
+      "frames": 10,
+      "fps": 16.7,
       "loop": true
     },
-    "walk": {
+    "idle": {
       "frames": 8,
-      "fps": 11,
+      "fps": 3.5,
       "loop": true
     },
     "ataque": {
@@ -40,22 +40,22 @@
     },
     "consagracao": {
       "frames": 10,
-      "fps": 11,
+      "fps": 11.1,
       "loop": false
     },
     "protecao": {
       "frames": 6,
-      "fps": 11,
+      "fps": 10.9,
       "loop": false
     },
     "esquiva": {
       "frames": 4,
-      "fps": 18,
+      "fps": 18.2,
       "loop": false
     },
     "dano": {
-      "frames": 3,
-      "fps": 12,
+      "frames": 4,
+      "fps": 16,
       "loop": false
     }
   }

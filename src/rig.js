@@ -357,6 +357,24 @@ export const POSES = {
     return p;
   },
 
+  // Corrida: tronco inclinado, joelhos altos, chute do calcanhar, fase de voo,
+  // braço livre bombeando, martelo carregado para trás, capa esvoaçando.
+  corrida(t) {
+    const f = (t / 0.6) * Math.PI * 2;
+    const s = Math.sin(f), c = Math.cos(f);
+    const kickL = Math.max(0, Math.sin(f + 0.7)), kickR = Math.max(0, Math.sin(f + 0.7 + Math.PI));
+    return {
+      hipsY: -0.1 + 0.09 * Math.abs(Math.sin(f)), hipsZ: 0.02,
+      hips: [0, s * 0.22, 0],
+      spine: [0.3, -s * 0.16, 0], chest: [0.08, -s * 0.2, c * 0.03], neck: [-0.2, s * 0.1, 0], head: [-0.16, s * 0.12, 0],
+      thighL: [-s * 1.05 - 0.2, 0, 0.05], shinL: [0.3 + kickL * 1.55, 0, 0], footL: [-0.15 - s * 0.35, 0, 0],
+      thighR: [s * 1.05 - 0.2, 0, -0.05], shinR: [0.3 + kickR * 1.55, 0, 0], footR: [-0.15 + s * 0.35, 0, 0],
+      upperArmL: [s * 0.95 - 0.1, 0, 0.22], foreArmL: [-1.35 - Math.max(0, -s) * 0.35, 0, 0], handL: [0.1, 0, 0],
+      upperArmR: [0.45 - s * 0.25, 0, -0.28], foreArmR: [-0.45, 0, 0], handR: [2.35 + s * 0.12, 0.25, 0],
+      cape1: [0.16 + Math.sin(f * 2) * 0.05, 0, Math.sin(f) * 0.05], cape2: [0.16 + Math.sin(f * 2 + 1) * 0.1, 0, 0], cape3: [0.14 + Math.sin(f * 2 + 2) * 0.14, 0, 0],
+    };
+  },
+
   // Ataque básico: golpe diagonal com as duas mãos (da direita-alta para a esquerda-baixa).
   // n = 0..1 (fase normalizada). O impacto acontece em ~0.55.
   ataque(n, wpn, variante = 0) {
@@ -459,8 +477,8 @@ export class Animator {
   update(dt, speed01) {
     this.t += dt;
     this.speed += (speed01 - this.speed) * Math.min(1, dt * 10);
-    const idle = POSES.idle(this.t, this.arma);
-    const run = POSES.run(this.t, this.arma);
+    const idle = this.cycle ? POSES[this.cycle](this.t, this.arma) : POSES.idle(this.t, this.arma);
+    const run = this.cycle ? idle : POSES.run(this.t, this.arma);
     const w = ease(Math.min(1, this.speed));
     const pose = {};
     for (const k of new Set([...Object.keys(idle), ...Object.keys(run)])) {
@@ -495,6 +513,12 @@ export class Animator {
       applyAction(a, 1);
       if (a.n >= 1) this.action = null;
     }
+
+    // capa pende com a gravidade: compensa a inclinação do tronco e limita o balanço
+    const lean = ((pose.spine || [0])[0] || 0) + ((pose.chest || [0])[0] || 0) + ((pose.hips || [0])[0] || 0);
+    const c1 = pose.cape1 || [0, 0, 0];
+    pose.cape1 = [Math.max(-0.7, Math.min(0.45, c1[0] - lean * 0.9)), c1[1], c1[2]];
+    for (const k of ['cape2', 'cape3']) if (pose[k]) pose[k] = [Math.max(-0.05, Math.min(0.35, pose[k][0])), pose[k][1], pose[k][2]];
 
     // aplica nos ossos
     const B = this.rig.bones;

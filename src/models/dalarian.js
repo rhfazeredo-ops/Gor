@@ -130,7 +130,6 @@ export function buildDalarian() {
     P(head, new THREE.SphereGeometry(0.04, 8, 6), M.skin, s * 0.19, 0.14, 0.0, 0, 0, 0, 0.5, 1, 0.8);   // orelha
   }
   // sorriso, bigode leve e cavanhaque
-  P(head, new THREE.TorusGeometry(0.045, 0.008, 4, 10, Math.PI * 0.8), M.dark, 0, 0.05, 0.16, 0, 0, Math.PI * 1.1);
   P(head, rbox(0.07, 0.07, 0.05, 0.02), M.beard, 0, -0.015, 0.145);
   P(head, rbox(0.03, 0.04, 0.03, 0.01), M.beard, 0, 0.025, 0.165);
   // cabelo: calota, franja jogada para o lado e mechas longas até os ombros
@@ -156,7 +155,7 @@ export function buildDalarian() {
     P(ua, new THREE.CylinderGeometry(0.15, 0.14, 0.18, 14), M.steel, 0, -0.24, 0);
     P(ua, new THREE.TorusGeometry(0.15, 0.018, 6, 16), M.gold, 0, -0.15, 0, Math.PI / 2);
     // ombreira em 3 camadas com borda dourada e gema azul
-    const pd = new THREE.Group(); pd.position.set(s * 0.03, 0.0, 0); pd.rotation.z = -s * 0.32; ua.add(pd);
+    const pd = new THREE.Group(); pd.position.set(s * 0.02, -0.02, 0); pd.rotation.z = -s * 0.32; pd.scale.setScalar(0.74); ua.add(pd);
     P(pd, new THREE.SphereGeometry(0.27, 20, 12, 0, Math.PI * 2, 0, Math.PI * 0.5), M.steel, 0, 0.02, 0, 0, 0, 0, 1.12, 0.82, 1.1);
     P(pd, new THREE.TorusGeometry(0.27, 0.03, 8, 24), M.gold, 0, 0.02, 0, Math.PI / 2, 0, 0, 1.12, 1.1, 1);
     P(pd, new THREE.TorusGeometry(0.17, 0.022, 8, 20), M.gold, 0, 0.17, 0, Math.PI / 2, 0, 0, 1.12, 1.1, 1);

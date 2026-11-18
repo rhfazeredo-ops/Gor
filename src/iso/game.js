@@ -49,7 +49,7 @@ export class Hero {
     this.ab = ABILITIES[def.id];
     this.x = world.map.start.x; this.y = world.map.start.y; this.r = 0.28;
     this.anim = new SpriteAnim(sprites);
-    this.speed = 3.3; this.atk = 20;
+    this.speed = 4.3; this.atk = 20;
     this.maxHp = 200; this.hp = this.maxHp;
     this.cd = { atk: 0, q: 0, e: 0, dash: 0 };
     this.action = null; this.combo = 0;
@@ -135,7 +135,7 @@ export class Hero {
         W.move(this, mv.x * sp * dt, mv.y * sp * dt);
         if (!this.action) this.faceTo(mv.x, mv.y);
       }
-      if (!this.action) this.anim.play(mag > 0.1 ? 'walk' : 'idle');
+      if (!this.action) this.anim.play(mag > 0.1 ? 'corrida' : 'idle');
     }
 
     // ---- tempo das ações ----
