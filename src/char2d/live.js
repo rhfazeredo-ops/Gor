@@ -3,7 +3,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { buildDalarian } from '../models/dalarian.js';
 import { LowPolyPainter } from './lowpoly.js';
 import { dalarianParts } from './dalarian.js';
-import animUrl from '../assets/anim/heroi.glb?url';
+import animData from '../assets/anim/heroi-glb.js';
 
 // =====================================================================
 // Herói desenhado em Canvas 2D a cada quadro, animado por captura de
@@ -43,7 +43,11 @@ const wp = (o) => new THREE.Vector3().setFromMatrixPosition(o.matrixWorld);
 const wq = (o) => o.getWorldQuaternion(new THREE.Quaternion());
 
 export async function createLiveHero({ res = 2, height = 92 } = {}) {
-  const gltf = await new GLTFLoader().loadAsync(animUrl);
+  // decodifica o arquivo embutido sem usar fetch (páginas com CSP bloqueiam data:)
+  const b64 = animData.slice(animData.indexOf(',') + 1);
+  const bin = atob(b64), buf = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
+  const gltf = await new GLTFLoader().parseAsync(buf.buffer, '');
   const lib = gltf.scene;
   const bone = (n) => lib.getObjectByName(THREE.PropertyBinding.sanitizeNodeName(n));
   lib.traverse((o) => { if (o.isSkinnedMesh) { o.skeleton.pose(); o.visible = false; } });
@@ -95,13 +99,13 @@ export async function createLiveHero({ res = 2, height = 92 } = {}) {
   const tmpQ = new THREE.Quaternion(), pq = new THREE.Quaternion();
 
   const live = {
-    isLive: true, name: 'idle', t: 0, dir: 0, yaw: 0, yawTarget: 0, onEnd: null, grip: 0, capeLift: 0.06, phase: 0, scale: 1,
-    get info() { return { loop: STATES[this.name].loop }; },
+    isLive: true, name: '', t: 0, dir: 0, yaw: 0, yawTarget: 0, onEnd: null, grip: 0, capeLift: 0.06, phase: 0, scale: 1,
+    get info() { return { loop: (STATES[this.name] || STATES.idle).loop }; },
     get done() { const st = STATES[this.name]; return !st.loop && actions[this.name].time >= (st.to ?? clips[st.clip].duration) - 1e-3; },
     play(name, { restart = false, onEnd = null } = {}) {
       if (!STATES[name]) name = 'idle';
       if (this.name === name && !restart && STATES[name].loop) return;
-      const st = STATES[name], next = actions[name], prev = actions[this.name];
+      const st = STATES[name], next = actions[name], prev = this.name ? actions[this.name] : null;
       next.reset(); next.time = st.from || 0; next.paused = false; next.setEffectiveWeight(1); next.play();
       if (prev && prev !== next) prev.crossFadeTo(next, name === 'dano' || name === 'esquiva' ? 0.06 : 0.12, false);
       this.name = name; this.t = 0; this.onEnd = onEnd;

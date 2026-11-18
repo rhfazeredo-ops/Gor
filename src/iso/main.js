@@ -47,7 +47,8 @@ const toLow = (cx, cy) => [cx * DPR / (zoom * camZoom), cy * DPR / (zoom * camZo
 let sprites = null, heroDef = null, roomIndex = 0, wave = 0, waveTimer = 0, roomState = 'luta', fade = 0, power = 0;
 async function start(def) {
   heroDef = def;
-  sprites = await createLiveHero({ res: 2, height: 92 });
+  try { sprites = await createLiveHero({ res: 2, height: 92 }); }
+  catch (e) { document.body.insertAdjacentHTML('beforeend', `<div style="position:fixed;inset:0;display:grid;place-items:center;color:#fff;background:#200;z-index:99;padding:20px;font:14px monospace">Erro ao carregar o herói: ${e && e.message}</div>`); throw e; }
   setupHud(def);
   enterRoom(0);
 }

@@ -8,3 +8,5 @@ for (const a of doc.getRoot().listAnimations()) if (!KEEP.has(a.getName())) a.di
 await doc.transform(prune());
 await io.write('src/assets/anim/heroi.glb', doc);
 console.log('ok', doc.getRoot().listAnimations().map((a) => a.getName()).join(', '));
+import fs from 'node:fs';
+fs.writeFileSync('src/assets/anim/heroi-glb.js', '// heroi.glb em base64 (gerado por tools/prep-anim.mjs) para embutir sem fetch\nexport default "' + fs.readFileSync('src/assets/anim/heroi.glb').toString('base64') + '";\n');
