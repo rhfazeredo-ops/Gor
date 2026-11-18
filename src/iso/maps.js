@@ -13,7 +13,11 @@
 // Salas-arena (estilo Hades): ilhas de pedra sobre o abismo, paredes no fundo,
 // porta de saída (X) que abre quando a sala é limpa, ondas de inimigos.
 //   ;  laje entalhada   X  porta   F  braseiro   R  entulho
+import { buildBigDesert } from './bigdesert.js';
 export const ROOMS = [
+  { build: buildBigDesert },
+];
+export const OLD_ROOMS = [
   {
     nome: 'Salão da Vigília', tema: 'castelo', ondas: [['g', 'g', 'g'], ['g', 'g', 'r', 'g']], recompensa: 'cura',
     tiles: [

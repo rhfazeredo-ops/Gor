@@ -1,6 +1,7 @@
 import { TW, TH, WALL_H } from './art.js';
 import { RES } from './art-hd.js';
 import { drawFlame } from './castle.js';
+import { drawBigGround, pushDecos } from './bigdesert.js';
 import { SpriteAnim, dirFromTileVec } from './sprites.js';
 import { ABILITIES } from '../data/abilities.js';
 
@@ -333,6 +334,7 @@ export function shadow(ctx, sx, sy, r) {
 
 // ---------------- cenário ----------------
 export function drawWorld(ctx, W, hero, entities, vw, vh, time) {
+  if (W.map.grande) { drawBigGround(ctx, W); return; }
   // chão inteiro pintado num canvas grande: desenha só o pedaço visível
   const G = W.ground;
   const gx = W.cam.x - (-G.ox), gy = W.cam.y;       // canto da tela dentro do chão
@@ -401,6 +403,7 @@ export function drawObjects(ctx, W, hero, entities, vw, vh, time) {
     ctx.drawImage(ms.img, sx - ms.ax, sy - ms.ay, ms.w, ms.h);
     ctx.globalAlpha = 1;
   } });
+  if (m.decos) pushDecos(list, W, ctx, hero, vw, vh);
   for (const e of entities) list.push({ key: e.x + e.y, draw: () => e.draw(ctx) });
   list.sort((a, b) => a.key - b.key);
   for (const o of list) o.draw();

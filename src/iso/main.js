@@ -2,6 +2,7 @@ import { buildArt, paintGround, RES } from './art-hd.js';
 import { drawCavern, foregroundRocks } from './castle.js';
 import { drawThemeBackground } from './themes.js';
 import { desertMassifs } from './massif.js';
+import { loadBigDesert, buildBigDesert, sprite } from './bigdesert.js';
 import { ROOMS, parseMap } from './maps.js';
 import { createLiveHero } from '../char2d/live.js';
 import { Input } from './input.js';
@@ -50,6 +51,8 @@ const toLow = (cx, cy) => [cx * DPR / (zoom * camZoom), cy * DPR / (zoom * camZo
 let sprites = null, heroDef = null, roomIndex = 0, wave = 0, waveTimer = 0, roomState = 'luta', fade = 0, power = 0;
 async function start(def) {
   heroDef = def;
+  await loadBigDesert();
+  art.themes.grande = { props: { flor: sprite('flores-1', 0.075) }, rocks: [], ambient: 'rgba(70,20,10,0.10)' };
   try { sprites = await createLiveHero({ res: 2, height: 92 }); }
   catch (e) { document.body.insertAdjacentHTML('beforeend', `<div style="position:fixed;inset:0;display:grid;place-items:center;color:#fff;background:#200;z-index:99;padding:20px;font:14px monospace">Erro ao carregar o herói: ${e && e.message}</div>`); throw e; }
   setupHud(def);
@@ -57,10 +60,10 @@ async function start(def) {
 }
 function enterRoom(n) {
   roomIndex = n;
-  const map = parseMap(ROOMS[n]);
+  const map = ROOMS[n].build ? ROOMS[n].build() : parseMap(ROOMS[n]);
   const prev = hero;
   world = new World(map, art, fx);
-  world.ground = paintGround(map);
+  world.ground = map.grande ? null : paintGround(map);
   world.fgRocks = map.tema ? foregroundRocks(map) : [];
   world.massifs = map.tema === 'deserto' ? desertMassifs(map) : [];
   world.doorOpen = false; world.reward = map.recompensa; world.hitstop = 0; world.punch = 0;
