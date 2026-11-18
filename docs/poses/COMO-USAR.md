@@ -1,5 +1,13 @@
 # Animações com IA em cima do esqueleto (método do vídeo)
 
+**Visual pintado (atual):** poses em `docs/poses/dalarian-hd/<animação>_<direção>.png` (grade 4x2, quadros 384x512).
+Gerar de novo: `/tools/pose-sheets.html?hero=dalarian&cw=384&ch=512&cols=4&ppu=100&feet=400&labels=0`.
+Voltar para o jogo: `python3 tools/import-pose-sheet.py <imagem> walk SE public/sprites/dalarian --mirror`
+(o `--mirror` gera o lado oposto espelhado: SE→SW, E→W, NE→NW).
+
+---
+(abaixo: o modo pixel art antigo)
+
 1. **Poses** (já geradas): `docs/poses/dalarian/<animação>.png` (8 linhas = direções S, SE, E, NE, N, NW, W, SW)
    e, uma direção por imagem, `docs/poses/dalarian/por-direcao/<animação>_<direção>.png`.
    Para gerar de novo: `npm run dev` e abrir `/tools/pose-sheets.html?hero=dalarian`.

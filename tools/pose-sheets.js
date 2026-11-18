@@ -9,9 +9,12 @@ import { HEROES } from '../src/data/heroes.js';
 //   branco, arma em amarelo. Câmera isométrica do jogo, 8 direções.
 // Uso: tools/pose-sheets.html?hero=dalarian
 // =====================================================================
-const CELL = 192;                 // tamanho de cada quadro
-const PX_PER_UNIT = 58;
-const FEET_Y = 168;               // pés dentro do quadro
+// parâmetros pela URL: ?cw=384&ch=512&cols=4&ppu=150&feet=470&dir=S
+const Q = new URLSearchParams(location.search);
+const CW = +(Q.get('cw') || 192), CH = +(Q.get('ch') || 192);   // tamanho de cada quadro
+const COLS = +(Q.get('cols') || 0);                                 // 0 = uma linha por direção
+const PX_PER_UNIT = +(Q.get('ppu') || 58);
+const FEET_Y = +(Q.get('feet') || 168);                             // pés dentro do quadro
 const DIRS = ['S', 'SE', 'E', 'NE', 'N', 'NW', 'W', 'SW'];
 const ANIMS = [
   ['idle', null, 2.86, 6, 0], ['walk', null, 0.66, 8, 1],
@@ -26,41 +29,50 @@ export async function makeSheets(id, { bg = '#00b140', labels = true } = {}) {
   const rig = buildCharacter(def, { outline: false });
   const B = rig.bones;
   const cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 100);
-  const half = CELL / PX_PER_UNIT / 2;
+  const hw = CW / PX_PER_UNIT / 2, hh = CH / PX_PER_UNIT / 2;
   const elev = THREE.MathUtils.degToRad(30);
   cam.position.set(0, Math.sin(elev) * 20, Math.cos(elev) * 20);
   cam.lookAt(0, 0, 0);
-  const offY = (FEET_Y - CELL / 2) / PX_PER_UNIT;
-  Object.assign(cam, { left: -half, right: half, top: half + offY, bottom: -half + offY });
+  const offY = (FEET_Y - CH / 2) / PX_PER_UNIT;
+  Object.assign(cam, { left: -hw, right: hw, top: hh + offY, bottom: -hh + offY });
   cam.updateProjectionMatrix(); cam.updateMatrixWorld();
   const v = new THREE.Vector3();
   const P = (obj, x = 0, y = 0, z = 0) => {
     obj.updateWorldMatrix(true, false);
     v.set(x, y, z).applyMatrix4(obj.matrixWorld).project(cam);
-    return [(v.x + 1) / 2 * CELL, (1 - v.y) / 2 * CELL, v.z];
+    return [(v.x + 1) / 2 * CW, (1 - v.y) / 2 * CH, v.z];
   };
 
   const sheets = {};
+  const k = PX_PER_UNIT / 58;                 // espessura das linhas acompanha o tamanho
+  const onlyDir = Q.get('dir');
   for (const [name, action, dur, frames, speed] of ANIMS) {
-    const c = document.createElement('canvas');
-    c.width = CELL * frames; c.height = CELL * 8;
-    const ctx = c.getContext('2d');
-    ctx.fillStyle = bg; ctx.fillRect(0, 0, c.width, c.height);
-    for (let d = 0; d < 8; d++) {
-      rig.root.rotation.y = d * Math.PI / 4;
-      for (let f = 0; f < frames; f++) {
-        const anim = new Animator(rig, def.arma);
-        anim.speed = speed;
-        if (action) { anim.action = { name: action, n: Math.min(0.999, (f + 0.5) / frames), dur, variante: name === 'ataque2' ? 1 : 0 }; anim.update(0, speed); }
-        else { anim.t = (f / frames) * dur; anim.update(0, speed); }
-        rig.root.updateMatrixWorld(true);
-        ctx.save(); ctx.translate(f * CELL, d * CELL);
-        drawSkeleton(ctx, B, P, rig);
-        if (labels) { ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.font = '12px monospace'; ctx.fillText(`${DIRS[d]} ${f + 1}`, 6, 16); }
-        ctx.restore();
+    // modo grade (COLS>0): uma imagem por direção, quadros em COLS colunas
+    const dirList = COLS ? DIRS.map((d, i) => [d, i]).filter(([d]) => !onlyDir || d === onlyDir) : [[null, -1]];
+    for (const [dname, di] of dirList) {
+      const cols = COLS || frames, rows = COLS ? Math.ceil(frames / COLS) : 8;
+      const c = document.createElement('canvas');
+      c.width = CW * cols; c.height = CH * rows;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = bg; ctx.fillRect(0, 0, c.width, c.height);
+      for (let d = 0; d < 8; d++) {
+        if (COLS && d !== di) continue;
+        rig.root.rotation.y = d * Math.PI / 4;
+        for (let f = 0; f < frames; f++) {
+          const anim = new Animator(rig, def.arma);
+          anim.speed = speed;
+          if (action) { anim.action = { name: action, n: Math.min(0.999, (f + 0.5) / frames), dur, variante: name === 'ataque2' ? 1 : 0 }; anim.update(0, speed); }
+          else { anim.t = (f / frames) * dur; anim.update(0, speed); }
+          rig.root.updateMatrixWorld(true);
+          const cx = COLS ? (f % COLS) : f, cy = COLS ? Math.floor(f / COLS) : d;
+          ctx.save(); ctx.translate(cx * CW, cy * CH); ctx.scale(k, k);
+          drawSkeleton(ctx, B, (o, x, y, z) => { const p = P(o, x, y, z); return [p[0] / k, p[1] / k, p[2]]; }, rig);
+          ctx.restore();
+          if (labels) { ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.font = `${Math.round(12 * k)}px monospace`; ctx.fillText(`${DIRS[d]} ${f + 1}`, cx * CW + 6, cy * CH + 16 * k); }
+        }
       }
+      sheets[dname ? `${name}_${dname}` : name] = c.toDataURL('image/png');
     }
-    sheets[name] = c.toDataURL('image/png');
   }
   return sheets;
 }
@@ -110,5 +122,5 @@ function drawSkeleton(ctx, B, P, rig) {
 }
 
 const id = new URLSearchParams(location.search).get('hero') || 'dalarian';
-makeSheets(id).then((s) => { window.__poses = s; document.body.append('pronto'); })
+makeSheets(id, { labels: Q.get('labels') !== '0' }).then((s) => { window.__poses = s; document.body.append('pronto'); })
   .catch((e) => { window.__posesErr = String(e.stack); document.body.append('erro: ' + e.stack); });
