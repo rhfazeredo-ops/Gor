@@ -8,7 +8,7 @@ export async function loadHeroSprites(id) {
     const img = new Image();
     img.onload = () => { sheets[name] = img; ok(); };
     img.onerror = fail;
-    img.src = base + name + '.png';
+    img.src = (meta.urls && meta.urls[name]) || base + name + (meta.style === 'pintado' ? '.webp' : '.png');
   })));
   return { meta, sheets };
 }
@@ -33,7 +33,18 @@ export class SpriteAnim {
     if (this.done && this.onEnd) { const f = this.onEnd; this.onEnd = null; f(); }
   }
   draw(ctx, sx, sy, flash = 0) {
-    const a = this.info, F = this.s.meta.frame, [ax, ay] = this.s.meta.anchor;
+    const M = this.s.meta, a = this.info, F = M.frame, [ax, ay] = M.anchor;
+    if (M.frameW) {        // sprites pintados (alta resolução), desenhados em escala
+      const fw = M.frameW, fh = M.frameH, k = this.scale || 1;
+      let f = Math.floor(this.t * a.fps); f = a.loop ? f % a.frames : Math.min(a.frames - 1, f);
+      const img = this.s.sheets[this.name];
+      ctx.drawImage(img, f * fw, this.dir * fh, fw, fh, sx - ax * k, sy - ay * k, fw * k, fh * k);
+      if (flash > 0) {
+        ctx.save(); ctx.globalAlpha = Math.min(1, flash) * 0.7; ctx.globalCompositeOperation = 'lighter';
+        ctx.drawImage(img, f * fw, this.dir * fh, fw, fh, sx - ax * k, sy - ay * k, fw * k, fh * k); ctx.restore();
+      }
+      return;
+    }
     let f = Math.floor(this.t * a.fps);
     f = a.loop ? f % a.frames : Math.min(a.frames - 1, f);
     const img = this.s.sheets[this.name];

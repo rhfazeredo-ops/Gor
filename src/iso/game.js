@@ -1,4 +1,5 @@
 import { TW, TH, WALL_H } from './art.js';
+import { RES } from './art-hd.js';
 import { SpriteAnim, dirFromTileVec } from './sprites.js';
 import { ABILITIES } from '../data/abilities.js';
 
@@ -213,7 +214,7 @@ export class Hero {
   draw(ctx) {
     const W = this.world;
     const [sx, sy] = W.toScreen(this.x, this.y);
-    shadow(ctx, sx, sy, 14);
+    shadow(ctx, sx, sy, 22);
     if (!this.alive) return;
     if (this.respawnBlink > 0 && Math.floor(this.respawnBlink * 12) % 2) return;
     this.anim.draw(ctx, sx, sy, this.flash);
@@ -307,13 +308,13 @@ export class Slime {
       if (hop >= 0.2 && hop < 0.8) z = Math.sin((hop - 0.2) / 0.6 * Math.PI) * 8;
       if (this.state === 'lunge') { f = 2; z = 6; }
     }
-    shadow(ctx, sx, sy, 10 * (this.kind === 'roxa' ? 1.5 : 1));
+    shadow(ctx, sx, sy, 14 * (this.kind === 'roxa' ? 1.5 : 1));
     if (this.spawnT > 0) { ctx.globalAlpha = 1 - this.spawnT / 0.5; }
-    ctx.drawImage(art.frames[f], Math.round(sx - art.ax), Math.round(sy - art.ay - z));
+    ctx.drawImage(art.frames[f], sx - art.ax, sy - art.ay - z, art.w, art.h);
     ctx.globalAlpha = 1;
     // barra de vida
     if (this.hp < this.maxHp) {
-      const w = Math.round(18 * (this.kind === 'roxa' ? 1.4 : 1)), x0 = Math.round(sx - w / 2), y0 = Math.round(sy - art.ay - 6);
+      const w = Math.round(22 * (this.kind === 'roxa' ? 1.4 : 1)), x0 = sx - w / 2, y0 = sy - art.ay - 4;
       ctx.fillStyle = '#1a1020'; ctx.fillRect(x0 - 1, y0 - 1, w + 2, 4);
       ctx.fillStyle = '#5a1a1a'; ctx.fillRect(x0, y0, w, 2);
       ctx.fillStyle = '#e04a3a'; ctx.fillRect(x0, y0, Math.max(0, Math.round(w * this.hp / this.maxHp)), 2);
@@ -322,40 +323,27 @@ export class Slime {
 }
 
 export function shadow(ctx, sx, sy, r) {
-  ctx.fillStyle = 'rgba(16,10,24,0.35)';
-  const rx = Math.round(r), ry = Math.round(r / 2);
-  for (let y = -ry; y <= ry; y++) {
-    const w = Math.round(rx * Math.sqrt(1 - (y * y) / (ry * ry + 0.01)));
-    ctx.fillRect(Math.round(sx) - w, Math.round(sy) + y, w * 2, 1);
-  }
+  const g = ctx.createRadialGradient(sx, sy, 0, sx, sy, r);
+  g.addColorStop(0, 'rgba(10,6,20,0.5)'); g.addColorStop(1, 'rgba(10,6,20,0)');
+  ctx.save(); ctx.translate(sx, sy); ctx.scale(1, 0.5); ctx.translate(-sx, -sy);
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(sx, sy, r, 0, Math.PI * 2); ctx.fill(); ctx.restore();
 }
 
 // ---------------- cenário ----------------
 export function drawWorld(ctx, W, hero, entities, vw, vh, time) {
-  const m = W.map, art = W.art;
-  // chão (só o que aparece na tela)
-  for (let j = 0; j < m.h; j++) for (let i = 0; i < m.w; i++) {
-    const kind = m.floor[j * m.w + i];
-    if (!kind) continue;
-    const [sx, sy] = W.toScreen(i, j);
-    const x = Math.round(sx - HALF_W), y = Math.round(sy);
-    if (x > vw || x < -TW || y > vh || y < -TH) continue;
-    const v = art.floors[kind][(i * 7 + j * 13) % 4];
-    ctx.drawImage(v, x, y);
-  }
-  // luz das tochas no chão
-  ctx.save(); ctx.globalCompositeOperation = 'lighter';
-  for (const p of m.props) if (p.kind === 'tocha') {
-    const [sx, sy] = W.toScreen(p.i + 0.5, p.j + 0.5);
-    const f = 0.85 + Math.sin(time * 9 + p.i) * 0.1 + Math.sin(time * 23 + p.j) * 0.05;
-    for (let k = 3; k >= 1; k--) {
-      ctx.fillStyle = `rgba(255,150,60,${0.05 * f})`;
-      const rx = 30 * k * f, ry = 15 * k * f;
-      for (let y = -ry; y <= ry; y += 1) { const w = rx * Math.sqrt(1 - (y * y) / (ry * ry)); ctx.fillRect(Math.round(sx - w), Math.round(sy + y), Math.round(w * 2), 1); }
-    }
-  }
-  ctx.restore();
+  // chão inteiro pintado num canvas grande: desenha só o pedaço visível
+  const G = W.ground;
+  const gx = W.cam.x - (-G.ox), gy = W.cam.y;       // canto da tela dentro do chão
+  const sx = Math.max(0, gx), sy = Math.max(0, gy);
+  const sw = Math.min(G.W - sx, vw - (sx - gx)), sh = Math.min(G.H - sy, vh - (sy - gy));
+  if (sw > 0 && sh > 0) ctx.drawImage(G.canvas, sx * RES, sy * RES, sw * RES, sh * RES, sx - gx, sy - gy, sw, sh);
 }
+
+const drawProp = (ctx, pr, x, y, alpha = 1) => {
+  if (alpha < 1) ctx.globalAlpha = alpha;
+  ctx.drawImage(pr.img, x - pr.ax, y - pr.ay, pr.w, pr.h);
+  ctx.globalAlpha = 1;
+};
 
 export function drawObjects(ctx, W, hero, entities, vw, vh, time) {
   const m = W.map, art = W.art;
@@ -364,34 +352,41 @@ export function drawObjects(ctx, W, hero, entities, vw, vh, time) {
   const [hsx, hsy] = W.toScreen(hero.x, hero.y);
   for (const w of m.walls) list.push({ key: w.i + w.j + 1, draw: () => {
     const [sx, sy] = W.toScreen(w.i, w.j);
-    const x = Math.round(sx - HALF_W), y = Math.round(sy - WALL_H);
+    const x = sx - HALF_W, y = sy - WALL_H;
     if (x > vw || x < -TW || y > vh || y < -TH - WALL_H) return;
-    const img = (w.wood ? art.wallsWood : art.walls)[(w.i * 3 + w.j) % (w.wood ? 2 : 3)];
-    // parede na frente do herói fica transparente
+    const img = (w.wood ? art.wallsWood : art.walls)[(w.i * 3 + w.j) % (w.wood ? 2 : 4)];
     const front = w.i + w.j + 1 > heroKey && Math.abs(sx - hsx) < 44 && sy - hsy > -8 && sy - hsy < 70;
     if (front) ctx.globalAlpha = 0.4;
-    ctx.drawImage(img, x, y);
+    ctx.drawImage(img, x, y, TW, TH + WALL_H);
     ctx.globalAlpha = 1;
   } });
   for (const p of m.props) list.push({ key: p.i + p.j + 1, draw: () => {
     const pr = art.props[p.kind];
     const [sx, sy] = W.toScreen(p.i + 0.5, p.j + 0.5);
-    if (sx < -80 || sx > vw + 80 || sy < -20 || sy > vh + 140) return;
-    const tall = pr.img.height > 60;
-    const front = tall && p.i + p.j + 1 > heroKey && Math.abs(sx - hsx) < 30 && sy - hsy > 0 && sy - hsy < 90;
-    if (p.kind !== 'tocha') shadow(ctx, sx, sy, pr.img.width * 0.35);
-    if (front) ctx.globalAlpha = 0.45;
-    ctx.drawImage(pr.img, Math.round(sx - pr.ax), Math.round(sy - pr.ay));
-    ctx.globalAlpha = 1;
+    if (sx < -120 || sx > vw + 120 || sy < -20 || sy > vh + 200) return;
+    const tall = pr.h > 60;
+    const front = tall && p.i + p.j + 1 > heroKey && Math.abs(sx - hsx) < 40 && sy - hsy > 0 && sy - hsy < pr.h * 0.9;
+    if (p.kind !== 'tocha') shadow(ctx, sx + 4, sy + 2, pr.w * 0.42);
+    drawProp(ctx, pr, sx, sy, front ? 0.45 : 1);
     if (p.kind === 'tocha') {
-      const f = Math.floor(time * 10 + p.i) % 3;
-      const fx = Math.round(sx - pr.ax + pr.flame.x), fy = Math.round(sy - pr.ay + pr.flame.y);
-      ctx.fillStyle = '#ff8a2a'; ctx.fillRect(fx - 3, fy - 4 - f, 6, 6 + f);
-      ctx.fillStyle = '#ffd24a'; ctx.fillRect(fx - 2, fy - 3 - f, 4, 4 + f);
-      ctx.fillStyle = '#fff6c0'; ctx.fillRect(fx - 1, fy - 1, 2, 2);
+      const f = 0.85 + Math.sin(time * 11 + p.i) * 0.1 + Math.sin(time * 23 + p.j) * 0.06;
+      const fx = sx - pr.ax + pr.flame.x, fy = sy - pr.ay + pr.flame.y;
+      ctx.save(); ctx.globalCompositeOperation = 'lighter';
+      const g = ctx.createRadialGradient(fx, fy - 4, 0, fx, fy - 4, 16 * f);
+      g.addColorStop(0, 'rgba(255,250,210,1)'); g.addColorStop(0.3, 'rgba(255,190,70,0.9)'); g.addColorStop(1, 'rgba(255,90,20,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(fx, fy - 5, 7 * f, 12 * f, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
     }
   } });
   for (const e of entities) list.push({ key: e.x + e.y, draw: () => e.draw(ctx) });
   list.sort((a, b) => a.key - b.key);
   for (const o of list) o.draw();
+}
+
+// luzes fixas do mapa (tochas) para o mapa de iluminação
+export function mapLights(W, time, out) {
+  for (const p of W.map.props) if (p.kind === 'tocha') {
+    const f = 0.88 + Math.sin(time * 9 + p.i) * 0.08 + Math.sin(time * 23 + p.j) * 0.04;
+    out.push({ x: p.i + 0.5, y: p.j + 0.5, z: 50, r: 150 * f, c: [255, 160, 70], a: 0.95 });
+  }
 }
