@@ -1,6 +1,7 @@
 import { buildArt, paintGround, RES } from './art-hd.js';
 import { drawCavern, foregroundRocks } from './castle.js';
 import { drawThemeBackground } from './themes.js';
+import { desertMassifs } from './massif.js';
 import { ROOMS, parseMap } from './maps.js';
 import { createLiveHero } from '../char2d/live.js';
 import { Input } from './input.js';
@@ -61,6 +62,7 @@ function enterRoom(n) {
   world = new World(map, art, fx);
   world.ground = paintGround(map);
   world.fgRocks = map.tema ? foregroundRocks(map) : [];
+  world.massifs = map.tema === 'deserto' ? desertMassifs(map) : [];
   world.doorOpen = false; world.reward = map.recompensa; world.hitstop = 0; world.punch = 0;
   hero = new Hero(world, null, heroDef);
   hero.anim = sprites;

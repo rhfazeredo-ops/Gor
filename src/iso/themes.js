@@ -174,13 +174,27 @@ export function paintDesertGround(map) {
   }
   // pedrinhas
   for (let n = 0; n < (map.w * map.h) / 4; n++) { const px = r() * B.W, py = r() * B.H; if (!inFloor(px, py)) continue; const s = 2 + r() * 4; fillInk(g, [[px - s, py], [px - s * 0.3, py - s * 0.7], [px + s, py - s * 0.2], [px + s * 0.5, py + s * 0.5]], r() < 0.5 ? D.stoneHi : D.stone, 1); }
-  // lago turquesa com borda de rochas
+  // lago turquesa: água com degradê, reflexos e borda de pedras arredondadas
   if (map.lago) {
     const [lx, ly] = scr(map.lago.x, map.lago.y);
-    blob(g, lx, ly, 64, 30, D.waterLo, r, 12, true); blob(g, lx - 3, ly - 3, 54, 24, D.water, r, 12);
-    g.strokeStyle = D.waterHi; g.lineWidth = 2; for (let k = 0; k < 4; k++) { const px = lx + (r() - 0.5) * 60, py = ly + (r() - 0.5) * 24; g.beginPath(); g.ellipse(px, py, 9, 3, 0, 0, Math.PI); g.stroke(); }
-    for (let k = 0; k < 14; k++) { const a = (k / 14) * Math.PI * 2, s = 6 + r() * 5; const px = lx + Math.cos(a) * 68, py = ly + Math.sin(a) * 33; fillInk(g, [[px - s, py], [px - s * 0.4, py - s * 0.7], [px + s, py - s * 0.3], [px + s * 0.5, py + s * 0.5]], r() < 0.5 ? D.rockHi : D.rock, 1.4); }
+    blob(g, lx, ly + 2, 70, 34, D.waterLo, r, 14, true);
+    const wg = g.createRadialGradient(lx - 10, ly - 6, 4, lx, ly, 64);
+    wg.addColorStop(0, '#5ae0e0'); wg.addColorStop(0.6, D.water); wg.addColorStop(1, '#0e6a78');
+    blob(g, lx - 2, ly - 1, 60, 28, wg, r, 14);
+    g.strokeStyle = 'rgba(200,255,250,0.7)'; g.lineWidth = 1.6;
+    for (let k = 0; k < 5; k++) { const px = lx + (r() - 0.5) * 70, py = ly + (r() - 0.5) * 28; g.beginPath(); g.moveTo(px - 8, py); g.quadraticCurveTo(px, py - 3, px + 8, py); g.stroke(); }
+    const stones = [];
+    for (let k = 0; k < 22; k++) { const a = (k / 22) * Math.PI * 2 + r() * 0.2; stones.push([lx + Math.cos(a) * (70 + r() * 6), ly + Math.sin(a) * (34 + r() * 4), 7 + r() * 7]); }
+    stones.sort((p, q) => p[1] - q[1]);
+    for (const [px, py, s0] of stones) {
+      g.beginPath(); g.ellipse(px, py, s0, s0 * 0.62, 0, 0, Math.PI * 2); g.fillStyle = D.rock; g.fill();
+      g.beginPath(); g.ellipse(px - s0 * 0.15, py - s0 * 0.18, s0 * 0.75, s0 * 0.42, 0, 0, Math.PI * 2); g.fillStyle = D.rockHi; g.fill();
+      g.beginPath(); g.ellipse(px, py, s0, s0 * 0.62, 0, 0, Math.PI * 2); g.strokeStyle = INK; g.lineWidth = 1.6; g.stroke();
+    }
   }
+  // marcas de vento/pegadas na areia (traços curvos)
+  g.strokeStyle = 'rgba(150,70,28,0.35)'; g.lineWidth = 1.2;
+  for (let n = 0; n < (map.w * map.h) / 2; n++) { const px = r() * B.W, py = r() * B.H; if (!inFloor(px, py)) continue; g.beginPath(); g.moveTo(px - 12, py + 3); g.quadraticCurveTo(px, py - 3, px + 14, py + 2); g.stroke(); }
   // ossos
   for (const b of map.ossos || []) {
     const [bx, by] = scr(b.x, b.y);
@@ -243,7 +257,7 @@ function stoneRuin(seed) {
     }
   });
 }
-function desertFlower() { return flower('#e8402a', '#ffd060'); }
+function desertFlower() { const f = flower('#e8402a', '#ffd060'); return { ...f, w: f.w * 1.6, h: f.h * 1.6, ax: f.ax * 1.6, ay: f.ay * 1.6 }; }
 
 // ======================= fundos =======================
 let cache = {};

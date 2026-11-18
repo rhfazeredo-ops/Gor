@@ -359,7 +359,7 @@ export function drawObjects(ctx, W, hero, entities, vw, vh, time) {
     const th = m.tema && art.themes[m.tema];
     const front = w.i + w.j + 1 > heroKey && Math.abs(sx - hsx) < 44 && sy - hsy > -8 && sy - hsy < (th && th.mesas ? 110 : 70);
     if (front) ctx.globalAlpha = 0.4;
-    if (th && th.mesas) { const ms = th.mesas[(w.i * 5 + w.j * 3) % th.mesas.length]; ctx.drawImage(ms.img, sx - HALF_W - ms.off, sy - ms.H0 - 14, ms.w, ms.h); }
+    if (th && th.mesas) { /* rochedos desenhados como massas (W.massifs) */ }
     else if (th) ctx.drawImage(th.walls[(w.i * 3 + w.j) % 3], x, y - 30, TW, TH + WALL_H + 30);
     else ctx.drawImage((w.wood ? art.wallsWood : art.walls)[(w.i * 3 + w.j) % (w.wood ? 2 : 4)], x, y, TW, TH + WALL_H);
     ctx.globalAlpha = 1;
@@ -392,6 +392,14 @@ export function drawObjects(ctx, W, hero, entities, vw, vh, time) {
       ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(fx, fy - 5, 7 * f, 12 * f, 0, 0, Math.PI * 2); ctx.fill();
       ctx.restore();
     }
+  } });
+  for (const ms of W.massifs || []) list.push({ key: ms.x + ms.y + ms.R * 0.9, draw: () => {
+    const [sx, sy] = W.toScreen(ms.x, ms.y);
+    if (sx + ms.w < -ms.ax || sx - ms.ax > vw + 50 || sy - ms.ay > vh + 50 || sy + (ms.h - ms.ay) < -50) return;
+    const front = ms.x + ms.y + ms.R * 0.9 > heroKey && Math.abs(sx - hsx) < ms.w * 0.35 && hsy < sy && hsy > sy - ms.ay;
+    if (front) ctx.globalAlpha = 0.45;
+    ctx.drawImage(ms.img, sx - ms.ax, sy - ms.ay, ms.w, ms.h);
+    ctx.globalAlpha = 1;
   } });
   for (const e of entities) list.push({ key: e.x + e.y, draw: () => e.draw(ctx) });
   list.sort((a, b) => a.key - b.key);
