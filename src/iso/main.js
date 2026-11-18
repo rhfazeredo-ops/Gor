@@ -1,4 +1,6 @@
 import { buildArt, paintGround, RES } from './art-hd.js';
+import { drawCavern, foregroundRocks } from './castle.js';
+import { drawThemeBackground } from './themes.js';
 import { ROOMS, parseMap } from './maps.js';
 import { createLiveHero } from '../char2d/live.js';
 import { Input } from './input.js';
@@ -19,7 +21,7 @@ const cv = document.getElementById('game');
 const ctx = cv.getContext('2d');
 const lightCv = document.createElement('canvas');
 const lctx = lightCv.getContext('2d');
-const VIEW_H = innerHeight < 520 ? 360 : 310;   // câmera próxima, como nos roguelikes de ação
+const VIEW_H = innerHeight < 520 ? 400 : 350;   // câmera próxima, como nos roguelikes de ação
 let zoom = 3, VW = 320, VH = 180, DPR = 1, camZoom = 1;
 
 function resize() {
@@ -58,6 +60,7 @@ function enterRoom(n) {
   const prev = hero;
   world = new World(map, art, fx);
   world.ground = paintGround(map);
+  world.fgRocks = map.tema ? foregroundRocks(map) : [];
   world.doorOpen = false; world.reward = map.recompensa; world.hitstop = 0; world.punch = 0;
   hero = new Hero(world, null, heroDef);
   hero.anim = sprites;
@@ -83,7 +86,19 @@ function banner(text, ms = 2500) {
   clearTimeout(banner.t); banner.t = setTimeout(() => b.classList.remove('show'), ms);
 }
 // ondas: inimigos surgem com um círculo de invocação; próxima onda quando todos caem
+let flores = 0, ouro = 324;
+function collect() {
+  for (const p of world.map.props) {
+    if (p.kind !== 'flor' || p.taken) continue;
+    if (Math.hypot(hero.x - (p.i + 0.5), hero.y - (p.j + 0.5)) < 0.9) {
+      p.taken = true; flores++; ouro += 5;
+      fx.sparks(p.i + 0.5, p.j + 0.5, 10, { n: 22, up: 70 }); banner(world.map.tema === 'deserto' ? 'Flor do Deserto coletada' : 'Erva-Luz coletada', 1400);
+    }
+  }
+  const c = document.getElementById('counters'); if (c) c.innerHTML = `<span>💎 ${flores}</span><span>🪙 ${ouro}</span><span>🗝️ ${roomIndex}</span>`;
+}
 function rooms(dt) {
+  collect();
   world.enemies = world.enemies.filter((e) => e.alive);
   const map = world.map;
   if (roomState === 'luta') {
@@ -174,8 +189,9 @@ function updateAreas(dt) {
 // ---------------- iluminação ----------------
 // Escuridão azulada por cima de tudo; cada luz "apaga" o escuro em volta
 // (destination-out) e depois soma um brilho quente (lighter). Vinheta nas bordas.
-const AMBIENT = 'rgba(18,8,30,0.5)';
+let AMBIENT = 'rgba(18,8,30,0.5)';
 function drawLighting(time) {
+  AMBIENT = world.map.tema ? art.themes[world.map.tema].ambient : 'rgba(18,8,30,0.5)';
   const lights = [];
   mapLights(world, time, lights);
   fx.collectLights(lights);
@@ -279,10 +295,16 @@ function frame(now) {
     ctx.setTransform(Z, 0, 0, Z, 0, 0);
     ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
     const view = (x, y, z) => world.toScreen(x, y, z);
-    drawAbyss(time);
+    if (world.map.tema === 'castelo') drawCavern(ctx, VW, VH, world.cam.x, world.cam.y, time);
+    else if (world.map.tema) drawThemeBackground(ctx, world.map.tema, VW, VH, world.cam.x, world.cam.y, time);
+    else drawAbyss(time);
     drawWorld(ctx, world, hero, null, VW, VH, time);
     fx.draw(ctx, view, 'chao');
     drawObjects(ctx, world, hero, [hero, ...world.enemies], VW, VH, time);
+    if (world.map.tema) {      // rochas escuras em primeiro plano
+      const rocks = art.themes[world.map.tema].rocks;
+      if (rocks.length) for (const rk of world.fgRocks) { const pr = rocks[rk.k % rocks.length], [x, y] = world.toScreen(rk.x, rk.y); if (x > -150 && x < VW + 150 && y > -50 && y < VH + 200) ctx.drawImage(pr.img, x - pr.ax, y - pr.ay + 30, pr.w, pr.h); }
+    }
     drawLighting(time);
     fx.draw(ctx, view, 'ar');
     if (!input.touch && input.mouse.inside) {
@@ -305,5 +327,5 @@ $('btn-full').addEventListener('click', async () => {
   try { await document.documentElement.requestFullscreen(); await window.screen.orientation?.lock?.('landscape'); } catch { /* iPhone */ }
 });
 
-window.__game = { get hero() { return hero; }, get world() { return world; }, get state() { return roomState; }, get room() { return roomIndex; }, get zoom() { return zoom * camZoom / DPR; } };
+window.__game = { get hero() { return hero; }, get world() { return world; }, get state() { return roomState; }, get room() { return roomIndex; }, get zoom() { return zoom * camZoom / DPR; }, enter: (n) => enterRoom(n) };
 showHeroSelect((def) => start(def));

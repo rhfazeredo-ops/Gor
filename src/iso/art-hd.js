@@ -62,7 +62,12 @@ function texture(kind, size = 256) {
 }
 
 // ---------------- chão inteiro do mapa (um canvas grande) ----------------
+import { paintCastleGround, buildCastleArt } from './castle.js';
+import { buildThemes, paintGardenGround, paintDesertGround } from './themes.js';
 export function paintGround(map) {
+  if (map.tema === 'castelo') return paintCastleGround(map);
+  if (map.tema === 'jardim') return paintGardenGround(map);
+  if (map.tema === 'deserto') return paintDesertGround(map);
   const ox = map.h * (TW / 2);               // deslocamento: tile (0, h) encosta na esquerda
   const CLIFF = map.ondas ? 110 : 0;
   const W = (map.w + map.h) * (TW / 2), H = (map.w + map.h) * (TH / 2) + TH + CLIFF;
@@ -490,5 +495,7 @@ export function buildArt() {
     const sl = art.slimes[k];
     sl.frames = sl.frames.map((f) => inkOutline(f, 1.5 * RES)); sl.ax += 1.5; sl.ay += 1.5; sl.w += 3; sl.h += 3;
   }
+  art.castle = buildCastleArt();
+  art.themes = { castelo: { ...art.castle, wallH: 30, ambient: 'rgba(30,10,50,0.32)' }, ...buildThemes() };
   return art;
 }

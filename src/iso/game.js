@@ -1,5 +1,6 @@
 import { TW, TH, WALL_H } from './art.js';
 import { RES } from './art-hd.js';
+import { drawFlame } from './castle.js';
 import { SpriteAnim, dirFromTileVec } from './sprites.js';
 import { ABILITIES } from '../data/abilities.js';
 
@@ -355,22 +356,33 @@ export function drawObjects(ctx, W, hero, entities, vw, vh, time) {
     const [sx, sy] = W.toScreen(w.i, w.j);
     const x = sx - HALF_W, y = sy - WALL_H;
     if (x > vw || x < -TW || y > vh || y < -TH - WALL_H) return;
-    const img = (w.wood ? art.wallsWood : art.walls)[(w.i * 3 + w.j) % (w.wood ? 2 : 4)];
-    const front = w.i + w.j + 1 > heroKey && Math.abs(sx - hsx) < 44 && sy - hsy > -8 && sy - hsy < 70;
+    const th = m.tema && art.themes[m.tema];
+    const front = w.i + w.j + 1 > heroKey && Math.abs(sx - hsx) < 44 && sy - hsy > -8 && sy - hsy < (th && th.mesas ? 110 : 70);
     if (front) ctx.globalAlpha = 0.4;
-    ctx.drawImage(img, x, y, TW, TH + WALL_H);
+    if (th && th.mesas) { const ms = th.mesas[(w.i * 5 + w.j * 3) % th.mesas.length]; ctx.drawImage(ms.img, sx - HALF_W - ms.off, sy - ms.H0 - 14, ms.w, ms.h); }
+    else if (th) ctx.drawImage(th.walls[(w.i * 3 + w.j) % 3], x, y - 30, TW, TH + WALL_H + 30);
+    else ctx.drawImage((w.wood ? art.wallsWood : art.walls)[(w.i * 3 + w.j) % (w.wood ? 2 : 4)], x, y, TW, TH + WALL_H);
     ctx.globalAlpha = 1;
+    const castle = !!th;
+    if (castle && w.banner) { const b = art.castle.props.estandarte; ctx.drawImage(b.img, sx - b.ax + 8, sy - 6 - b.ay + 40, b.w, b.h); }
     if (w.door) drawDoor(ctx, sx, sy, W.doorOpen, time, W.reward);
   } });
   for (const p of m.props) list.push({ key: p.i + p.j + 1, draw: () => {
-    const pr = art.props[p.kind];
+    if (p.taken) return;
+    const pr = (m.tema && art.themes[m.tema].props[p.kind]) || art.props[p.kind];
     const [sx, sy] = W.toScreen(p.i + 0.5, p.j + 0.5);
     if (sx < -120 || sx > vw + 120 || sy < -20 || sy > vh + 200) return;
     const tall = pr.h > 60;
     const front = tall && p.i + p.j + 1 > heroKey && Math.abs(sx - hsx) < pr.w * 0.5 + 26 && sy - hsy > -10 && sy - hsy < pr.h + 20;
-    if (p.kind !== 'tocha' && p.kind !== 'braseiro') shadow(ctx, sx + 4, sy + 2, pr.w * 0.42);
+    if (p.kind !== 'tocha' && p.kind !== 'braseiro' && p.kind !== 'flor') shadow(ctx, sx + 4, sy + 2, pr.w * 0.42);
     drawProp(ctx, pr, sx, sy, front ? 0.35 : 1);
-    if (p.kind === 'tocha' || p.kind === 'braseiro') {
+    if (p.kind === 'flor') {      // brilho do coletável
+      ctx.save(); ctx.globalCompositeOperation = 'lighter'; const k = 0.5 + 0.3 * Math.sin(time * 4 + p.i);
+      ctx.strokeStyle = `rgba(255,200,90,${k})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(sx, sy, 18, 9, 0, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+    }
+    if (m.tema && p.kind === 'braseiro') {
+      drawFlame(ctx, sx - pr.ax + pr.flame.x, sy - pr.ay + pr.flame.y + 2, 13, time, p.i * 3 + p.j);
+    } else if (p.kind === 'tocha' || p.kind === 'braseiro') {
       const big = p.kind === 'braseiro' ? 1.8 : 1;
       const f = big * (0.85 + Math.sin(time * 11 + p.i) * 0.1 + Math.sin(time * 23 + p.j) * 0.06);
       const fx = sx - pr.ax + pr.flame.x, fy = sy - pr.ay + pr.flame.y;

@@ -15,10 +15,10 @@
 //   ;  laje entalhada   X  porta   F  braseiro   R  entulho
 export const ROOMS = [
   {
-    nome: 'Pátio da Vigília', ondas: [['g', 'g', 'g'], ['g', 'g', 'r', 'g']], recompensa: 'cura',
+    nome: 'Salão da Vigília', tema: 'castelo', ondas: [['g', 'g', 'g'], ['g', 'g', 'r', 'g']], recompensa: 'cura',
     tiles: [
-      '#######X#######',
-      '#F;;;;;;;;;;;F#',
+      '##E####X####E##',
+      '#L;;;;;;;;;;;F#',
       '#;;;;;;;;;;;;;;',
       '#;;P;;;;;;;P;;;',
       '#;;;;;;;;;;;;;;',
@@ -34,40 +34,39 @@ export const ROOMS = [
     ],
   },
   {
-    nome: 'Ponte das Cinzas', ondas: [['g', 'g', 'g', 'g'], ['r', 'g', 'g'], ['r', 'r']], recompensa: 'poder',
+    nome: 'Jardim das Ruínas', tema: 'jardim', ondas: [['g', 'g', 'g', 'g'], ['r', 'g', 'g'], ['r', 'r']], recompensa: 'poder',
     tiles: [
-      '##########X######',
-      '#F;;;;;;;;;;;;;F#',
-      '#;;;;;;;;;;;;;;;;',
-      '#;;R;;;   ;;;R;;;',
-      '#;;;;;     ;;;;;;',
-      '#;;;;       ;;;; ',
-      '#;;;;       ;;;; ',
-      '#;;;;;     ;;;;; ',
-      '#;;;;;;   ;;;;;  ',
-      '#;;;;;;;S;;;;;;  ',
-      '#F;;;;;;;;;;;;F  ',
-      ' ;;;;;;;;;;;;;   ',
-      '   ;;;;;;;;;;    ',
+      '##E####X######E###',
+      '#F,,;;;;;;;;,,ww,#',
+      '#A,;;;;;;;;;;,ww,,',
+      '#,,;;L;;;;;;;,,f,,',
+      '#,;;;;;;;;;;;;;,,,',
+      '#,;;;;;;;;;;;;;;,,',
+      '#f;;;;;;S;;;;;;;,,',
+      '#,;;;;;;;;;;;;;;, ',
+      '#,,;;P;;;;;;P;;f, ',
+      '#a,;;;;;;;;;;;;,  ',
+      '#F,,;;;;;;;;;;,,  ',
+      ' ,,f,,;;;;;;,,,   ',
+      '   ,,,,,,,,,,     ',
     ],
   },
   {
-    nome: 'Santuário da Luz', ondas: [['g', 'g', 'g', 'g', 'g'], ['r', 'r', 'g', 'g'], ['r', 'r', 'r', 'g', 'g']], recompensa: 'fim',
+    nome: 'Desfiladeiro do Sol', tema: 'deserto', ondas: [['g', 'g', 'g', 'g', 'g'], ['r', 'r', 'g', 'g'], ['r', 'r', 'r', 'g', 'g']], recompensa: 'fim',
     tiles: [
-      '########X########',
-      '#F;;;;;;;;;;;;;F#',
-      '#;;;;;;;;;;;;;;;;',
-      '#;;P;;;;;;;;;;P;;',
-      '#;;;;;;;;;;;;;;;;',
-      '#;;;;;;;;;;;;;;;;',
-      '#;;;;;;;;;;;;;;;;',
-      '#;;;;;;;;S;;;;;; ',
-      '#;;;;;;;;;;;;;;; ',
-      '#;;P;;;;;;;;;;P  ',
-      '#F;;;;;;;;;;;;F  ',
-      ' ;;;;;;;;;;;;;   ',
-      '  ;;;;;;;;;;;    ',
-      '    ;;;;;;;      ',
+      '####E##X#########',
+      '##P;;;;:;;;;;;;f#',
+      '#P;;;;;:;;;;;;;;#',
+      '##;;;;;:::;;;;;##',
+      '#a;;;;;;;::;;;;;#',
+      '#;;www;;;;:;;;f;#',
+      '#;;www;;;;S;;;;;#',
+      '#;;;;;;;;;:;;;;##',
+      '#f;;;;;;;:;;;;;;#',
+      '##;;;;;;;:;;;b;;#',
+      '##;;;;;;::;;;;;A#',
+      '###;;;;;:;;;;;###',
+      '  ####;;:;;#####  ',
     ],
   },
 ];
@@ -109,8 +108,8 @@ export const MAPS = {
   },
 };
 
-const SOLID = new Set(['#', 'H', 'P', 'B', 'C', 'A', 'a', 'D', 'T', 'E', 'O', 'o', 'X', 'F', 'R']);
-const PROP = { P: 'pilar', T: 'tocha', B: 'barril', C: 'caixa', A: 'arvore', a: 'arvore2', D: 'boneco', E: 'estandarte', O: 'pedra2', o: 'pedra', m: 'moita', F: 'braseiro', R: 'entulho' };
+const SOLID = new Set(['#', 'H', 'P', 'B', 'C', 'A', 'a', 'D', 'T', 'E', 'O', 'o', 'X', 'F', 'R', 'L', 'w']);
+const PROP = { P: 'pilar', T: 'tocha', B: 'barril', C: 'caixa', A: 'arvore', a: 'arvore2', D: 'boneco', E: 'estandarte', O: 'pedra2', o: 'pedra', m: 'moita', F: 'braseiro', R: 'entulho', L: 'leao', f: 'flor' };
 
 export function parseMap(def) {
   const rows = def.tiles;
@@ -122,14 +121,18 @@ export function parseMap(def) {
     const k = j * w + i;
     solid[k] = ch === ' ' || SOLID.has(ch);
     floor[k] = ch === ' ' ? null : def.ondas ? 'laje' : ',Aagr Oom'.includes(ch) && ch !== ' ' ? 'grama' : ch === ':' || ch === 'S' ? 'terra' : ch === '=' ? 'madeira' : ';SFRPgrX'.includes(ch) && def.ondas ? 'laje' : 'pedra';
-    if (ch === '#' || ch === 'H' || ch === 'X') walls.push({ i, j, wood: ch === 'H', door: ch === 'X' });
+    if (ch === '#' || ch === 'H' || ch === 'X' || (ch === 'E' && def.tema)) walls.push({ i, j, wood: ch === 'H', door: ch === 'X', banner: ch === 'E' });
     if (ch === 'X') door = { i, j };
-    if (PROP[ch]) props.push({ i, j, kind: PROP[ch] });
+    if (PROP[ch] && !(ch === 'E' && def.tema)) props.push({ i, j, kind: PROP[ch] });
     if (ch === 'S') start = { x: i + 0.5, y: j + 0.5 };
     if (ch === 'g' || ch === 'r') spawns.push({ x: i + 0.5, y: j + 0.5, kind: ch === 'g' ? 'verde' : 'roxa' });
   }
+  // lago (tiles 'w') e ossos ('b')
+  const water = [], ossos = [];
+  for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) { const ch = rows[j][i]; if (ch === 'w') water.push([i + 0.5, j + 0.5]); if (ch === 'b') ossos.push({ x: i + 0.2, y: j + 0.5 }); }
+  const lago = water.length ? { x: water.reduce((a, p) => a + p[0], 0) / water.length, y: water.reduce((a, p) => a + p[1], 0) / water.length } : null;
   // chão livre (para sortear onde nascem os inimigos)
   const open = [];
   for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) if (!solid[j * w + i]) open.push({ x: i + 0.5, y: j + 0.5 });
-  return { ...def, w, h, floor, solid, walls, props, spawns, start, door, open };
+  return { ...def, w, h, floor, solid, walls, props, spawns, start, door, open, lago, ossos };
 }
