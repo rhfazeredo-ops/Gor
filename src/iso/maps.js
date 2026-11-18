@@ -55,8 +55,8 @@ export const ROOMS = [
     nome: 'Desfiladeiro do Sol', tema: 'deserto', ondas: [['g', 'g', 'g', 'g', 'g'], ['r', 'r', 'g', 'g'], ['r', 'r', 'r', 'g', 'g']], recompensa: 'fim',
     tiles: [
       '####E##X#########',
-      '##P;;;;:;;;;;;;f#',
-      '#P;;;;;:;;;;;;;;#',
+      '##P;Z;P:;;;;;;;f#',
+      '#;;;;;;:;;;;;;;;#',
       '##;;;;;:::;;;;;##',
       '#a;;;;;;;::;;;;;#',
       '#;;www;;;;:;;;f;#',
@@ -108,8 +108,8 @@ export const MAPS = {
   },
 };
 
-const SOLID = new Set(['#', 'H', 'P', 'B', 'C', 'A', 'a', 'D', 'T', 'E', 'O', 'o', 'X', 'F', 'R', 'L', 'w']);
-const PROP = { P: 'pilar', T: 'tocha', B: 'barril', C: 'caixa', A: 'arvore', a: 'arvore2', D: 'boneco', E: 'estandarte', O: 'pedra2', o: 'pedra', m: 'moita', F: 'braseiro', R: 'entulho', L: 'leao', f: 'flor' };
+const SOLID = new Set(['#', 'H', 'P', 'B', 'C', 'A', 'a', 'D', 'T', 'E', 'O', 'o', 'X', 'F', 'R', 'L', 'w', 'Z']);
+const PROP = { P: 'pilar', T: 'tocha', B: 'barril', C: 'caixa', A: 'arvore', a: 'arvore2', D: 'boneco', E: 'estandarte', O: 'pedra2', o: 'pedra', m: 'moita', F: 'braseiro', R: 'entulho', L: 'leao', f: 'flor', Z: 'escada' };
 
 export function parseMap(def) {
   const rows = def.tiles;

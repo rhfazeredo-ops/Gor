@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "pixel:convert": "node pixel/tools/convert-model.mjs",
     "pixel:island": "node pixel/tools/build-island.mjs",
-    "build:single": "vite build --config vite.single.config.js"
+    "build:single": "vite build --config vite.single.config.js",
+    "build:atelier": "vite build --config vite.atelier.config.js"
   },
   "dependencies": {
     "@sparkjsdev/spark": "^2.4.0",

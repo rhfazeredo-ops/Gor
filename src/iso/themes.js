@@ -6,6 +6,8 @@
 // =====================================================================
 import { TW, TH, WALL_H, RES } from './art-hd.js';
 import { rng, INK, cv, poly, fillInk, obj, drawLionHead, navyRock, castlePillar, brazier, lionStatue, banner } from './castle.js';
+import * as ART from '../art/deserto.js';
+const A = (a) => ({ img: a.img, w: a.w, h: a.h, ax: a.ax, ay: a.ay });
 
 const G = { // jardim
   slab: ['#7a6e7e', '#72667a', '#807488', '#6c6072'], slabHi: '#a294a8', slabLo: '#463c50',
@@ -158,13 +160,14 @@ function flower(color = '#9a5af0', hi = '#d8b0ff') {
 // ======================= DESFILADEIRO DO DESERTO =======================
 export function paintDesertGround(map) {
   const B = base(map, 60), { g, at, scr, inFloor } = B, r = rng(map.w * 59 + 11);
+  const sandPat = g.createPattern(ART.chaoTextura(5), 'repeat'); sandPat.setTransform(new DOMMatrix().scale(1));
   cliffs(B, map, r, D.rockLo, D.rockDk, 30);
   for (let j = 0; j < map.h; j++) for (let i = 0; i < map.w; i++) {
     if (!at(i, j)) continue;
-    const [x, y] = scr(i, j); poly(g, [[x, y - 0.5], [x + TW / 2 + 1, y + TH / 2], [x, y + TH + 0.5], [x - TW / 2 - 1, y + TH / 2]]); g.fillStyle = D.sand; g.fill();
+    const [x, y] = scr(i, j); poly(g, [[x, y - 0.5], [x + TW / 2 + 1, y + TH / 2], [x, y + TH + 0.5], [x - TW / 2 - 1, y + TH / 2]]); g.fillStyle = sandPat; g.fill();
   }
   // manchas de luz/sombra chapadas
-  for (let n = 0; n < (map.w * map.h) / 3; n++) { const px = r() * B.W, py = r() * B.H; if (!inFloor(px, py)) continue; blob(g, px, py, 14 + r() * 26, 6 + r() * 10, r() < 0.5 ? 'rgba(240,168,84,0.55)' : 'rgba(168,90,36,0.35)', r); }
+  
   // trilha (letra ':') com marcas de rodas/pés
   for (let j = 0; j < map.h; j++) for (let i = 0; i < map.w; i++) {
     const ch = map.tiles[j][i]; if (ch !== ':' && ch !== 'S') continue;
@@ -196,10 +199,9 @@ export function paintDesertGround(map) {
   g.strokeStyle = 'rgba(150,70,28,0.35)'; g.lineWidth = 1.2;
   for (let n = 0; n < (map.w * map.h) / 2; n++) { const px = r() * B.W, py = r() * B.H; if (!inFloor(px, py)) continue; g.beginPath(); g.moveTo(px - 12, py + 3); g.quadraticCurveTo(px, py - 3, px + 14, py + 2); g.stroke(); }
   // ossos
-  for (const b of map.ossos || []) {
-    const [bx, by] = scr(b.x, b.y);
-    for (let k = 0; k < 4; k++) { g.save(); g.translate(bx + k * 9, by - k * 3); g.rotate(-0.6); fillInk(g, [[0, 0], [3, -12], [6, -14], [4, -10], [2, 0]], '#efe4cc', 1.2); g.restore(); }
-  }
+  for (const b of map.ossos || []) { const o = ART.ossos(b.x * 7 | 0), [bx, by] = scr(b.x, b.y); g.drawImage(o.img, bx - o.ax, by - o.ay, o.w, o.h); }
+  // tufos de mato seco espalhados
+  for (let n = 0; n < (map.w * map.h) / 5; n++) { const px = r() * B.W, py = r() * B.H; if (!inFloor(px, py)) continue; const m = ART.mato((n % 6) + 1); g.drawImage(m.img, px - m.ax, py - m.ay, m.w, m.h); }
   return { canvas: B.c, ox: B.ox, W: B.W, H: B.H };
 }
 function mesa(seed, tall = 1) {
@@ -294,7 +296,7 @@ export function buildThemes() {
     },
     deserto: {
       mesas: [0, 1, 2, 3, 4, 5].map((s) => mesa(s, 1 + (s % 3) * 0.6)),
-      props: { pilar: stoneRuin(3), braseiro: Object.assign(brazier(), { flame: { x: 30, y: 20 } }), estandarte: banner(), arvore: deadTree(5), arvore2: deadTree(11), flor: desertFlower(), pedra: stoneRuin(7) },
+      props: { pilar: A(ART.pilarArenito(3)), braseiro: Object.assign(brazier(), { flame: { x: 30, y: 20 } }), estandarte: A(ART.estandarte(2)), arvore: A(ART.arvoreSeca(5)), arvore2: A(ART.arvoreSeca(11, { alt: 100 })), flor: A(ART.flor(1, { s: 0.8 })), pedra: A(ART.pedra(7)), escada: A(ART.escada(2)), mato: A(ART.mato(3)), mato2: A(ART.mato(8)), ossos: A(ART.ossos(1)) },
       rocks: [], ground: paintDesertGround, ambient: 'rgba(90,30,10,0.12)',
     },
   };

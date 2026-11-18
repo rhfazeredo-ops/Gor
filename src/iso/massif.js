@@ -9,6 +9,7 @@
 // =====================================================================
 import { TW, TH, RES } from './art-hd.js';
 import { rng, INK, cv } from './castle.js';
+import { rochedo } from '../art/deserto.js';
 
 const HW = TW / 2, HH = TH / 2;
 const PAL = {
@@ -144,7 +145,7 @@ export function desertMassifs(map) {
     }
     for (let dj = -Math.ceil(R); dj <= Math.ceil(R); dj++) for (let di = -Math.ceil(R); di <= Math.ceil(R); di++) if (di * di + dj * dj <= R * R + 0.3 && isWall(i + di, j + dj)) covered.add(i + di + ',' + (j + dj));
     const tall = 26 + r() * 30 + R * 10;
-    const m = buildMassif(seed++, R * 0.8 + 0.35, R > 1.5 ? 3 : 2, tall);
+    const m = rochedo(seed++, { R: R * 0.95 + 0.7, h: tall * 1.25, tiers: R > 1.5 ? 2 : 1 });
     out.push({ x: i + 0.5, y: j + 0.5, ...m });
   }
   return out;

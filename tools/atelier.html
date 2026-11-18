@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ateliê · Terra de Gor</title>
+<style>
+body{margin:0;background:#1a1218;color:#f0e2c8;font:14px Georgia,serif}
+header{padding:10px 16px;background:#2a1a20;border-bottom:2px solid #c98a2e;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+h1{margin:0;font-size:20px;color:#e8a83a}
+select,button,input{font:inherit}
+button,select{background:#3a2228;color:#f0e2c8;border:1px solid #c98a2e;border-radius:4px;padding:5px 10px}
+main{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:12px}
+.panel{background:#24161c;border:1px solid #4a2e30;border-radius:6px;padding:10px}
+.panel h2{margin:0 0 8px;font-size:15px;color:#e8a83a}
+#stage{width:100%;aspect-ratio:1/1;background:#e5803e;display:block;border-radius:4px}
+#ref{width:100%;border-radius:4px;display:block}
+#params label{display:block;margin:4px 0}
+#params input[type=range]{width:60%;vertical-align:middle}
+#grid{display:flex;flex-wrap:wrap;gap:8px;padding:0 12px 16px}
+#grid canvas{background:#e5803e;border-radius:4px;width:160px;height:160px}
+</style></head>
+<body>
+<header>
+  <h1>Ateliê de assets</h1>
+  <label>Tema <select id="tema"><option value="deserto">Deserto</option></select></label>
+  <label>Asset <select id="asset"></select></label>
+  <label>Semente <input id="seed" type="number" value="1" min="1" style="width:70px"></label>
+  <button id="rnd">🎲 Outra variação</button>
+  <button id="png">⬇ Baixar PNG</button>
+</header>
+<main>
+  <div class="panel"><h2>Desenhado por código (Canvas 2D)</h2><canvas id="stage" width="800" height="800"></canvas><div id="params"></div></div>
+  <div class="panel"><h2>Referência</h2><img id="ref"></div>
+</main>
+<div id="grid"></div>
+<script type="module" src="../src/art/atelier.js"></script>
+</body></html>
