@@ -1,0 +1,30 @@
+@import '../style.css';
+html, body { background: #0e0814; font-family: Georgia, 'Times New Roman', serif; }
+#game { position: fixed; inset: 0; display: block; }
+#fade { position: fixed; inset: 0; background: #08040c; opacity: 0; pointer-events: none; z-index: 3; }
+#hud { left: auto; top: auto; position: fixed; left: 14px; bottom: 14px; z-index: 2; display: flex; align-items: flex-end; gap: 10px; }
+#hud.hidden { display: none; }
+#portrait { width: 86px; height: 86px; border: 3px solid #e0a63a; transform: rotate(45deg); overflow: hidden; margin: 14px; box-shadow: 0 0 12px #000a; background: #1a1020; }
+#portrait::before { content: ''; position: absolute; inset: -22%; transform: rotate(-45deg); background: url('../assets/ui/retrato.jpg') center/cover; }
+#hero-name { position: absolute; left: 120px; bottom: 34px; font-size: 16px; font-weight: 700; letter-spacing: .08em; color: #f3e6c8; }
+#hud .bar { position: absolute; left: 116px; bottom: 10px; width: 260px; height: 18px; border: 2px solid #e0a63a; border-radius: 2px; transform: skewX(-18deg); background: #2a0c10; }
+#hp-fill { height: 100%; background: linear-gradient(#e83a32, #9a1a16); transition: width .15s; }
+#hp-fill.shield { background: linear-gradient(#ffe9a0, #e0a83a); }
+#hp-text { position: absolute; inset: 0; display: grid; place-items: center; font-size: 12px; color: #fff; transform: skewX(18deg); text-shadow: 0 1px 0 #000; }
+#help { position: fixed; left: 50%; bottom: 10px; transform: translateX(-50%); color: #f3e6c8aa; font-size: 12px; z-index: 2; pointer-events: none; }
+body.touch #help { display: none; }
+#objective { position: fixed; top: 14px; left: 50%; transform: translateX(-50%); z-index: 2; color: #f3e6c8; font-size: 15px; background: rgba(20,10,24,.75); border: 2px solid #c9a24a; padding: 5px 14px; pointer-events: none; white-space: nowrap; }
+#objective:empty { display: none; }
+#banner { position: fixed; top: 28%; left: 50%; transform: translate(-50%,-50%) scale(.85); z-index: 4; opacity: 0; transition: .35s; font-size: 30px; color: #ffd86b; text-shadow: 0 3px 0 #5a2a00, 0 0 14px #000; pointer-events: none; white-space: nowrap; letter-spacing: .04em; }
+#banner.show { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+#dead { position: fixed; inset: 0; display: none; place-items: center; z-index: 3; background: rgba(60,0,0,.35); color: #fff; font-size: 24px; pointer-events: none; }
+#dead.show { display: grid; }
+#loading { position: fixed; inset: 0; display: none; place-items: center; z-index: 6; background: #0e0814; color: #e0a63a; font-size: 22px; }
+#loading.show { display: grid; }
+#dmg-layer { position: fixed; inset: 0; pointer-events: none; z-index: 2; }
+.dmg { position: absolute; font: 800 20px system-ui, sans-serif; color: #fff; text-shadow: 0 2px 0 #3a0a00, 0 0 6px #000; transform: translate(-50%,-50%); }
+.ebar { position: absolute; width: 46px; height: 5px; margin-left: -23px; background: #2a0808; border: 1px solid #000; display: none; }
+.ebar i { display: block; height: 100%; background: #e04a3a; }
+#buttons { bottom: 16px; }
+body.touch #joy-zone { z-index: 1; }
+@media (max-height: 520px) { #portrait { width: 64px; height: 64px; margin: 10px; } #hero-name { left: 92px; bottom: 28px; font-size: 13px; } #hud .bar { left: 90px; width: 190px; height: 14px; } }
