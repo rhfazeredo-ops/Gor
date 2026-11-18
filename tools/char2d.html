@@ -1,0 +1,31 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Personagem por código (Canvas 2D)</title>
+<style>body{margin:0;background:#2a2633} canvas{display:block}</style></head>
+<body><canvas id="c"></canvas>
+<script type="module">
+import { buildDalarian } from '../src/models/dalarian.js';
+import { Animator } from '../src/rig.js';
+import { LowPolyPainter } from '../src/char2d/lowpoly.js';
+import { dalarianParts } from '../src/char2d/dalarian.js';
+
+// Prévia: 8 direções numa linha, animação escolhida em ?anim= (idle/walk/ataque/...), ?t= tempo
+const Q = new URLSearchParams(location.search);
+const rig = buildDalarian();
+const parts = dalarianParts(rig.bones);
+const painter = new LowPolyPainter({ width: 240, height: 300, ppu: 82, feetY: 262 });
+const anim = new Animator(rig, 'martelo');
+const name = Q.get('anim') || 'idle', t = +(Q.get('t') || 0.3), n = +(Q.get('n') || 0.5);
+const cv = document.getElementById('c');
+const frames = +(Q.get('frames') || 1);
+cv.width = 240 * 8; cv.height = 300 * frames;
+const ctx = cv.getContext('2d');
+for (let f = 0; f < frames; f++) for (let d = 0; d < 8; d++) {
+  rig.root.rotation.y = d * Math.PI / 4;
+  anim.action = null; anim.prevAction = null;
+  if (name === 'idle' || name === 'walk') { anim.speed = name === 'walk' ? 1 : 0; anim.t = frames > 1 ? (f / frames) * (name === 'walk' ? 0.66 : 2.86) : t; anim.update(0, anim.speed); }
+  else { anim.speed = 0; anim.play(name); anim.action.n = frames > 1 ? (f + 0.5) / frames : n; anim.update(0, 0); }
+  rig.root.updateMatrixWorld(true);
+  ctx.drawImage(painter.render(parts), d * 240, f * 300);
+}
+window.done = true;
+</script></body></html>
