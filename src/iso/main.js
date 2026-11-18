@@ -1,5 +1,5 @@
-import { buildArt, paintGround } from './art-hd.js';
-import { MAPS, parseMap } from './maps.js';
+import { buildArt, paintGround, RES } from './art-hd.js';
+import { ROOMS, parseMap } from './maps.js';
 import heroMeta from '../assets/sprites/dalarian-hd/sprites.json';
 import { Input } from './input.js';
 import { Fx } from './fx.js';
@@ -11,12 +11,22 @@ import { showHeroSelect } from '../select.js';
 const UI = import.meta.glob('../assets/ui/*.png', { query: '?url', import: 'default', eager: true });
 // sprites pintados do herói embutidos no pacote (funciona num HTML único)
 const sheetUrls = import.meta.glob('../assets/sprites/dalarian-hd/*.webp', { query: '?url', import: 'default', eager: true });
+// traço de tinta em volta do herói (silhueta escura deslocada em volta)
+function inkSheet(img, px = 3) {
+  const c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
+  const sil = document.createElement('canvas'); sil.width = img.width; sil.height = img.height;
+  const s = sil.getContext('2d'); s.drawImage(img, 0, 0); s.globalCompositeOperation = 'source-in'; s.fillStyle = 'rgba(16,8,20,0.95)'; s.fillRect(0, 0, c.width, c.height);
+  const g = c.getContext('2d');
+  for (let a = 0; a < 12; a++) { const t = (a / 12) * Math.PI * 2; g.drawImage(sil, Math.cos(t) * px, Math.sin(t) * px); }
+  g.drawImage(img, 0, 0);
+  return c;
+}
 async function loadHeroSprites() {
   const meta = { ...heroMeta, urls: {} };
   for (const [path, url] of Object.entries(sheetUrls)) meta.urls[path.split('/').pop().replace('.webp', '')] = url;
   const sheets = {};
   await Promise.all(Object.keys(meta.anims).map((name) => new Promise((ok, fail) => {
-    const img = new Image(); img.onload = () => { sheets[name] = img; ok(); }; img.onerror = fail; img.src = meta.urls[name];
+    const img = new Image(); img.onload = () => { sheets[name] = inkSheet(img); ok(); }; img.onerror = fail; img.src = meta.urls[name];
   })));
   return { meta, sheets };
 }
@@ -31,8 +41,8 @@ const cv = document.getElementById('game');
 const ctx = cv.getContext('2d');
 const lightCv = document.createElement('canvas');
 const lctx = lightCv.getContext('2d');
-const VIEW_H = innerHeight < 520 ? 400 : 340;
-let zoom = 3, VW = 320, VH = 180, DPR = 1;
+const VIEW_H = innerHeight < 520 ? 360 : 310;   // câmera próxima, como nos roguelikes de ação
+let zoom = 3, VW = 320, VH = 180, DPR = 1, camZoom = 1;
 
 function resize() {
   DPR = Math.min(devicePixelRatio || 1, 2.5);
@@ -51,25 +61,84 @@ const input = new Input(cv);
 let world = null, hero = null;
 
 // tela (CSS px) → unidades do mundo na tela
-const toLow = (cx, cy) => [cx * DPR / zoom, cy * DPR / zoom];
+const toLow = (cx, cy) => [cx * DPR / (zoom * camZoom), cy * DPR / (zoom * camZoom)];
 
+// ---------------- salas (estilo Hades) ----------------
+// Cada sala é uma arena: entra, vence as ondas, a porta abre com a
+// recompensa, atravessa e vai para a próxima.
+let sprites = null, heroDef = null, roomIndex = 0, wave = 0, waveTimer = 0, roomState = 'luta', fade = 0, power = 0;
 async function start(def) {
-  const sprites = await loadHeroSprites(def.id);
-  const map = parseMap(MAPS.treino);
+  heroDef = def;
+  sprites = await loadHeroSprites(def.id);
+  setupHud(def);
+  enterRoom(0);
+}
+function enterRoom(n) {
+  roomIndex = n;
+  const map = parseMap(ROOMS[n]);
+  const prev = hero;
   world = new World(map, art, fx);
   world.ground = paintGround(map);
-  hero = new Hero(world, sprites, def);
-  hero.anim.scale = 92 / 196;           // corpo do sprite (196 px) → ~92 unidades
-  for (const s of map.spawns) world.enemies.push(new Slime(world, s.x, s.y, s.kind));
-  setupHud(def, map);
-
+  world.doorOpen = false; world.reward = map.recompensa; world.hitstop = 0; world.punch = 0;
+  hero = new Hero(world, sprites, heroDef);
+  hero.anim.scale = 92 / 196;
+  if (prev) { hero.hp = prev.hp; hero.cd = prev.cd; }
+  hero.atk = 20 * (1 + power * 0.25);
+  // começa perto da borda de baixo, entrando na sala
+  hero.x = map.start.x + 2.5; hero.y = map.start.y + 2.5;
+  while (world.blocked(hero.x, hero.y, hero.r)) { hero.x -= 0.5; hero.y -= 0.5; }
+  hero.faceTo(-1, -1);
+  // limites da câmera: caixa do chão na tela
+  let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
+  for (let j = 0; j < map.h; j++) for (let i = 0; i < map.w; i++) if (map.floor[j * map.w + i]) {
+    const sx = (i - j) * 32, sy = (i + j) * 16;
+    x0 = Math.min(x0, sx - 32); x1 = Math.max(x1, sx + 32); y0 = Math.min(y0, sy - 60); y1 = Math.max(y1, sy + 32);
+  }
+  world.bounds = { x0, x1, y0, y1: y1 + 70 };
+  wave = 0; waveTimer = 1.2; roomState = 'luta'; fade = 1;
+  world.cam.fx = undefined;
+  banner(`${map.nome}`, 2200);
+}
+function banner(text, ms = 2500) {
+  const b = $('banner'); b.textContent = text; b.classList.add('show');
+  clearTimeout(banner.t); banner.t = setTimeout(() => b.classList.remove('show'), ms);
+}
+// ondas: inimigos surgem com um círculo de invocação; próxima onda quando todos caem
+function rooms(dt) {
+  world.enemies = world.enemies.filter((e) => e.alive);
+  const map = world.map;
+  if (roomState === 'luta') {
+    if (world.enemies.length === 0) {
+      if (wave >= map.ondas.length) { roomState = 'limpa'; world.doorOpen = true; banner('Sala limpa! A porta se abriu'); fx.shake = 0.4; return; }
+      waveTimer -= dt;
+      if (waveTimer <= 0) {
+        for (const kind of map.ondas[wave]) {
+          let p, tries = 0;
+          do { p = map.open[(Math.random() * map.open.length) | 0]; tries++; } while (tries < 50 && Math.hypot(p.x - hero.x, p.y - hero.y) < 4);
+          const e = new Slime(world, p.x, p.y, kind === 'r' ? 'roxa' : 'verde');
+          e.spawnT = 0.9; world.enemies.push(e);
+          fx.ring(p.x, p.y, 0.9, 0.9, [200, 120, 255]);
+          fx.sparks(p.x, p.y, 4, { n: 10, c1: '#e0b0ff', c2: '#8040c0', up: 60 });
+        }
+        wave++; waveTimer = 1.0;
+      }
+    }
+  } else if (roomState === 'limpa') {
+    const d = map.door;
+    if (Math.hypot(hero.x - (d.i + 0.5), hero.y - (d.j + 1.4)) < 0.9) {
+      // recompensa da porta
+      if (world.reward === 'cura') { hero.hp = Math.min(hero.maxHp, hero.hp + 80); banner('Bênção: +80 de vida'); }
+      if (world.reward === 'poder') { power++; banner('Bênção: +25% de dano'); }
+      if (world.reward === 'fim') { roomState = 'vitoria'; banner('Vitória! O Santuário da Luz foi purificado', 6000); return; }
+      enterRoom((roomIndex + 1) % ROOMS.length);
+    }
+  }
 }
 
 // ---------------- HUD ----------------
 const $ = (id) => document.getElementById(id);
-function setupHud(def, map) {
+function setupHud(def) {
   $('hero-name').textContent = `${def.nome} · ${def.titulo}`;
-  $('objective').textContent = map.objetivo.texto;
   const ab = ABILITIES[def.id];
   for (const [k, id] of [['basico', 'btn-attack'], ['q', 'btn-q'], ['e', 'btn-e']]) {
     const el = $(id);
@@ -78,19 +147,13 @@ function setupHud(def, map) {
   $('hud').classList.remove('hidden');
   $('buttons').classList.remove('hidden');
 }
-let missionDone = false;
 function updateHud() {
   $('hp-fill').style.width = (100 * hero.hp / hero.maxHp) + '%';
   $('hp-fill').classList.toggle('shield', hero.invuln > 0.3 && hero.alive);
   $('hp-text').textContent = `${Math.ceil(hero.hp)} / ${hero.maxHp}`;
-  const obj = world.map.objetivo;
-  const n = Math.min(obj.alvo, world.kills);
-  $('objective').textContent = missionDone ? 'Missão completa! Continue treinando' : `${obj.texto}: ${n}/${obj.alvo}`;
-  if (!missionDone && n >= obj.alvo) {
-    missionDone = true;
-    const b = $('banner'); b.textContent = 'Missão completa! +120 ouro · +80 XP'; b.classList.add('show');
-    setTimeout(() => b.classList.remove('show'), 3500);
-  }
+  const map = world.map;
+  $('objective').textContent = roomState === 'vitoria' ? 'Vitória!' : roomState === 'limpa' ? `${map.nome} · vá até a porta` :
+    `${map.nome} · Sala ${roomIndex + 1}/${ROOMS.length} · Onda ${Math.max(1, wave)}/${map.ondas.length}`;
   const ab = hero.ab;
   for (const [k, id, max] of [['q', 'btn-q', ab.q.recarga], ['e', 'btn-e', ab.e.recarga], ['dash', 'btn-dash', 0.8]]) {
     const el = $(id), c = hero.cd[k];
@@ -116,17 +179,6 @@ function aimAt() {
   return best;
 }
 
-// ---------------- monstros: reaparecem ----------------
-function spawner(dt) {
-  world.enemies = world.enemies.filter((e) => e.alive);
-  world.spawnTimer -= dt;
-  if (world.spawnTimer <= 0 && world.enemies.length < 9) {
-    world.spawnTimer = 3.5;
-    const sp = world.map.spawns[Math.floor(Math.random() * world.map.spawns.length)];
-    if (Math.hypot(sp.x - hero.x, sp.y - hero.y) > 4) world.enemies.push(new Slime(world, sp.x, sp.y, Math.random() < 0.25 ? 'roxa' : 'verde'));
-  }
-}
-
 function updateAreas(dt) {
   for (const a of world.areas) {
     a.left -= dt; a.tick -= dt;
@@ -143,7 +195,7 @@ function updateAreas(dt) {
 // ---------------- iluminação ----------------
 // Escuridão azulada por cima de tudo; cada luz "apaga" o escuro em volta
 // (destination-out) e depois soma um brilho quente (lighter). Vinheta nas bordas.
-const AMBIENT = 'rgba(14,10,34,0.44)';
+const AMBIENT = 'rgba(18,8,30,0.5)';
 function drawLighting(time) {
   const lights = [];
   mapLights(world, time, lights);
@@ -172,8 +224,8 @@ function drawLighting(time) {
     const r = l.r * 0.75;
     const g = ctx.createRadialGradient(x, y, 0, x, y, r);
     g.addColorStop(0, `rgba(${l.c[0]},${l.c[1]},${l.c[2]},${0.16 * l.a})`); g.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = g; ctx.translate(x, y); ctx.scale(1, 0.62); ctx.translate(-x, -y);
-    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill(); ctx.setTransform(zoom, 0, 0, zoom, 0, 0);
+    ctx.save(); ctx.fillStyle = g; ctx.translate(x, y); ctx.scale(1, 0.62); ctx.translate(-x, -y);
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill(); ctx.restore();
   }
   ctx.restore();
   // vinheta
@@ -182,40 +234,86 @@ function drawLighting(time) {
   ctx.fillStyle = v; ctx.fillRect(0, 0, VW, VH);
 }
 
+// ---------------- abismo (fundo) ----------------
+// Gradiente escuro com névoa que se move devagar e brasas subindo, com
+// parallax: dá a sensação de que a arena flutua sobre o vazio.
+const embers = Array.from({ length: 70 }, () => ({ x: Math.random(), y: Math.random(), s: 0.3 + Math.random() * 0.7, p: Math.random() * 6 }));
+function drawAbyss(time) {
+  const g = ctx.createLinearGradient(0, 0, 0, VH);
+  g.addColorStop(0, '#1a0f22'); g.addColorStop(0.6, '#120a1a'); g.addColorStop(1, '#2a0f14');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, VW, VH);
+  const cx = world ? world.cam.x : 0, cy = world ? world.cam.y : 0;
+  ctx.save(); ctx.globalCompositeOperation = 'lighter';
+  for (let k = 0; k < 6; k++) {   // névoa
+    const x = ((k * 173 - cx * 0.3 + time * 6 * (k % 2 ? 1 : -1)) % (VW + 300) + VW + 300) % (VW + 300) - 150;
+    const y = ((k * 97 - cy * 0.3) % (VH + 200) + VH + 200) % (VH + 200) - 100;
+    const m = ctx.createRadialGradient(x, y, 0, x, y, 140);
+    m.addColorStop(0, k % 2 ? 'rgba(120,40,40,0.09)' : 'rgba(70,40,110,0.09)'); m.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = m; ctx.fillRect(x - 140, y - 140, 280, 280);
+  }
+  for (const e of embers) {   // brasas
+    const x = ((e.x * VW * 1.3 - cx * 0.5 * e.s) % VW + VW) % VW;
+    const y = (((e.y * VH * 1.3 - cy * 0.5 * e.s - time * 14 * e.s) % VH) + VH) % VH;
+    ctx.fillStyle = `rgba(255,${120 + 80 * e.s | 0},60,${0.25 + 0.35 * Math.sin(time * 2 + e.p) ** 2})`;
+    ctx.beginPath(); ctx.arc(x, y, 0.8 + e.s, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.restore();
+}
+
 // ---------------- laço ----------------
 let last = performance.now(), time = 0;
 function frame(now) {
-  const dt = Math.min(0.05, (now - last) / 1000); last = now; time += dt;
+  let dt = Math.min(0.05, (now - last) / 1000); last = now; time += dt;
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.fillStyle = '#0d0a16'; ctx.fillRect(0, 0, cv.width, cv.height);
-  ctx.setTransform(zoom, 0, 0, zoom, 0, 0);
-  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
   if (world) {
-    hero.update(dt, input, aimAt);
-    for (const e of world.enemies) e.update(dt, hero);
-    updateAreas(dt);
-    spawner(dt);
-    fx.update(dt);
-    // câmera segue o herói, suave
-    const tx = (hero.x - hero.y) * 32 - VW / 2, ty = (hero.x + hero.y) * 16 - VH / 2 - 24;
-    const k = 1 - Math.pow(0.0008, dt);
-    world.cam.fx = (world.cam.fx ?? tx) + (tx - (world.cam.fx ?? tx)) * k;
-    world.cam.fy = (world.cam.fy ?? ty) + (ty - (world.cam.fy ?? ty)) * k;
-    const sh = fx.shake * 5;
+    // pausa de impacto (hit-stop): o mundo congela por um instante a cada golpe
+    let wdt = dt;
+    if (world.hitstop > 0) { world.hitstop -= dt; wdt = dt * 0.05; }
+    hero.update(wdt, input, aimAt);
+    for (const e of world.enemies) e.update(wdt, hero);
+    updateAreas(wdt);
+    rooms(dt);
+    fx.update(wdt);
+
+    // câmera: segue o herói olhando um pouco à frente (movimento/mira),
+    // presa aos limites da sala, com zoom de impacto
+    world.punch = Math.max(0, (world.punch || 0) - dt * 2.5);
+    const wantZoom = 1 + 0.12 * Math.sin(Math.min(1, world.punch) * Math.PI);
+    camZoom += (wantZoom - camZoom) * Math.min(1, dt * 12);
+    const Z = zoom * camZoom, vw = cv.width / Z, vh = cv.height / Z;
+    const sm = input.screenMove();
+    const look = { x: hero.face.x * 0.9 + 0, y: hero.face.y * 0.9 };
+    const lx = (hero.x + look.x - hero.y - look.y) * 32 + sm.x * 30, ly = (hero.x + look.x + hero.y + look.y) * 16 + sm.y * 20;
+    let tx = lx - vw / 2, ty = ly - vh / 2 - 24;
+    const B = world.bounds, m = 40;
+    tx = B.x1 - B.x0 + 2 * m < vw ? (B.x0 + B.x1) / 2 - vw / 2 : Math.max(B.x0 - m, Math.min(B.x1 + m - vw, tx));
+    ty = B.y1 - B.y0 + 2 * m < vh ? (B.y0 + B.y1) / 2 - vh / 2 : Math.max(B.y0 - m, Math.min(B.y1 + m - vh, ty));
+    if (world.cam.fx === undefined) { world.cam.fx = tx; world.cam.fy = ty; }
+    const k = 1 - Math.pow(0.004, dt);
+    world.cam.fx += (tx - world.cam.fx) * k; world.cam.fy += (ty - world.cam.fy) * k;
+    const sh = fx.shake * 6;
     world.cam.x = world.cam.fx + (Math.random() - 0.5) * sh;
     world.cam.y = world.cam.fy + (Math.random() - 0.5) * sh;
+    const VW0 = VW, VH0 = VH; VW = vw; VH = vh;
 
+    ctx.setTransform(Z, 0, 0, Z, 0, 0);
+    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
     const view = (x, y, z) => world.toScreen(x, y, z);
+    drawAbyss(time);
     drawWorld(ctx, world, hero, null, VW, VH, time);
     fx.draw(ctx, view, 'chao');
     drawObjects(ctx, world, hero, [hero, ...world.enemies], VW, VH, time);
     drawLighting(time);
     fx.draw(ctx, view, 'ar');
     if (!input.touch && input.mouse.inside) {
-      const [lx, ly] = toLow(input.mouse.x, input.mouse.y);
+      const [mx, my] = toLow(input.mouse.x, input.mouse.y);
       ctx.strokeStyle = 'rgba(255,215,130,0.9)'; ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.ellipse(lx, ly, 7, 3.5, 0, 0, Math.PI * 2); ctx.stroke();
+      ctx.beginPath(); ctx.ellipse(mx, my, 7, 3.5, 0, 0, Math.PI * 2); ctx.stroke();
     }
+    // escurece ao trocar de sala
+    if (fade > 0) { fade = Math.max(0, fade - dt * 1.6); ctx.fillStyle = `rgba(8,4,12,${fade})`; ctx.fillRect(0, 0, VW, VH); }
+    VW = VW0; VH = VH0;
     updateHud();
   }
   input.consume();
@@ -228,5 +326,5 @@ $('btn-full').addEventListener('click', async () => {
   try { await document.documentElement.requestFullscreen(); await window.screen.orientation?.lock?.('landscape'); } catch { /* iPhone */ }
 });
 
-window.__game = { get hero() { return hero; }, get world() { return world; } };
+window.__game = { get hero() { return hero; }, get world() { return world; }, get state() { return roomState; }, get room() { return roomIndex; }, get zoom() { return zoom * camZoom / DPR; } };
 showHeroSelect((def) => start(def));

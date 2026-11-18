@@ -176,7 +176,7 @@ export class Hero {
       fx.burst(e.x, e.y, 14, i ? 7 : 12); fx.sparks(e.x, e.y, 14, { n: i ? 6 : 16 });
       fx.number(e.x, e.y, dmg, '#ffffff');
     });
-    if (hits.length) fx.shake = Math.max(fx.shake, 0.25);
+    if (hits.length) { fx.shake = Math.max(fx.shake, 0.25); W.hitstop = 0.055; }
     else fx.sparks(this.x + this.face.x * 0.8, this.y + this.face.y * 0.8, 6, { n: 5, speed: 1.2, up: 30 });
   }
 
@@ -184,7 +184,7 @@ export class Hero {
     const W = this.world, q = this.ab.q, fx = W.fx;
     const x = this.x, y = this.y, R = q.raio / METERS_PER_TILE;
     fx.lightHammer(x, y, () => {
-      fx.shake = 1;
+      fx.shake = 1; W.hitstop = 0.1; W.punch = 1;
       fx.ring(x, y, R + 0.9, 0.5);
       fx.burst(x, y, 10, 24);
       fx.sparks(x, y, 6, { n: 50, speed: 3.5, up: 90 });
@@ -359,17 +359,19 @@ export function drawObjects(ctx, W, hero, entities, vw, vh, time) {
     if (front) ctx.globalAlpha = 0.4;
     ctx.drawImage(img, x, y, TW, TH + WALL_H);
     ctx.globalAlpha = 1;
+    if (w.door) drawDoor(ctx, sx, sy, W.doorOpen, time, W.reward);
   } });
   for (const p of m.props) list.push({ key: p.i + p.j + 1, draw: () => {
     const pr = art.props[p.kind];
     const [sx, sy] = W.toScreen(p.i + 0.5, p.j + 0.5);
     if (sx < -120 || sx > vw + 120 || sy < -20 || sy > vh + 200) return;
     const tall = pr.h > 60;
-    const front = tall && p.i + p.j + 1 > heroKey && Math.abs(sx - hsx) < 40 && sy - hsy > 0 && sy - hsy < pr.h * 0.9;
-    if (p.kind !== 'tocha') shadow(ctx, sx + 4, sy + 2, pr.w * 0.42);
-    drawProp(ctx, pr, sx, sy, front ? 0.45 : 1);
-    if (p.kind === 'tocha') {
-      const f = 0.85 + Math.sin(time * 11 + p.i) * 0.1 + Math.sin(time * 23 + p.j) * 0.06;
+    const front = tall && p.i + p.j + 1 > heroKey && Math.abs(sx - hsx) < pr.w * 0.5 + 26 && sy - hsy > -10 && sy - hsy < pr.h + 20;
+    if (p.kind !== 'tocha' && p.kind !== 'braseiro') shadow(ctx, sx + 4, sy + 2, pr.w * 0.42);
+    drawProp(ctx, pr, sx, sy, front ? 0.35 : 1);
+    if (p.kind === 'tocha' || p.kind === 'braseiro') {
+      const big = p.kind === 'braseiro' ? 1.8 : 1;
+      const f = big * (0.85 + Math.sin(time * 11 + p.i) * 0.1 + Math.sin(time * 23 + p.j) * 0.06);
       const fx = sx - pr.ax + pr.flame.x, fy = sy - pr.ay + pr.flame.y;
       ctx.save(); ctx.globalCompositeOperation = 'lighter';
       const g = ctx.createRadialGradient(fx, fy - 4, 0, fx, fy - 4, 16 * f);
@@ -385,8 +387,40 @@ export function drawObjects(ctx, W, hero, entities, vw, vh, time) {
 
 // luzes fixas do mapa (tochas) para o mapa de iluminação
 export function mapLights(W, time, out) {
-  for (const p of W.map.props) if (p.kind === 'tocha') {
+  for (const p of W.map.props) if (p.kind === 'tocha' || p.kind === 'braseiro') {
+    const big = p.kind === 'braseiro' ? 1.35 : 1;
     const f = 0.88 + Math.sin(time * 9 + p.i) * 0.08 + Math.sin(time * 23 + p.j) * 0.04;
-    out.push({ x: p.i + 0.5, y: p.j + 0.5, z: 50, r: 150 * f, c: [255, 160, 70], a: 0.95 });
+    out.push({ x: p.i + 0.5, y: p.j + 0.5, z: 50, r: 150 * f * big, c: [255, 160, 70], a: 0.95 });
   }
+  if (W.map.door && W.doorOpen) {
+    const d = W.map.door; out.push({ x: d.i + 0.5, y: d.j + 1, z: 30, r: 200, c: [255, 220, 140], a: 0.9 });
+  }
+}
+
+// porta de saída: arco de pedra; fechada = grade escura, aberta = portal de luz
+function drawDoor(ctx, sx, sy, open, time, reward) {
+  const x = sx, y = sy + 8;
+  ctx.save();
+  // arco
+  ctx.fillStyle = '#2a2026'; ctx.strokeStyle = 'rgba(14,8,16,0.95)'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(x - 20, y + 10); ctx.lineTo(x - 20, y - 34); ctx.quadraticCurveTo(x, y - 58, x + 20, y - 34); ctx.lineTo(x + 20, y + 10); ctx.closePath(); ctx.fill(); ctx.stroke();
+  if (open) {
+    const g = ctx.createLinearGradient(0, y - 50, 0, y + 10);
+    g.addColorStop(0, 'rgba(255,250,220,1)'); g.addColorStop(1, 'rgba(255,170,60,0.9)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(x - 15, y + 8); ctx.lineTo(x - 15, y - 32); ctx.quadraticCurveTo(x, y - 51, x + 15, y - 32); ctx.lineTo(x + 15, y + 8); ctx.closePath(); ctx.fill();
+    ctx.globalCompositeOperation = 'lighter';
+    for (let k = 0; k < 3; k++) { const yy = y - ((time * 30 + k * 18) % 54); ctx.fillStyle = 'rgba(255,240,180,0.5)'; ctx.fillRect(x - 12, yy, 24, 1.5); }
+  } else {
+    ctx.strokeStyle = '#5a4a50'; ctx.lineWidth = 2.5;
+    for (let k = -2; k <= 2; k++) { ctx.beginPath(); ctx.moveTo(x + k * 6, y + 8); ctx.lineTo(x + k * 6, y - 40 + Math.abs(k) * 4); ctx.stroke(); }
+  }
+  // símbolo da recompensa em cima da porta
+  ctx.globalCompositeOperation = 'source-over';
+  const iy = y - 72 + Math.sin(time * 3) * 2;
+  ctx.fillStyle = 'rgba(14,8,16,0.9)'; ctx.beginPath(); ctx.arc(x, iy, 10, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = open ? '#f0c060' : '#8a7060'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.fillStyle = reward === 'cura' ? '#ff5a5a' : reward === 'poder' ? '#ffd24a' : '#ffffff';
+  ctx.font = 'bold 12px Georgia, serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(reward === 'cura' ? '♥' : reward === 'poder' ? '✦' : '☀', x, iy + 1);
+  ctx.restore();
 }
