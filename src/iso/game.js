@@ -48,14 +48,18 @@ export function screenToTileDir(sx, sy) {
 }
 
 // ---------------- herói ----------------
+// custo das habilidades e regeneração por segundo
+export const COST = { q: 35, e: 25, dash: 30, mpRegen: 7, enRegen: 28 };
 export class Hero {
   constructor(world, sprites, def) {
     this.world = world; this.def = def;
     this.ab = ABILITIES[def.id];
-    this.x = world.map.start.x; this.y = world.map.start.y; this.r = 0.28;
+    this.x = world.map.start.x; this.y = world.map.start.y; this.r = 0.32;
     this.anim = new SpriteAnim(sprites);
     this.speed = 4.3; this.atk = 20;
     this.maxHp = 200; this.hp = this.maxHp;
+    // mana (magias Q e E) e energia (esquiva), com regeneração
+    this.maxMp = 100; this.mp = this.maxMp; this.maxEn = 100; this.en = this.maxEn;
     this.cd = { atk: 0, q: 0, e: 0, dash: 0 };
     this.action = null; this.combo = 0;
     this.invuln = 0; this.dashT = 0; this.dashDir = { x: 0, y: 0 };
@@ -80,10 +84,12 @@ export class Hero {
     this.invuln = Math.max(0, this.invuln - dt);
     this.flash = Math.max(0, this.flash - dt * 4);
     this.respawnBlink = Math.max(0, (this.respawnBlink || 0) - dt);
+    this.mp = Math.min(this.maxMp, this.mp + COST.mpRegen * dt);
+    this.en = Math.min(this.maxEn, this.en + COST.enRegen * dt);
 
     if (!this.alive) {
       this.dead -= dt;
-      if (this.dead <= 0) { this.alive = true; this.hp = this.maxHp; this.x = W.map.start.x; this.y = W.map.start.y; this.invuln = 2; this.respawnBlink = 2; this.anim.play('idle'); }
+      if (this.dead <= 0) { this.alive = true; this.hp = this.maxHp; this.mp = this.maxMp; this.en = this.maxEn; this.x = W.map.start.x; this.y = W.map.start.y; this.invuln = 2; this.respawnBlink = 2; this.anim.play('idle'); }
       return;
     }
 
@@ -98,7 +104,8 @@ export class Hero {
     const use = () => { this.buffer = null; };
 
     // ---- comandos ----
-    if (P.has('dash') && this.cd.dash <= 0 && this.dashT <= 0) {
+    if (P.has('dash') && this.cd.dash <= 0 && this.dashT <= 0 && this.en >= COST.dash) {
+      this.en -= COST.dash;
       const d = mag > 0.1 ? mv : this.face;
       this.dashDir = { x: d.x, y: d.y }; this.dashT = 0.2; this.cd.dash = 0.8; this.invuln = Math.max(this.invuln, 0.22);
       this.faceTo(d.x, d.y); this.action = null;
@@ -118,10 +125,10 @@ export class Hero {
         }
         if (best) this.faceTo(best.x - this.x, best.y - this.y); else this.faceTo(d.x, d.y);
       };
-      if (P.has('q') && this.cd.q <= 0) {
-        this.cd.q = this.ab.q.recarga; this.start('q', 'consagracao', 0.9); use();
-      } else if (P.has('e') && this.cd.e <= 0) {
-        this.cd.e = this.ab.e.recarga; this.start('e', 'protecao', 0.55); use();
+      if (P.has('q') && this.cd.q <= 0 && this.mp >= COST.q) {
+        this.mp -= COST.q; this.cd.q = this.ab.q.recarga; this.start('q', 'consagracao', 0.9); use();
+      } else if (P.has('e') && this.cd.e <= 0 && this.mp >= COST.e) {
+        this.mp -= COST.e; this.cd.e = this.ab.e.recarga; this.start('e', 'protecao', 0.55); use();
       } else if ((P.has('atk') || input.holdingAttack()) && this.cd.atk <= 0) {
         aimFace();
         this.cd.atk = this.ab.basico.recarga; this.combo ^= 1;

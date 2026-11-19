@@ -5,6 +5,7 @@ import { desertMassifs } from './massif.js';
 import { loadBigDesert, buildBigDesert, sprite, updateDecos, drawColliders } from './bigdesert.js';
 import { ROOMS, parseMap } from './maps.js';
 import { loadHero3D } from './hero3d.js';
+import { createHud } from './hud.js';
 import { Input } from './input.js';
 import { Fx } from './fx.js';
 import { World, Hero, Slime, drawWorld, drawObjects, mapLights } from './game.js';
@@ -138,8 +139,10 @@ function rooms(dt) {
 
 // ---------------- HUD ----------------
 const $ = (id) => document.getElementById(id);
+let hudArt = null, hudT = performance.now();
 function setupHud(def) {
   $('hero-name').textContent = `${def.nome} · ${def.titulo}`;
+  if (!hudArt) hudArt = createHud($('hud'));
   const ab = ABILITIES[def.id];
   for (const [k, id] of [['basico', 'btn-attack'], ['q', 'btn-q'], ['e', 'btn-e']]) {
     const el = $(id);
@@ -149,9 +152,13 @@ function setupHud(def) {
   $('buttons').classList.remove('hidden');
 }
 function updateHud() {
-  $('hp-fill').style.width = (100 * hero.hp / hero.maxHp) + '%';
-  $('hp-fill').classList.toggle('shield', hero.invuln > 0.3 && hero.alive);
-  $('hp-text').textContent = `${Math.ceil(hero.hp)} / ${hero.maxHp}`;
+  const now = performance.now(), hdt = Math.min(0.1, (now - hudT) / 1000); hudT = now;
+  const abl = hero.ab;
+  hudArt.draw({
+    hp: hero.hp, maxHp: hero.maxHp, mp: hero.mp, maxMp: hero.maxMp, en: hero.en, maxEn: hero.maxEn,
+    level: 1 + power, shield: hero.invuln > 0.3 && hero.alive,
+    cds: [hero.cd.atk / abl.basico.recarga, hero.cd.e / abl.e.recarga, hero.cd.q / abl.q.recarga, hero.cd.dash / 0.8],
+  }, hdt);
   const map = world.map;
   $('objective').textContent = roomState === 'vitoria' ? 'Vitória!' : roomState === 'limpa' ? `${map.nome} · vá até a porta` :
     `${map.nome} · Sala ${roomIndex + 1}/${ROOMS.length} · Onda ${Math.max(1, wave)}/${map.ondas.length}`;

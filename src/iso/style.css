@@ -22,3 +22,11 @@ body.touch #joy-zone { z-index: 1; }
 #counters { position: fixed; right: 16px; top: 70px; z-index: 2; display: flex; flex-direction: column; gap: 6px; align-items: flex-end; color: #f3e6c8; font: 700 16px Georgia, serif; text-shadow: 0 2px 0 #000; pointer-events: none; }
 #counters span { background: rgba(20,10,24,.6); padding: 2px 10px; border-radius: 3px; }
 body.touch #counters { top: 70px; }
+
+/* ---- HUD pintado ---- */
+#hero-name, #hud .bar { display: none; }
+#hud { left: 8px; top: 6px; }
+#hud-canvas { display: block; width: min(440px, 46vw); height: auto; filter: drop-shadow(0 3px 4px rgba(0,0,0,.5)); }
+#objective { left: auto; right: 90px; transform: none; top: 12px; }
+body.touch #hud-canvas { width: min(360px, 44vw); }
+body.touch #objective { font-size: 12px; padding: 4px 10px; right: 80px; }

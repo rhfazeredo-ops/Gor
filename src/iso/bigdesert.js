@@ -35,6 +35,60 @@ export function sprite(key, s = null) {
   return { img: a.img, w: a.w * k, h: a.h * k, ax: a.ax * k, ay: a.ay * k };
 }
 
+// polígono da base em pixels de tela (relativo à âncora): contorno de baixo do desenho é a
+// borda da frente; a de trás é o espelho dela pela corda entre as pontas esquerda e direita.
+// Troncos: só as colunas perto do chão (raízes), ignorando a copa.
+function basePolygon(a, s, flip, trunk) {
+  const H = a.h;
+  let prof = a.prof.slice();
+  const low = Math.max(...prof.map((p) => p[1]));
+  prof = prof.filter((p) => p[1] >= low - H * (trunk ? 0.07 : 0.5));
+  if (prof.length < 3) return null;
+  let F = prof.map(([px, py]) => [(px - a.ax) * s * (flip ? -1 : 1), (py - a.ay) * s]);
+  F.sort((p, q) => p[0] - q[0]);
+  const [L, Rr] = [F[0], F[F.length - 1]];
+  const chord = (X) => L[1] + (Rr[1] - L[1]) * ((X - L[0]) / ((Rr[0] - L[0]) || 1));
+  // profundidade mínima: a de uma elipse isométrica da mesma largura (evita "lascas" em bases retas)
+  const wid = Rr[0] - L[0], D = Math.max(...F.map(([X, Y]) => Y - chord(X)));
+  const flat = 2 * D < wid * 0.45;
+  const back = F.slice(1, -1).reverse().map(([X, Y]) => {
+    if (!flat) return [X, 2 * chord(X) - Y];
+    const u = (2 * (X - L[0])) / (wid || 1) - 1;
+    return [X, Math.min(2 * chord(X) - Y, Y - wid * 0.5 * Math.sqrt(Math.max(0, 1 - u * u)))];
+  });
+  let P = [...F, ...back];
+  // encolhe um pouco para o herói poder encostar (o raio dele completa o resto)
+  const k = trunk ? 0.8 : 1.0, cx = P.reduce((t, p) => t + p[0], 0) / P.length, cy = P.reduce((t, p) => t + p[1], 0) / P.length;
+  return P.map(([X, Y]) => [cx + (X - cx) * k, cy + (Y - cy) * k]);
+}
+function polyCenter(pts) {
+  let A = 0, cx = 0, cy = 0;
+  for (let i = 0; i < pts.length; i++) {
+    const [x0, y0] = pts[i], [x1, y1] = pts[(i + 1) % pts.length], c = x0 * y1 - x1 * y0;
+    A += c; cx += (x0 + x1) * c; cy += (y0 + y1) * c;
+  }
+  A /= 2;
+  if (Math.abs(A) < 1e-6) return [pts[0][0], pts[0][1], 0.3];
+  return [cx / (6 * A), cy / (6 * A), Math.sqrt(Math.abs(A) / Math.PI)];
+}
+function inPoly(pts, x, y) {
+  let ins = false;
+  for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+    const [xi, yi] = pts[i], [xj, yj] = pts[j];
+    if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) ins = !ins;
+  }
+  return ins;
+}
+function distPoly(pts, x, y) {
+  let best = Infinity;
+  for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+    const [ax, ay] = pts[j], [bx, by] = pts[i], dx = bx - ax, dy = by - ay;
+    const t = Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / (dx * dx + dy * dy || 1)));
+    best = Math.min(best, Math.hypot(x - ax - dx * t, y - ay - dy * t));
+  }
+  return best;
+}
+
 // --------------------------- o mapa ---------------------------
 export function buildBigDesert() {
   const W = 42, H = 42, r = rng(1234);
@@ -57,8 +111,15 @@ export function buildBigDesert() {
     const toT = (X, Y) => [X / 64 + Y / 32, Y / 32 - X / 64];
     const [ox, oy] = toT(midX, front - half / 2);       // centro da elipse (em relação à âncora)
     const R = (half / 45) * 0.95;
-    if (phys === 'solido') { d.cx = x + ox; d.cy = y + oy; d.R = R; colliders.push({ t: 'c', x: d.cx, y: d.cy, r: R }); }
-    if (phys === 'tronco') { const r0 = a.kind === 'estandarte' ? 0.16 : 0.26; const [tx, ty] = toT(midX, front - 6); d.cx = x + tx; d.cy = y + ty; d.R = r0; colliders.push({ t: 'c', x: d.cx, y: d.cy, r: r0 }); }
+    const poly = (phys === 'solido' || phys === 'tronco') && a.prof ? basePolygon(a, s, !!o.flip, phys === 'tronco') : null;
+    if (poly) {
+      // polígono da base medido no contorno do desenho (frente) e espelhado (fundo)
+      const pts = poly.map(([X, Y]) => { const [tx, ty] = toT(X, Y); return [x + tx, y + ty]; });
+      const c = polyCenter(pts);
+      d.cx = c[0]; d.cy = c[1]; d.R = c[2];
+      colliders.push({ t: 'p', pts, x0: Math.min(...pts.map((p) => p[0])), x1: Math.max(...pts.map((p) => p[0])), y0: Math.min(...pts.map((p) => p[1])), y1: Math.max(...pts.map((p) => p[1])) });
+    } else if (phys === 'solido') { d.cx = x + ox; d.cy = y + oy; d.R = R; colliders.push({ t: 'c', x: d.cx, y: d.cy, r: R }); }
+    else if (phys === 'tronco') { const r0 = a.kind === 'estandarte' ? 0.16 : 0.26; const [tx, ty] = toT(midX, front - 6); d.cx = x + tx; d.cy = y + ty; d.R = r0; colliders.push({ t: 'c', x: d.cx, y: d.cy, r: r0 }); }
     if (phys === 'escada') {
       // quadrado do tamanho do sprite; degraus descem para +x; lado +y é bloco sólido; fundo é plataforma alta
       const S = (half * 2 / 64) * 0.95, st = STAIRS[key];
@@ -105,7 +166,7 @@ export function buildBigDesert() {
   for (const [k, x, y] of [['rochas-1', 13, 20], ['rochas-6', 26, 29], ['rochas-8', 31, 37], ['rochas-2', 9, 25]]) add(k, x, y, { s: 1.4, phys: 'solido' });
   fill(['ossos-1', 'ossos-6', 'itens-2-2', 'itens-2-3', 'itens-2-4', 'ossos-5'], 9, 5);
   // a escada do portal é caminhável (o anel da borda não a bloqueia)
-  const solidAtC = (i, j) => colliders.some((c) => c.t === 'c' ? Math.hypot(i + 0.5 - c.x, j + 0.5 - c.y) < c.r + 0.3 : i + 0.5 > c.x0 - 0.3 && i + 0.5 < c.x1 + 0.3 && j + 0.5 > c.y0 - 0.3 && j + 0.5 < c.y1 + 0.3);
+  const solidAtC = (i, j) => colliders.some((c) => c.t === 'p' ? inPoly(c.pts, i + 0.5, j + 0.5) || distPoly(c.pts, i + 0.5, j + 0.5) < 0.3 : c.t === 'c' ? Math.hypot(i + 0.5 - c.x, j + 0.5 - c.y) < c.r + 0.3 : i + 0.5 > c.x0 - 0.3 && i + 0.5 < c.x1 + 0.3 && j + 0.5 > c.y0 - 0.3 && j + 0.5 < c.y1 + 0.3);
   // flores coletáveis
   const props = [];
   for (let t = 0, c = 0; t < 400 && c < 10; t++) {
@@ -181,7 +242,8 @@ export function drawColliders(ctx, W) {
   const P = (x, y) => W.toScreen(x, y);
   for (const c of W.map.colliders) {
     ctx.strokeStyle = 'rgba(0,255,255,0.9)'; ctx.beginPath();
-    if (c.t === 'c') for (let a = 0; a <= 32; a++) { const [x, y] = P(c.x + Math.cos(a / 32 * 6.283) * c.r, c.y + Math.sin(a / 32 * 6.283) * c.r); a ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+    if (c.t === 'p') { c.pts.forEach((p, i) => { const [x, y] = P(p[0], p[1]); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.closePath(); }
+    else if (c.t === 'c') for (let a = 0; a <= 32; a++) { const [x, y] = P(c.x + Math.cos(a / 32 * 6.283) * c.r, c.y + Math.sin(a / 32 * 6.283) * c.r); a ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
     else { ctx.moveTo(...P(c.x0, c.y0)); ctx.lineTo(...P(c.x1, c.y0)); ctx.lineTo(...P(c.x1, c.y1)); ctx.lineTo(...P(c.x0, c.y1)); ctx.closePath(); }
     ctx.stroke();
   }
@@ -216,6 +278,7 @@ export function groundHeight(map, x, y) {
 export function hitsCollider(map, x, y, rad) {
   for (const c of map.colliders || []) {
     if (c.t === 'c') { if (Math.hypot(x - c.x, y - c.y) < c.r + rad) return true; }
+    else if (c.t === 'p') { if (x > c.x0 - rad && x < c.x1 + rad && y > c.y0 - rad && y < c.y1 + rad && (inPoly(c.pts, x, y) || distPoly(c.pts, x, y) < rad)) return true; }
     else if (x > c.x0 - rad && x < c.x1 + rad && y > c.y0 - rad && y < c.y1 + rad) return true;
   }
   return false;

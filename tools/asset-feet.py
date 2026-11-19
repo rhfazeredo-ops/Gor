@@ -16,5 +16,13 @@ for name, pieces in m.items():
         x0, x1 = int(cols.min()), int(cols.max())
         low = [np.where(a[:, c])[0].max() for c in cols]
         p['foot'] = {'x0': x0, 'x1': x1, 'front': int(np.percentile(low, 90))}
+        # contorno de baixo (pixel opaco mais baixo) em 24 colunas: vira o polígono da base no jogo
+        allc = np.where(cnt > 2)[0]
+        prof = []
+        for c in np.linspace(allc.min(), allc.max(), 24).astype(int):
+            win = a[:, max(0, c - 3):c + 4]
+            ys = np.where(win.any(1))[0]
+            if len(ys): prof.append([int(c), int(ys.max())])
+        p['prof'] = prof
 json.dump(m, open(mp, 'w'), indent=1)
 print('ok')
