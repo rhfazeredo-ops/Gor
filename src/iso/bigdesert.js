@@ -94,7 +94,7 @@ function distPoly(pts, x, y) {
 
 // --------------------------- o mapa ---------------------------
 export function buildBigDesert() {
-  const W = 42, H = 42, r = rng(1234);
+  const W = 72, H = 72, r = rng(1234);
   const floor = new Array(W * H).fill('areia'), solid = new Array(W * H).fill(false);
   const decos = [];
   const colliders = [], ramps = [];
@@ -139,50 +139,73 @@ export function buildBigDesert() {
   };
   // borda: anel sólido (atrás 3 tiles, frente 2)
   for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) if (i < 3 || j < 3 || i >= W - 2 || j >= H - 2) solid[j * W + i] = true;
-  // paredões nas bordas de trás (x = 0: original; y = 0: espelhado)
+  const has = (k) => !!ART[k];
+  const pick = (keys) => { const ok = keys.filter(has); return ok[(r() * ok.length) | 0]; };
+  const nums = (p, list) => list.map((n) => `${p}-${n}`);
+  // ---------------- composição ----------------
+  // trilha principal: do acampamento (baixo) até o portal em ruínas (alto). Fica livre de peças grandes.
+  const PATH = [[58, 60], [50, 51], [41, 46], [33, 38], [27, 28], [19, 19], [14, 13]];
+  const distPath = (x, y) => { let d = 1e9; for (let k = 0; k < PATH.length - 1; k++) { const [ax, ay] = PATH[k], [bx, by] = PATH[k + 1], dx = bx - ax, dy = by - ay; const t = Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / (dx * dx + dy * dy))); d = Math.min(d, Math.hypot(x - ax - dx * t, y - ay - dy * t)); } return d; };
+  const busy = (x, y, pad = 1.2) => decos.some((d) => d.R > 0.4 && Math.hypot((d.cx ?? d.x) - x, (d.cy ?? d.y) - y) < d.R + pad);
+
+  // 1) moldura: paredões ao fundo, picos nos cantos, rochedos baixos na frente (espaçamento irregular)
   const walls = ['paredao-1-1', 'paredao-3-1', 'paredao-4-1', 'paredao-5-1', 'paredao-6-1', 'paredao-7-1', 'paredao-2-1'];
   for (let k = 0; k * 7 < H + 4; k++) add(walls[k % walls.length], 1.6, k * 7 + 3.5, { z: -50 });
   for (let k = 0; k * 7 < W + 4; k++) add(walls[(k + 3) % walls.length], k * 7 + 3.5, 1.6, { flip: true, z: -50 });
-  // cantos e picos
-  add('pico-2-1', 2.5, 2.5, { s: 1.15, z: -40 }); add('pico-1-1', 3, 22, { z: -30 }); add('pico-2-1', 23, 2.8, { z: -30 });
-  // frente: rochedos baixos na borda (ficam translúcidos quando o herói passa atrás)
+  add('pico-2-1', 2.5, 2.5, { s: 1.15, z: -40 }); add('pico-1-1', 3, 36, { z: -30 }); add('pico-2-1', 38, 2.8, { z: -30 });
   const front = ['rochedo-7-1', 'rochedo-8-1', 'rochedo-9-1', 'rochedo-6-1', 'rochedo-1-1'];
-  for (let k = 0; k < 7; k++) add(front[k % 5], W - 1, 4 + k * 6 + r() * 2, { s: 0.85, r: 0 });
-  for (let k = 0; k < 7; k++) add(front[(k + 2) % 5], 4 + k * 6 + r() * 2, H - 1, { s: 0.85, r: 0 });
+  for (let t = 4, k = 0; t < H - 3; t += 7 + r() * 5, k++) add(front[k % 5], W - 1, t, { s: 0.8 + r() * 0.2 });
+  for (let t = 4, k = 2; t < W - 3; t += 7 + r() * 5, k++) add(front[k % 5], t, H - 1, { s: 0.8 + r() * 0.2, flip: r() < 0.5 });
 
-  // pontos de interesse
-  add('ruina-arco-1', 22, 10.5, { s: 1.1 });                    // saída (portal)
-  add('estandarte-1-1', 16.5, 11.5); add('estandarte-1-1', 26.5, 12.5);
-  add('ruina-pilares-1-1', 9, 9); add('ruina-escada-1', 33, 9, { s: 0.95 }); add('ruina-pilares-2-1', 36, 22, { s: 0.9 });
-  add('pilar-1-1', 14, 14); add('pilar-1-1', 28, 14);
-  add('lago-2-1', 28, 25); add('lago-1-1', 10, 30, { s: 0.9 });
-  add('rochedo-4-1', 7, 18); add('rochedo-5-1', 17, 33); add('rochedo-3-1', 35, 33); add('rochedo-2-1', 22, 18, { s: 0.75 });
-  add('rochedo-6-1', 32, 16, { s: 0.7 }); add('pico-1-1', 6, 37, { s: 0.8 });
-  for (const [k, x, y] of [['arvore-5-1', 15, 24], ['arvore-6-1', 30, 31], ['arvore-1-1', 5, 12], ['arvore-4-1', 24, 37], ['arvore-3-1', 37, 12], ['arvore-2-1', 12, 37]]) add(k, x, y);
-  // vegetação, pedras e ossos espalhados (longe dos pontos de interesse)
-  const busy = (x, y) => decos.some((d) => d.R > 0.4 && Math.hypot((d.cx ?? d.x) - x, (d.cy ?? d.y) - y) < d.R + 1.2);
-  const fill = (keys, n, minD = 0, sc = 1, phys) => { for (let t = 0, c = 0; t < n * 20 && c < n; t++) { const x = 4 + r() * (W - 7), y = 4 + r() * (H - 7); if (busy(x, y) || Math.hypot(x - 21, y - 21) < minD) continue; add(keys[(r() * keys.length) | 0], x, y, { s: (0.8 + r() * 0.4) * sc, flip: r() < 0.5, phys }); c++; } };
-  fill(['grama-1-1', 'grama-2-1', 'grama-3-1', 'grama-4-1', 'itens-1-2'], 70);
-  fill(['arbusto-1-1', 'arbusto-2-1', 'arbusto-3-1', 'arbusto-4-1', 'arbusto-5-1', 'arbusto-6-1', 'itens-1-4'], 22);
-  fill(['rochas-1', 'rochas-2', 'rochas-3', 'rochas-4', 'rochas-5', 'rochas-6', 'rochas-7', 'rochas-8', 'rochas-9', 'rochas-10', 'itens-1-3'], 30, 4, 0.55);
-  // algumas pedras maiores (sólidas)
-  for (const [k, x, y] of [['rochas-1', 13, 20], ['rochas-6', 26, 29], ['rochas-8', 31, 37], ['rochas-2', 9, 25]]) add(k, x, y, { s: 1.4, phys: 'solido' });
-  // peças novas: árvores secas, arbustos, plantas rasteiras e pedras
-  for (const [k, x, y, o] of [['arvore-7-1', 19, 27], ['arvore-7-3', 8, 22], ['arvore-7-4', 34, 27], ['arvore-7-5', 26, 6.5], ['arvore-7-6', 38, 19], ['arvore-7-7', 5.5, 27],
-    ['arvore-7-8', 17, 7], ['arvore-7-2', 30, 37], ['arvore-7-9', 20, 36, { phys: 'solido' }], ['arvore-7-10', 37, 37, { phys: 'solido' }], ['arvore-7-11', 9, 16, { phys: 'mole' }]]) add(k, x, y, o);
-  for (const [k, x, y] of [['pedras-1-3', 26, 16], ['pedras-1-5', 14, 29], ['pedras-1-7', 31, 21], ['pedras-1-2', 17, 15]]) add(k, x, y);
-  const nums = (p, n) => Array.from({ length: n }, (_, i) => `${p}-${i + 1}`);
-  fill(nums('arbusto-7', 22), 22);
-  fill(nums('grama-5', 42), 38);
-  fill(['pedras-1-1', 'pedras-1-4', 'pedras-1-6', 'pedras-1-8'], 10, 4, 0.8, 'chao');
-  fill(['ossos-1', 'ossos-6', 'itens-2-2', 'itens-2-3', 'itens-2-4', 'ossos-5'], 9, 5);
+  // 2) ruínas: só no alto (portal + dois pilares e estandartes) e um marco no meio do caminho
+  add('ruina-arco-1', 13, 9, { s: 1.15 });
+  add('estandarte-1-1', 7.5, 10); add('estandarte-1-1', 17.5, 11);
+  add('pilar-1-1', 8, 17); add('pilar-1-1', 20, 15, { s: 0.85 });
+  add('ruina-pilares-2-1', 45, 23, { s: 0.85 });
+
+  // 3) formações rochosas: paredes do cânion dos dois lados da trilha
+  for (const [k, x, y, o] of [
+    ['rochedo-4-1', 12, 33], ['pico-1-1', 8, 45, { s: 0.9 }], ['rochedo-5-1', 15, 53], ['rochedo-3-1', 22, 62, { flip: true }],
+    ['rochedo-2-1', 34, 13], ['pico-2-1', 47, 9, { s: 0.85 }], ['rochedo-3-1', 56, 19], ['rochedo-5-1', 63, 31, { flip: true }], ['rochedo-4-1', 61, 45, { flip: true }],
+    ['rochedo-6-1', 34, 24, { s: 0.75 }], ['rochedo-6-1', 54, 58, { s: 0.7, flip: true }], ['rochedo-1-1', 36, 58, { s: 0.8 }],
+  ]) add(k, x, y, o);
+
+  // 4) água: oásis ao lado da trilha e uma poça menor
+  add('lago-2-1', 47, 37); add('lago-1-1', 24, 47, { s: 0.8 });
+
+  // 5) árvores secas (uma por grupo, perto de rocha ou água) e troncos caídos
+  for (const [k, x, y, o] of [['arvore-7-1', 51, 63], ['arvore-7-4', 52, 42], ['arvore-7-6', 42, 33], ['arvore-7-5', 21, 41], ['arvore-7-8', 30, 17],
+    ['arvore-7-7', 61, 52], ['arvore-7-2', 16, 27], ['arvore-7-3', 26, 56], ['arvore-7-9', 29, 50, { phys: 'solido' }], ['arvore-7-10', 57, 27, { phys: 'solido' }]]) add(k, x, y, o);
+  for (const [k, x, y] of [['pedras-1-3', 40, 27], ['pedras-1-5', 30, 44], ['pedras-1-7', 57, 49]]) add(k, x, y);
+
+  // 6) vegetação em grupos (densa perto da água e na base das rochas, rala na areia aberta)
+  const SECA = [...nums('grama-5', [1, 2, 3, 4, 5, 9, 10, 12, 14, 24, 25, 31, 36, 41, 42]), 'grama-1-1', 'grama-2-1', 'grama-3-1', 'grama-4-1'];
+  const VERDE = [...nums('grama-5', [13, 18, 22, 26, 16, 17, 19, 20, 28, 29]), 'arbusto-1-1', 'arbusto-3-1'];
+  const ARB = nums('arbusto-7', [1, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15]);
+  const cluster = (keys, cx, cy, rad, n, o = {}) => {
+    for (let t = 0, c = 0; t < n * 12 && c < n; t++) {
+      const a = r() * Math.PI * 2, d = rad * Math.sqrt(r()), x = cx + Math.cos(a) * d, y = cy + Math.sin(a) * d;
+      if (x < 4 || y < 4 || x > W - 3 || y > H - 3 || busy(x, y, 0.4) || (!o.path && distPath(x, y) < 1.4)) continue;
+      add(pick(keys), x, y, { s: (o.s ?? 1) * (0.8 + r() * 0.4), flip: r() < 0.5, phys: o.phys }); c++;
+    }
+  };
+  const ring = (keys, cx, cy, r0, r1, n) => { for (let t = 0, c = 0; t < n * 12 && c < n; t++) { const a = r() * Math.PI * 2, d = r0 + (r1 - r0) * r(); const x = cx + Math.cos(a) * d, y = cy + Math.sin(a) * d; if (busy(x, y, 0.3) || distPath(x, y) < 1.4) continue; add(pick(keys), x, y, { s: 0.8 + r() * 0.4, flip: r() < 0.5 }); c++; } };
+  ring(VERDE, 47, 37, 3.6, 6.5, 26); ring(ARB, 47, 37, 4, 7, 5);       // oásis
+  ring(VERDE, 24, 47, 2.6, 4.5, 12);
+  for (const d of decos.filter((d) => /rochedo|pico|pedras|ruina|pilar/.test(d.key) && d.x > 4 && d.y > 4 && d.x < W - 2 && d.y < H - 2)) cluster([...SECA, ...ARB], d.cx ?? d.x, d.cy ?? d.y, (d.R || 1) + 2.5, 4);
+  for (const d of decos.filter((d) => /arvore-7-[1-8]$/.test(d.key))) cluster(SECA, d.x, d.y, 2.2, 3);
+  // areia aberta: tufos esparsos e algumas pedrinhas (passa por cima) e ossos
+  for (let k = 0; k < 16; k++) cluster(SECA, 6 + r() * (W - 12), 6 + r() * (H - 12), 1.6, 2 + ((r() * 3) | 0));
+  cluster(nums('pedras-1', [1, 4, 6, 8]), W / 2, H / 2, W * 0.45, 14, { s: 0.75, phys: 'chao' });
+  cluster(['rochas-1', 'rochas-2', 'rochas-3', 'rochas-4', 'rochas-5', 'rochas-7'], W / 2, H / 2, W * 0.45, 12, { s: 0.55 });
+  cluster(['ossos-1', 'ossos-6', 'itens-2-2', 'itens-2-3', 'ossos-5'], 40, 40, 22, 6, { path: true });
   // a escada do portal é caminhável (o anel da borda não a bloqueia)
   const solidAtC = (i, j) => colliders.some((c) => c.t === 'p' ? inPoly(c.pts, i + 0.5, j + 0.5) || distPoly(c.pts, i + 0.5, j + 0.5) < 0.3 : c.t === 'c' ? Math.hypot(i + 0.5 - c.x, j + 0.5 - c.y) < c.r + 0.3 : i + 0.5 > c.x0 - 0.3 && i + 0.5 < c.x1 + 0.3 && j + 0.5 > c.y0 - 0.3 && j + 0.5 < c.y1 + 0.3);
   // flores coletáveis
   const props = [];
-  for (let t = 0, c = 0; t < 400 && c < 10; t++) {
+  for (let t = 0, c = 0; t < 900 && c < 14; t++) {
     const i = 4 + ((r() * (W - 8)) | 0), j = 5 + ((r() * (H - 9)) | 0);
-    if (solid[j * W + i] || solidAtC(i, j) || props.some((p) => Math.hypot(p.i - i, p.j - j) < 5)) continue;
+    if (solid[j * W + i] || solidAtC(i, j) || props.some((p) => Math.hypot(p.i - i, p.j - j) < 9)) continue;
     props.push({ i, j, kind: 'flor' }); c++;
   }
   const open = [];
@@ -193,18 +216,49 @@ export function buildBigDesert() {
   return {
     nome: 'Desfiladeiro do Sol', tema: 'grande', grande: true, recompensa: 'fim',
     ondas: [['g', 'g', 'g', 'g'], ['g', 'g', 'r', 'g', 'g'], ['r', 'r', 'g', 'g', 'g'], ['r', 'r', 'r', 'g', 'g', 'g']],
-    tiles: [], w: W, h: H, floor, solid, walls: [], props, spawns: [], start: { x: 21, y: 30 }, door: { i: ex - 0.5, j: ey - 1.4 }, open, lago: null, ossos: [], decos, colliders, ramps,
+    tiles: [], path: PATH, w: W, h: H, floor, solid, walls: [], props, spawns: [], start: { x: 58.5, y: 60.5 }, door: { i: ex - 0.5, j: ey - 1.4 }, open, lago: null, ossos: [], decos, colliders, ramps,
   };
 }
 
 // chão: textura pintada repetida, recortada no losango do mapa
 let pat = null;
+// variação de tom do chão em grande escala (pintada uma vez): manchas de areia clara e escura,
+// trilha gasta, chão úmido e escuro em volta da água e sombra ao pé das rochas
+const TK = 0.25;
+let toneFor = null, tone = null;
+function buildTone(m) {
+  const ox = m.h * 32, Wt = (m.w + m.h) * 32, Ht = (m.w + m.h) * 16;
+  const c = document.createElement('canvas'); c.width = Math.ceil(Wt * TK); c.height = Math.ceil(Ht * TK);
+  const g = c.getContext('2d'); g.scale(TK, TK);
+  const S = (x, y) => [(x - y) * 32 + ox, (x + y) * 16];
+  const r = rng(77);
+  const blob = (x, y, rad, col) => { const [sx, sy] = S(x, y); g.save(); g.translate(sx, sy); g.scale(1, 0.5); const gr = g.createRadialGradient(0, 0, 0, 0, 0, rad * 45); gr.addColorStop(0, col); gr.addColorStop(1, col.replace(/[\d.]+\)$/, '0)')); g.fillStyle = gr; g.beginPath(); g.arc(0, 0, rad * 45, 0, 7); g.fill(); g.restore(); };
+  for (let k = 0; k < 26; k++) blob(4 + r() * (m.w - 8), 4 + r() * (m.h - 8), 4 + r() * 7, r() < 0.5 ? 'rgba(95,32,10,0.22)' : 'rgba(255,205,140,0.16)');
+  // trilha gasta: faixa larga mais clara e empoeirada, borda suave
+  if (m.path) {
+    g.lineCap = 'round'; g.lineJoin = 'round';
+    for (const [w, col] of [[150, 'rgba(255,214,160,0.10)'], [90, 'rgba(255,214,160,0.14)'], [40, 'rgba(240,190,130,0.12)']]) {
+      g.filter = 'blur(18px)'; g.strokeStyle = col; g.lineWidth = w; g.beginPath();
+      m.path.forEach(([x, y], i) => { const [sx, sy] = S(x, y); i ? g.lineTo(sx, sy) : g.moveTo(sx, sy); }); g.stroke();
+    }
+    g.filter = 'none';
+  }
+  for (const d of m.decos) {
+    if (/lago/.test(d.key)) blob(d.cx ?? d.x, d.cy ?? d.y, (d.R || 2) + 4, 'rgba(70,40,15,0.32)');
+    else if (d.R > 0.5 && !d.flat && d.phys !== 'mole') blob(d.cx ?? d.x, d.cy ?? d.y, d.R * 1.6 + 0.8, 'rgba(70,20,6,0.28)');
+  }
+  return c;
+}
 export function drawBigGround(ctx, W) {
   if (!pat) pat = ctx.createPattern(GROUND, 'repeat');
   const m = W.map, P = (x, y) => W.toScreen(x, y);
   pat.setTransform(new DOMMatrix().translate(-W.cam.x, -W.cam.y).scale(0.42));
   ctx.beginPath(); ctx.moveTo(...P(0, 0)); ctx.lineTo(...P(m.w, 0)); ctx.lineTo(...P(m.w, m.h)); ctx.lineTo(...P(0, m.h)); ctx.closePath();
   ctx.fillStyle = pat; ctx.fill();
+  if (toneFor !== m) { tone = buildTone(m); toneFor = m; }
+  ctx.save(); ctx.clip();
+  ctx.drawImage(tone, -m.h * 32 - W.cam.x, -W.cam.y, tone.width / TK, tone.height / TK);
+  ctx.restore();
   // sombra suave ao pé dos paredões (cantos de trás)
   const g = ctx.createLinearGradient(...P(2, 2), ...P(8, 8));
   g.addColorStop(0, 'rgba(70,20,6,0.45)'); g.addColorStop(1, 'rgba(70,20,6,0)');

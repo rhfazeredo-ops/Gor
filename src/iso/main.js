@@ -130,7 +130,7 @@ function rooms(dt) {
       if (waveTimer <= 0) {
         for (const kind of map.ondas[wave]) {
           let p, tries = 0;
-          do { p = map.open[(Math.random() * map.open.length) | 0]; tries++; } while (tries < 50 && Math.hypot(p.x - hero.x, p.y - hero.y) < 4);
+          do { p = map.open[(Math.random() * map.open.length) | 0]; tries++; } while (tries < 400 && (Math.hypot(p.x - hero.x, p.y - hero.y) < 4 || Math.hypot(p.x - hero.x, p.y - hero.y) > 9));
           const e = new Slime(world, p.x, p.y, kind === 'r' ? 'roxa' : 'verde');
           e.spawnT = 0.9; world.enemies.push(e);
           fx.ring(p.x, p.y, 0.9, 0.9, [200, 120, 255]);
