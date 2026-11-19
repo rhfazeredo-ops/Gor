@@ -4,3 +4,5 @@ dist/
 dist-single
 dist-atelier
 dist-itch
+dist-godot
+godot/.godot

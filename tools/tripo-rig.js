@@ -240,7 +240,7 @@ export async function buildTripoHero({ model = './tripo/dalarian.glb', hammer = 
   const hips = bone('DEF-hips');
   const holder = new THREE.Group(); holder.add(lib);
   return {
-    holder, lib, mesh, mixer, clips, bone, cape, capeRest, weapon, skeleton,
+    holder, lib, mesh, mixer, clips, bone, cape, capeRest, weapon, skeleton, libRest: libRestLocal, hipK,
     // depois de mixer.setTime: quadril no lugar (sem andar) e na escala do modelo
     fixHips() {
       // deslocamento animado do quadril, convertido para o mundo; só o vertical conta
