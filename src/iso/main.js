@@ -14,6 +14,7 @@ import { World, Hero, Slime, drawWorld, drawObjects, mapLights } from './game.js
 import { HEROES } from '../data/heroes.js';
 import { ABILITIES } from '../data/abilities.js';
 import { showHeroSelect } from '../select.js';
+import { showTitle } from './title.js';
 
 const UI = import.meta.glob('../assets/ui/*.png', { query: '?url', import: 'default', eager: true });
 // =====================================================================
@@ -358,4 +359,4 @@ $('btn-full').addEventListener('click', async () => {
 });
 
 window.__game = { get hero() { return hero; }, get world() { return world; }, get state() { return roomState; }, get room() { return roomIndex; }, get zoom() { return zoom * camZoom / DPR; }, enter: (n) => enterRoom(n) };
-showHeroSelect((def) => start(def));
+showTitle(() => showHeroSelect((def) => start(def)));
