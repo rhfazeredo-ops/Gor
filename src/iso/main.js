@@ -4,7 +4,7 @@ import { drawThemeBackground } from './themes.js';
 import { desertMassifs } from './massif.js';
 import { loadBigDesert, buildBigDesert, sprite, updateDecos, drawColliders } from './bigdesert.js';
 import { ROOMS, parseMap } from './maps.js';
-import { createLiveHero } from '../char2d/live.js';
+import { loadHero3D } from './hero3d.js';
 import { Input } from './input.js';
 import { Fx } from './fx.js';
 import { World, Hero, Slime, drawWorld, drawObjects, mapLights } from './game.js';
@@ -54,7 +54,7 @@ async function start(def) {
   await loadBigDesert();
   art.themes.grande = { props: { flor: sprite('flores-1', 0.06) }, rocks: [], ambient: 'rgba(70,20,10,0.10)' };
   for (const sl of Object.values(art.slimes)) { sl.w *= 0.7; sl.h *= 0.7; sl.ax *= 0.7; sl.ay *= 0.7; }
-  try { sprites = await createLiveHero({ res: 3, height: 50 }); }
+  try { sprites = await loadHero3D(); }
   catch (e) { document.body.insertAdjacentHTML('beforeend', `<div style="position:fixed;inset:0;display:grid;place-items:center;color:#fff;background:#200;z-index:99;padding:20px;font:14px monospace">Erro ao carregar o herói: ${e && e.message}</div>`); throw e; }
   setupHud(def);
   enterRoom(0);

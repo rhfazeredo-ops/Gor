@@ -1,0 +1,15 @@
+<!doctype html><body style="margin:0;background:#0f0"><script type="module">
+import * as THREE from 'three';import {buildTripoHero} from './tripo-rig.js';
+const Q=new URLSearchParams(location.search);
+const H=await buildTripoHero();
+const r=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});const CW=300,CH=300;
+const shots=(Q.get('s')||'A_TPose:0:0,Sword_Idle:0.5:0,Jog_Fwd_Loop:0.1:1,Jog_Fwd_Loop:0.4:2,Sword_Attack:0.4:1,Sword_Attack:0.6:0,Roll:0.4:2,Spell_Simple_Shoot:0.5:1').split(',');
+r.setSize(CW*Math.min(4,shots.length),CH*Math.ceil(shots.length/4));document.body.appendChild(r.domElement);r.setClearColor(0x00ff00);r.outputColorSpace=THREE.SRGBColorSpace;
+const sc=new THREE.Scene();sc.add(H.holder);sc.add(new THREE.HemisphereLight(0xffffff,0x554455,2));const dl=new THREE.DirectionalLight(0xffffff,1.5);dl.position.set(-2,4,3);sc.add(dl);
+const cam=new THREE.OrthographicCamera(-0.55,0.55,0.55,-0.55,-10,10);
+r.setScissorTest(true);
+shots.forEach((s,i)=>{const [c,t,d]=s.split(':');H.mixer.stopAllAction();const a=H.mixer.clipAction(H.clips[c]);a.reset().play();H.holder.rotation.y=(+d)*Math.PI/4;H.holder.updateMatrixWorld(true);H.mixer.setTime(+t);H.fixHips();H.holder.updateMatrixWorld(true);H.setCape(c.includes('Jog')?0.5:0.05,0);H.holder.updateMatrixWorld(true);
+const el=Math.PI/6;cam.position.set(0,0.4+Math.sin(el)*3,Math.cos(el)*3);cam.lookAt(0,0.4,0);
+const x=(i%4)*CW,y=(Math.ceil(shots.length/4)-1-Math.floor(i/4))*CH;r.setViewport(x,y,CW,CH);r.setScissor(x,y,CW,CH);r.render(sc,cam);});
+window.done=1;
+</script>
