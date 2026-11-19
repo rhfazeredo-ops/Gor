@@ -343,7 +343,7 @@ export class Slime {
 export class Escorpiao {
   constructor(world, x, y) {
     this.world = world; this.kind = 'escorpiao'; this.x = x; this.y = y;
-    this.hp = this.maxHp = 220; this.speed = 1.55; this.dmg = 18; this.r = 0.42;
+    this.hp = this.maxHp = 140; this.speed = 1.55; this.dmg = 18; this.r = 0.42;
     this.alive = true; this.dead = false; this.t = 0; this.state = 'idle'; this.st = 0;
     this.vx = 0; this.vy = 0; this.hurtT = 0; this.cool = 0.8; this.spawnT = 0.5; this.flash = 0;
     this.anim = monsterAnim('escorpiao'); this.wander = { x: 0, y: 0, t: 0 };
@@ -355,10 +355,11 @@ export class Escorpiao {
     const dx = this.x - from.x, dy = this.y - from.y, l = Math.hypot(dx, dy) || 1;
     this.vx = dx / l * push; this.vy = dy / l * push;          // pesado: empurra pouco
     if (this.hp <= 0) {
-      this.alive = false; this.world.kills++; this.state = 'morte';
-      this.anim.play('morte', { restart: true });
+      this.alive = false; this.world.kills++; this.state = 'morte'; this.deadT = 0;
+      this.anim.play('dano', { restart: true });
       this.world.corpses = this.world.corpses || []; this.world.corpses.push(this);
-      this.world.fx.puff(this.x, this.y, '#8a3a2a', 16);
+      this.world.fx.puff(this.x, this.y, '#c98a52', 22);
+      this.world.fx.sparks(this.x, this.y, 3, { n: 14, c1: '#e8b07a', c2: '#8a5030', up: 50, g: 160 });
     } else if (this.state !== 'ataque') this.anim.play('dano', { restart: true, onEnd: () => this.alive && this.anim.play('idle') });
   }
   update(dt, hero) {
@@ -405,8 +406,9 @@ export class Escorpiao {
     const W = this.world, [sx, sy] = W.toScreen(this.x, this.y);
     shadow(ctx, sx, sy, 30);
     if (this.spawnT > 0) ctx.globalAlpha = 1 - this.spawnT / 0.5;
-    if (this.state === 'morte' && this.anim.done) ctx.globalAlpha = Math.max(0, 1 - (this.t - this.deadAt) / 1.2);
-    this.anim.draw(ctx, sx, sy, this.flash);
+    let sink = 0;
+    if (this.state === 'morte') { const k = Math.min(1, this.deadT / 0.6); ctx.globalAlpha = 1 - k; sink = k * 10; }
+    this.anim.draw(ctx, sx, sy + sink, this.state === 'morte' ? 1 : this.flash);
     ctx.globalAlpha = 1;
     if (this.alive && this.hp < this.maxHp) {
       const w = 40, x0 = sx - w / 2, y0 = sy - 62;

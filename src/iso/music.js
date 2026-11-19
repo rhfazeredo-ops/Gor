@@ -4,6 +4,7 @@
 let ctx = null, gain = null;
 const unlock = () => { if (ctx && ctx.state !== 'running') ctx.resume(); };
 addEventListener('pointerdown', unlock, true); addEventListener('keydown', unlock, true);
+document.addEventListener('visibilitychange', () => { if (!ctx) return; if (document.hidden) ctx.suspend(); else ctx.resume(); });
 
 function context() {
   if (!ctx) { ctx = new (window.AudioContext || window.webkitAudioContext)(); gain = ctx.createGain(); gain.connect(ctx.destination); }
@@ -22,8 +23,12 @@ async function decode(url) {
 
 // Web Audio nos dois casos: o arquivo baixa e decodifica assim que a página abre (antes do toque),
 // então no primeiro toque o som sai na hora. (<audio> no celular só começa a baixar depois do toque.)
+// No APK (Capacitor/Android): <audio> — o app libera autoplay para ele (setMediaPlaybackRequiresUserGesture)
+// e o arquivo está dentro do app, então toca na hora.
+const NATIVO = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())
+  || (location.protocol === 'https:' && location.hostname === 'localhost' && /Android/.test(navigator.userAgent));
 export function createTrack(url, opts = {}) {
-  return webAudioTrack(url, opts);
+  return NATIVO && !url.startsWith('data:') ? streamTrack(url, opts) : webAudioTrack(url, opts);
 }
 
 // site normal (GitHub Pages / itch): <audio> em streaming — começa a tocar com poucos segundos baixados
@@ -35,7 +40,9 @@ function streamTrack(url, { volume = 0.6, loopEnd = null } = {}) {
     fadeT = setInterval(() => { const k = Math.min(1, (performance.now() - t0) / (secs * 1000)); el.volume = from + (to - from) * k; if (k >= 1) { clearInterval(fadeT); done && done(); } }, 30);
   };
   if (loopEnd) el.addEventListener('timeupdate', () => { if (el.currentTime >= loopEnd) el.currentTime = 0; });
-  const tryPlay = () => { if (!want || !el.paused) return; el.play().then(() => fade(volume, 1.5)).catch(() => {}); };
+  const tryPlay = () => { if (!want || !el.paused || document.hidden) return; el.play().then(() => fade(volume, 0.25)).catch(() => {}); };
+  el.addEventListener('canplay', tryPlay);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) el.pause(); else tryPlay(); });
   // celular: só toca depois do primeiro toque/tecla
   addEventListener('pointerdown', tryPlay, true); addEventListener('keydown', tryPlay, true); addEventListener('touchend', tryPlay, true);
   const ready = new Promise((r) => { el.addEventListener('canplay', r, { once: true }); el.addEventListener('error', r, { once: true }); });

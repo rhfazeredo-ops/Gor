@@ -101,6 +101,19 @@ async function playMission(m) {
   hero = null; flores = 0;
   setupHud(heroDef);
   enterRoom(m.mapa);
+  if (m.objetivo.tipo === 'coletar') placeMonsters(m.inimigos || 10);
+}
+// coloca um número fixo de escorpiões pelo mapa: longe do início, espalhados, vários perto das plantas
+function placeMonsters(n) {
+  const map = world.map, st = { x: hero.x, y: hero.y }, out = [];
+  const ok = (p) => Math.hypot(p.x - st.x, p.y - st.y) > 9 && out.every((q) => Math.hypot(q.x - p.x, q.y - p.y) > 5) && !world.blocked(p.x, p.y, 0.45);
+  const flores = map.props.filter((p) => p.kind === 'flor').sort(() => Math.random() - 0.5);
+  for (const f of flores) {   // guardas: metade perto de plantas
+    if (out.length >= Math.ceil(n / 2)) break;
+    for (let t = 0; t < 12; t++) { const a = Math.random() * 6.283, p = { x: f.i + 0.5 + Math.cos(a) * 1.8, y: f.j + 0.5 + Math.sin(a) * 1.8 }; if (ok(p)) { out.push(p); break; } }
+  }
+  for (let t = 0; t < 2000 && out.length < n; t++) { const p = map.open[(Math.random() * map.open.length) | 0]; if (ok(p)) out.push(p); }
+  for (const p of out) { const e = new Escorpiao(world, p.x, p.y); e.spawnT = 0; world.enemies.push(e); }
 }
 // lobby (taverna): a música da abertura para aqui
 function openLobby(def) {
@@ -170,10 +183,10 @@ function rooms(dt) {
   if (roomState === 'vitoria') return;
   world.enemies = world.enemies.filter((e) => e.alive);
   const map = world.map;
+  if (obj && obj.tipo === 'coletar') return;   // coleta: só os escorpiões já colocados no mapa (não nascem outros)
   if (roomState === 'luta') {
     if (world.enemies.length === 0) {
       if (wave >= map.ondas.length) {
-        if (obj && obj.tipo === 'coletar') { wave = 0; waveTimer = 8; return; }   // missão de coleta: as criaturas voltam de tempos em tempos
         roomState = 'limpa'; world.doorOpen = true; fx.shake = 0.4; ui.info('Informação', 'Cânion limpo! Você recebeu a Bênção da Luz. Siga até o portal.'); return;
       }
       waveTimer -= dt;
@@ -232,7 +245,7 @@ function updateHud() {
   }, hdt);
   const map = world.map;
   const obj = mission && mission.objetivo;
-  if (obj && obj.tipo === 'coletar') $('objective').textContent = roomState === 'vitoria' ? 'Missão concluída!' : `${obj.texto} (${Math.min(flores, obj.alvo)}/${obj.alvo}).`;
+  if (obj && obj.tipo === 'coletar') $('objective').textContent = roomState === 'vitoria' ? 'Missão concluída!' : `${obj.texto} (${Math.min(flores, obj.alvo)}/${obj.alvo}). Escorpiões: ${world.enemies.length}`;
   else $('objective').textContent = roomState === 'vitoria' ? 'Vitória! O cânion foi purificado.' : roomState === 'limpa' ? 'Siga até o portal em ruínas.' :
     `Derrote as criaturas do cânion (onda ${Math.max(1, wave)}/${map.ondas.length}).`;
   const ab = hero.ab;
@@ -356,7 +369,7 @@ function frame(now) {
     hero.update(wdt, input, aimAt);
     for (const e of world.enemies) e.update(wdt, hero);
     // corpos (animação de morte e sumiço) depois de saírem da lista de inimigos
-    if (world.corpses) { for (const c of world.corpses) { c.t += wdt; c.anim.update(wdt); if (c.anim.done && c.deadAt == null) c.deadAt = c.t; } world.corpses = world.corpses.filter((c) => c.deadAt == null || c.t - c.deadAt < 1.3); }
+    if (world.corpses) { for (const c of world.corpses) { c.deadT += wdt; c.anim.update(wdt); } world.corpses = world.corpses.filter((c) => c.deadT < 0.6); }
     updateAreas(wdt);
     rooms(ui.paused ? 0 : dt);
     fx.update(wdt);
