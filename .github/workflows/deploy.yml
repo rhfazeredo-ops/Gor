@@ -32,5 +32,12 @@ jobs:
           mkdir -p ../dist-itch/godot && cp -r ../dist-godot/* ../dist-itch/godot/
       - uses: actions/upload-pages-artifact@v3
         with: { path: dist-itch }
+      # o GitHub às vezes não acha o pacote recém-enviado: espera e tenta de novo
       - id: d
+        continue-on-error: true
+        uses: actions/deploy-pages@v4
+      - if: steps.d.outcome == 'failure'
+        run: sleep 20
+      - id: d2
+        if: steps.d.outcome == 'failure'
         uses: actions/deploy-pages@v4
