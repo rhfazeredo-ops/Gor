@@ -1,0 +1,35 @@
+name: Gerar APK Android
+# A cada envio ao main: monta o jogo, empacota com o Capacitor e publica o APK
+# na página Releases (tag "apk"), sempre com o mesmo link de download.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency: { group: apk, cancel-in-progress: true }
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 21, cache: gradle }
+      - run: npm ci
+      - run: npx vite build --config vite.itch.config.js
+      - run: npx cap sync android
+      # mesma chave de assinatura entre versões (assim o APK novo instala por cima do antigo)
+      - uses: actions/cache@v4
+        with: { path: ~/.android/debug.keystore, key: terra-de-gor-debug-keystore }
+      - run: cd android && chmod +x gradlew && ./gradlew assembleDebug --no-daemon
+      - run: cp android/app/build/outputs/apk/debug/app-debug.apk terra-de-gor.apk
+      - uses: actions/upload-artifact@v4
+        with: { name: terra-de-gor-apk, path: terra-de-gor.apk }
+      - name: Publicar em Releases
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: |
+          gh release delete apk --yes --cleanup-tag || true
+          gh release create apk terra-de-gor.apk --prerelease --title "Terra de Gor — APK de teste" \
+            --notes "Versão de teste gerada automaticamente a partir do commit ${GITHUB_SHA::7}. Baixe o terra-de-gor.apk no celular e instale."

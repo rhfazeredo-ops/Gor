@@ -1,0 +1,8 @@
+{
+  "appId": "io.github.rhfazeredo.terradegor",
+  "appName": "Terra de Gor",
+  "webDir": "dist-itch",
+  "android": {
+    "backgroundColor": "#0d0a16"
+  }
+}

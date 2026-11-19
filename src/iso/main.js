@@ -389,4 +389,4 @@ const openTitle = () => { tema.play(); showTitle(() => showHeroSelectArt((def) =
 openTitle();
 
 // instalável (tela inicial do celular): só no site normal, não no HTML único
-if ('serviceWorker' in navigator && location.protocol === 'https:' && !document.querySelector('script[type=module]:not([src])')) navigator.serviceWorker.register('./sw.js').catch(() => {});
+if ('serviceWorker' in navigator && location.protocol === 'https:' && !window.Capacitor && !document.querySelector('script[type=module]:not([src])')) navigator.serviceWorker.register('./sw.js').catch(() => {});

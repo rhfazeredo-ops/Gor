@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Terra de Gor</string>
+    <string name="title_activity_main">Terra de Gor</string>
+    <string name="package_name">io.github.rhfazeredo.terradegor</string>
+    <string name="custom_url_scheme">io.github.rhfazeredo.terradegor</string>
+</resources>
