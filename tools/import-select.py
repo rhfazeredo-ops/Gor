@@ -12,7 +12,9 @@ os.makedirs(out, exist_ok=True)
 img = Image.open(src).convert('RGB'); W, H = img.size
 im = np.asarray(img).astype(np.float32)
 # cartas: (esquerda, direita, ponta de cima, ponta de baixo); ombros a 11% da altura
-CARDS = [(262, 498, 140, 692), (514, 731, 166, 686), (747, 962, 172, 686), (976, 1186, 172, 686), (1199, 1424, 165, 690)]
+# layout da arte (selecao-herois-2.png): cartas, painel, botões
+CARDS = [(186, 458, 156, 712), (470, 724, 176, 712), (740, 966, 188, 712), (978, 1216, 180, 712), (1228, 1490, 176, 712)]
+EMB_Y = 0.75                                   # altura do emblema na carta (fração)
 def poly(c, pad=0):
     l, r, t, b = c; cx = (l + r) / 2; h = b - t; s = h * 0.115
     return [(cx, t - pad), (r + pad, t + s), (r + pad, b - s), (cx, b + pad), (l - pad, b - s), (l - pad, t + s)]
@@ -50,16 +52,16 @@ for k, c in enumerate(CARDS):
 # 3) painel: apaga nome, descrição, estandarte e barras
 lum = im.mean(2)
 er = np.zeros((H, W), bool)
-for (x0, y0, x1, y1) in [(392, 700, 760, 752), (392, 762, 1010, 830)]:
+for (x0, y0, x1, y1) in [(322, 740, 712, 788), (322, 792, 712, 852)]:
     er[y0:y1, x0:x1] = lum[y0:y1, x0:x1] > 105
-er[690:840, 282:372] = True                     # estandarte vermelho
-er[708:830, 1228:1370] = True                   # barras
+er[735:858, 198:308] = True                     # emblema do leão
+er[742:852, 902:1095] = True                    # barras
 er = ndimage.binary_dilation(er, iterations=3)
 fill_holes(im, er, (4, 10, 24, 50))
 Image.fromarray(im.clip(0, 255).astype(np.uint8)).save(os.path.join(out, 'fundo.webp'), 'WEBP', quality=86, method=6)
-meta.update({'nome': [398, 702, 600, 50], 'desc': [398, 764, 600, 64], 'emblema': [285, 692, 84, 140],
-             'barras': [1232, 712, 132, 116], 'stats': [[1232, 724], [1232, 754], [1232, 784], [1232, 814]],
-             'setas': [[178, 372, 60, 90], [1440, 372, 60, 90]], 'confirmar': [585, 860, 252, 62], 'voltar': [860, 860, 228, 62]})
+meta.update({'nome': [326, 740, 390, 48], 'desc': [326, 792, 390, 60], 'emblema': [200, 740, 108, 112], 'embY': EMB_Y,
+             'barras': [906, 742, 186, 110], 'stats': [[906, 754], [906, 783], [906, 812], [906, 841]],
+             'setas': [[80, 368, 70, 110], [1520, 368, 70, 110]], 'confirmar': [1160, 762, 360, 92], 'voltar': [715, 882, 240, 50]})
 json.dump(meta, open(os.path.join(out, 'select.json'), 'w'), indent=1)
 if '--check' in sys.argv:
     chk = Image.open(os.path.join(out, 'fundo.webp')).convert('RGB'); dd = ImageDraw.Draw(chk)

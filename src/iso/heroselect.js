@@ -5,15 +5,14 @@ import M from '../assets/select/select.json';
 import fundo from '../assets/select/fundo.webp';
 import { ROSTER } from '../data/roster.js';
 import { HEROES } from '../data/heroes.js';
-const IMGS = import.meta.glob('../assets/select/*-retrato.webp', { eager: true, query: '?url', import: 'default' });
-const retrato = (n) => IMGS[`../assets/select/${n}.webp`];
+const CARTAS = Object.values(import.meta.glob('../assets/select/carta-*.webp', { eager: true, query: '?url', import: 'default' }));
 
 const css = `
 #hsel { position: fixed; inset: 0; z-index: 19; background: #140b08; overflow: hidden; }
 #hsel .blur { position: absolute; inset: -30px; background: url(${fundo}) center / cover; filter: blur(14px) brightness(.55); }
 #hsel .stage { position: absolute; left: 50%; top: 50%; transform-origin: 0 0; }
 #hsel .bg { position: absolute; inset: 0; background: url(${fundo}) 0 0 / 100% 100%; }
-#hsel .card { position: absolute; background: linear-gradient(160deg, #f7d77a, #b7801f 45%, #f3c75a 70%, #8a5a14); cursor: pointer; transition: transform .18s, filter .18s; filter: brightness(.6) saturate(.75); -webkit-tap-highlight-color: transparent; }
+#hsel .card { position: absolute; cursor: pointer; transition: transform .18s, filter .18s; filter: brightness(.6) saturate(.75); -webkit-tap-highlight-color: transparent; }
 #hsel .card.sel { transform: scale(1.04); transform-origin: 50% 100%; filter: brightness(1.12) drop-shadow(0 0 6px #ffcf4a) drop-shadow(0 0 16px #ff9a1a); z-index: 2; }
 #hsel .card .in { position: absolute; inset: 0; }
 #hsel .card.vazia { filter: brightness(.5) saturate(.4); cursor: default; }
@@ -21,14 +20,14 @@ const css = `
 #hsel .card .in.heroi { background-repeat: no-repeat; }
 #hsel .card .cnome { position: absolute; left: 0; right: 0; bottom: 13%; text-align: center; font: 700 34px Georgia, serif; color: #fff4dc;
   text-shadow: 0 3px 0 #000, 0 0 8px #000, 2px 0 0 #000, -2px 0 0 #000; }
-#hsel .card .lock { position: absolute; left: 50%; bottom: 6%; transform: translateX(-50%); font: 700 15px Georgia, serif; color: #f6e7cf;
+#hsel .card .lock { position: absolute; left: 50%; top: 4%; transform: translateX(-50%); font: 700 15px Georgia, serif; color: #f6e7cf;
   background: rgba(20,10,10,.8); border: 1px solid #c9a24a; padding: 2px 10px; border-radius: 3px; white-space: nowrap; }
 #hsel .txt { position: absolute; font-family: Georgia, 'Times New Roman', serif; color: #f6e7cf; text-shadow: 0 2px 0 #000; }
-#hsel .nome { font-weight: 700; font-size: 38px; color: #ffe2a0; line-height: 50px; }
-#hsel .desc { font-size: 21px; line-height: 1.4; }
+#hsel .nome { font-weight: 700; font-size: 34px; color: #ffe2a0; line-height: 50px; }
+#hsel .desc { font-size: 19px; line-height: 1.4; }
 #hsel .emb { position: absolute; border-radius: 4px; background-repeat: no-repeat; box-shadow: inset 0 0 0 2px #8a6a2a, inset 0 0 18px #000; background-color: #1e1410; }
 #hsel .bars { position: absolute; background: #1c120d; border-radius: 3px; }
-#hsel .bar { position: absolute; left: 0; height: 16px; width: 100%; display: flex; gap: 3px; transform: translateY(-50%); }
+#hsel .bar { position: absolute; left: 0; height: 15px; width: 100%; display: flex; gap: 3px; transform: translateY(-50%); }
 #hsel .bar i { flex: 1; background: #3a2a20; border: 1px solid #120a06; transform: skewX(-20deg); }
 #hsel .bar i.on { background: linear-gradient(#ffd56a, #e08a1a); }
 #hsel .bar i.half { background: linear-gradient(90deg, #f5b13a 50%, #3a2a20 50%); }
@@ -47,16 +46,11 @@ export function showHeroSelectArt(onPick, onBack) {
   stage.innerHTML = '<div class="bg"></div>';
   const at = (cls, [x, y, w, h], tag = 'div') => { const d = document.createElement(tag); d.className = cls; Object.assign(d.style, { left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px' }); stage.append(d); return d; };
   const cards = M.cards.map((c, k) => {
-    const d = at('card', [c.x, c.y, c.w, c.h]), R = ROSTER[k];
-    const pts = (k0) => { const cx = c.w / 2, cy = c.h / 2; return `polygon(${c.poly.map(([x, y]) => `${cx + (x - cx) * k0}px ${cy + (y - cy) * k0}px`).join(',')})`; };
-    d.style.clipPath = pts(1);
-    const inn = document.createElement('div'); inn.className = 'in ' + (R ? 'heroi' : 'vazia'); inn.style.clipPath = pts(0.955); d.append(inn);
-    if (R) {
-      inn.style.backgroundImage = `url(${retrato(R.retrato)}), linear-gradient(170deg, ${R.fundo[0]}, ${R.fundo[1]})`;
-      inn.style.backgroundSize = 'auto 92%, 100% 100%'; inn.style.backgroundPosition = '38% 100%, 0 0';
-      const n = document.createElement('div'); n.className = 'cnome'; n.textContent = R.nome; inn.append(n);
-      d.onclick = () => (sel === k ? confirm() : mark(k));
-    } else d.classList.add('vazia');
+    const d = at('card', [c.x, c.y, c.w, c.h]);
+    d.style.background = `url(${CARTAS[k]}) 0 0 / 100% 100%`;
+    d.style.clipPath = `polygon(${c.poly.map(([x, y]) => `${x}px ${y}px`).join(',')})`;
+    if (!playable(k)) { const l = document.createElement('div'); l.className = 'lock'; l.textContent = '🔒 Em breve'; d.append(l); }
+    d.onclick = () => (sel === k ? confirm() : mark(k));
     return d;
   });
   const nome = at('txt nome', M.nome), desc = at('txt desc', M.desc);
@@ -77,8 +71,11 @@ export function showHeroSelectArt(onPick, onBack) {
     cards.forEach((d, j) => d.classList.toggle('sel', j === k));
     nome.textContent = R.nome; desc.textContent = R.desc;
     // emblema: recorte do símbolo da própria carta
-    emb.style.backgroundImage = `url(${retrato(R.retrato)}), linear-gradient(170deg, ${R.fundo[0]}, ${R.fundo[1]})`;
-    emb.style.backgroundSize = '260% auto, 100% 100%'; emb.style.backgroundPosition = '62% 30%, 0 0';
+    // emblema: recorte do símbolo da própria carta
+    const z = 1.5, ew = M.emblema[2] - 8, eh = M.emblema[3] - 20;
+    emb.style.backgroundImage = `url(${CARTAS[k]})`;
+    emb.style.backgroundSize = `${c.w * z}px ${c.h * z}px`;
+    emb.style.backgroundPosition = `${ew / 2 - (c.w / 2) * z}px ${eh / 2 - c.h * M.embY * z}px`;
     R.stats.forEach((v, i) => [...barEls[i].children].forEach((s, j) => { s.className = v >= j + 1 ? 'on' : v > j ? 'half' : ''; }));
   }
   let msgT = 0;
