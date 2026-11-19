@@ -27,13 +27,22 @@ const cv = document.getElementById('game');
 const ctx = cv.getContext('2d');
 const lightCv = document.createElement('canvas');
 const lctx = lightCv.getContext('2d');
-const VIEW_H = innerHeight < 520 ? 340 : 320;   // herói ≈ 21% da altura da tela   // câmera próxima, como nos roguelikes de ação
-let zoom = 3, VW = 320, VH = 180, DPR = 1, camZoom = 1;
+// resolução fixa 1920x1080: o jogo é sempre desenhado nesse tamanho e escalado para caber na tela
+// (sem distorcer; sobras viram faixas escuras). HUD e botões se alinham à área do jogo.
+const GAME_W = 1920, GAME_H = 1080;
+const VIEW_H = 330;                 // altura visível do mundo (herói ≈ 21% da tela)
+let zoom = 3, VW = 320, VH = 180, DPR = 1, camZoom = 1, GL = 0, GT = 0;
 
 function resize() {
-  DPR = Math.min(devicePixelRatio || 1, 2.5);
-  const w = Math.round(innerWidth * DPR), h = Math.round(innerHeight * DPR);
-  cv.width = w; cv.height = h;
+  const w = GAME_W, h = GAME_H;
+  if (cv.width !== w) { cv.width = w; cv.height = h; }
+  const s = Math.min(innerWidth / w, innerHeight / h);
+  const cw = Math.round(w * s), ch = Math.round(h * s);
+  GL = Math.round((innerWidth - cw) / 2); GT = Math.round((innerHeight - ch) / 2);
+  Object.assign(cv.style, { width: cw + 'px', height: ch + 'px', left: GL + 'px', top: GT + 'px' });
+  const r = document.documentElement.style;
+  r.setProperty('--gl', GL + 'px'); r.setProperty('--gt', GT + 'px'); r.setProperty('--gw', cw + 'px'); r.setProperty('--gh', ch + 'px');
+  DPR = w / cw;                     // pixels do jogo por pixel CSS
   zoom = h / VIEW_H;
   VW = w / zoom; VH = h / zoom;
   lightCv.width = Math.ceil(w / 3); lightCv.height = Math.ceil(h / 3);
@@ -47,7 +56,7 @@ const input = new Input(cv);
 let world = null, hero = null;
 
 // tela (CSS px) → unidades do mundo na tela
-const toLow = (cx, cy) => [cx * DPR / (zoom * camZoom), cy * DPR / (zoom * camZoom)];
+const toLow = (cx, cy) => [(cx - GL) * DPR / (zoom * camZoom), (cy - GT) * DPR / (zoom * camZoom)];
 
 // ---------------- salas (estilo Hades) ----------------
 // Cada sala é uma arena: entra, vence as ondas, a porta abre com a

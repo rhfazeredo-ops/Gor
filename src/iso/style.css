@@ -1,7 +1,8 @@
 @import '../style.css';
 
 /* ---- Terra de Gor 2D ---- */
-#game { position: fixed; inset: 0; width: 100vw; height: 100vh;  }
+body { background: #0d0a16; }
+#game { position: fixed; left: 0; top: 0; width: 100vw; height: 100vh; }
 #hud.hidden { display: none; }
 #hud { z-index: 2; }
 #hero-name { font-size: 15px; letter-spacing: .03em; }
@@ -25,12 +26,12 @@ body.touch #counters { top: 70px; }
 
 /* ---- HUD pintado ---- */
 #hero-name, #hud .bar { display: none; }
-#hud { left: 8px; top: 6px; }
-#hud-canvas { display: block; width: min(400px, 30vw); height: auto; filter: drop-shadow(0 3px 4px rgba(0,0,0,.5)); }
-body.touch #hud-canvas { width: min(280px, 34vw); }
+#hud { left: calc(var(--gl, 0px) + 8px); top: calc(var(--gt, 0px) + 6px); }
+#hud-canvas { display: block; width: min(400px, calc(var(--gw, 100vw) * .3)); height: auto; filter: drop-shadow(0 3px 4px rgba(0,0,0,.5)); }
+body.touch #hud-canvas { width: min(280px, calc(var(--gw, 100vw) * .38)); }
 
 /* ---- objetivo abaixo do HUD ---- */
-#obj-box { margin: 2px 0 0 6px; max-width: min(300px, 34vw); }
+#obj-box { margin: 2px 0 0 6px; max-width: min(320px, calc(var(--gw, 100vw) * .4)); }
 #obj-box .obj-t { font: 700 15px Georgia, serif; color: #ffd86b; letter-spacing: .06em; text-transform: uppercase; text-shadow: 0 1px 0 #000, 0 0 4px #000; }
 #hud #objective { position: static; transform: none; background: none; border: 0; padding: 0; margin-top: 1px;
   font: 15px Georgia, serif; color: #f6e7cf; white-space: normal; text-shadow: 0 1px 0 #000, 0 0 4px #000; display: block; }
@@ -38,4 +39,4 @@ body.touch #obj-box .obj-t, body.touch #hud #objective { font-size: 11px; }
 @media (orientation: portrait) { body.touch #hud #objective { display: block; } }
 /* ---- botões: sem o botão vazio e sem tela cheia; combate e habilidades menores ---- */
 #btn-r, body.touch #btn-full, #btn-full { display: none !important; }
-#buttons { transform: scale(.8); transform-origin: 100% 100%; }
+#buttons { transform: scale(.8); transform-origin: 100% 100%; right: calc(var(--gl, 0px) + 20px) !important; bottom: calc(var(--gt, 0px) + 20px) !important; }
