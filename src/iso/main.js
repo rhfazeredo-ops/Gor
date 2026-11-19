@@ -17,6 +17,7 @@ import { showTitle, titleReady } from './title.js';
 import { createTrack } from './music.js';
 import temaInicial from '../assets/musica/tela-inicial.mp3?url';
 import { progress } from './progress.js';
+import { showLoading, loadingReady } from './loading.js';
 // tema da tela inicial: toca no menu e na seleção de heróis, some quando o jogo começa
 const tema = createTrack(temaInicial, { volume: 0.6, loopEnd: 151.0 });
 import { showHeroSelectArt } from './heroselect.js';
@@ -69,7 +70,7 @@ const toLow = (cx, cy) => [(cx - GL) * DPR / (zoom * camZoom), (cy - GT) * DPR /
 let sprites = null, heroDef = null, roomIndex = 0, wave = 0, waveTimer = 0, roomState = 'luta', fade = 0, power = 0;
 // o mapa e o herói começam a baixar assim que a tela inicial abre (em segundo plano)
 // prioridade: primeiro a arte da tela inicial e a música; depois (ou após 6 s) o mapa e o herói
-const preload = Promise.race([Promise.all([titleReady, tema.ready]), new Promise((r) => setTimeout(r, 6000))])
+const preload = Promise.race([Promise.all([titleReady, tema.ready, loadingReady]), new Promise((r) => setTimeout(r, 6000))])
   .then(() => Promise.all([loadBigDesert(), loadHero3D()]));
 preload.catch(() => {});
 // tela de carregamento com barra, enquanto o resto termina de baixar
@@ -77,12 +78,9 @@ async function waitAssets() {
   let done = false; preload.finally(() => (done = true));
   await new Promise((r) => setTimeout(r, 0));
   if (done) return preload;
-  const el = document.createElement('div');
-  el.style.cssText = 'position:fixed;inset:0;z-index:30;background:#0d0a16;display:grid;place-items:center;color:#f3e6c8;font:700 18px Georgia,serif';
-  el.innerHTML = '<div style="width:min(420px,70vw);text-align:center">Carregando o Desfiladeiro do Sol…<div style="margin-top:14px;height:12px;border:2px solid #c9a24a;border-radius:3px;background:#2a1a10;overflow:hidden"><div id="load-bar" style="height:100%;width:0;background:linear-gradient(#ffd56a,#e08a1a);transition:width .2s"></div></div><div id="load-pct" style="margin-top:8px;font-size:14px;opacity:.8"></div></div>';
-  document.body.append(el);
-  const tick = setInterval(() => { const f = progress.total ? progress.done / progress.total : 0; el.querySelector('#load-bar').style.width = (f * 100).toFixed(0) + '%'; el.querySelector('#load-pct').textContent = (f * 100).toFixed(0) + '%'; }, 120);
-  try { await preload; } finally { clearInterval(tick); el.remove(); }
+  const el = showLoading();
+  const tick = setInterval(() => el.set(progress.total ? progress.done / progress.total : 0), 120);
+  try { await preload; el.set(1); await new Promise((r) => setTimeout(r, 250)); } finally { clearInterval(tick); el.remove(); }
 }
 async function start(def) {
   heroDef = def;
