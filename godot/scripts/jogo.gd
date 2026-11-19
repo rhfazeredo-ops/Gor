@@ -28,7 +28,11 @@ func _ready() -> void:
 	_luz()
 	heroi = Heroi.new(); add_child(heroi)
 	heroi.position = Vector3(mapa.dados.start.x + 2.5, 0, mapa.dados.start.y + 2.5)
+	heroi.inicio = heroi.position
 	heroi.acertar.connect(_golpe)
+	heroi.consagrar.connect(_consagrar)
+	heroi.proteger.connect(func(): Fx.bolha(heroi, 3.0); Fx.faiscas(self, heroi.global_position, 24, Color(1, 0.9, 0.5), 3.0))
+	heroi.ferido.connect(func(d): Fx.numero(self, heroi.global_position, int(d), Color(1, 0.35, 0.29)); tremer(0.25))
 	cam = Camera3D.new(); cam.projection = Camera3D.PROJECTION_ORTHOGONAL; cam.size = VISTA_ALTURA
 	cam.near = 0.1; cam.far = 200.0; add_child(cam)
 	if m.inimigos > 0: _escorpioes(m.inimigos)
@@ -81,27 +85,82 @@ func _flores() -> void:
 		am.emission_enabled = true; am.emission = Color(1, 0.7, 0.2); anel.material_override = am; anel.position = s.position + Vector3(0, 0.02, 0)
 		add_child(anel); flores.append([s, anel])
 
+func _escorpioes_vivos() -> Array:
+	var r := []
+	for c in get_children(): if c is Escorpiao and c.vivo: r.append(c)
+	return r
+
 func _golpe(de: Vector3, frente: Vector3) -> void:
-	for e in get_tree().get_nodes_in_group("_") : pass
-	for c in get_children():
-		if c is Escorpiao and c.vivo:
-			var v: Vector3 = c.global_position - de; v.y = 0
-			if v.length() < 1.9 + 0.42 and (v.length() < 0.6 or v.normalized().dot(frente) > 0.2):
-				c.ferir(20.0, de)
+	var alcance := 2.2 / 1.81 + 0.4
+	var alvos := []
+	for c in _escorpioes_vivos():
+		var v: Vector3 = c.global_position - de; v.y = 0
+		var d := v.length()
+		if d > alcance + 0.42: continue
+		if d > 0.35 and v.normalized().dot(frente) < 0.25: continue
+		alvos.append([d, c])
+	alvos.sort_custom(func(x, y): return x[0] < y[0])
+	for i in alvos.size():
+		var e: Escorpiao = alvos[i][1]
+		var dano := roundi(heroi.atk * (0.6 if i > 0 else 1.0) * randf_range(0.9, 1.1))
+		e.ferir(dano, de); Fx.numero(self, e.global_position, dano)
+		Fx.faiscas(self, e.global_position, 12 if i == 0 else 6, Color(1, 0.9, 0.6), 3.5, 0.5)
+	if alvos.size() > 0: pausa_impacto(0.055); tremer(0.25)
+
+# Consagração: martelo de luz cai, dano e empurrão no impacto, área dourada que fere por 6 s
+var areas := []
+func _consagrar(pos: Vector3) -> void:
+	var R := 3.0 / 1.81
+	pausa_impacto(0.1); tremer(1.0)
+	Fx.anel(self, pos, R + 0.9); Fx.faiscas(self, pos, 50, Color(1, 0.85, 0.4), 6.0, 0.2)
+	Fx.consagracao(self, pos, R, 6.0)
+	for e in _escorpioes_vivos():
+		var v: Vector3 = e.global_position - pos; v.y = 0
+		if v.length() < R + 0.42:
+			var dano := roundi(heroi.atk * 1.2); e.ferir(dano, pos, 4.0); Fx.numero(self, e.global_position, dano, Color(1, 0.88, 0.4))
+	areas.append({ "pos": pos, "R": R, "dps": heroi.atk * 0.2 * 5.0, "resta": 6.0, "tick": 0.5 })
+
+func _areas(delta: float) -> void:
+	for a in areas.duplicate():
+		a.resta -= delta; a.tick -= delta
+		if a.tick <= 0.0:
+			a.tick = 0.5
+			for e in _escorpioes_vivos():
+				var v: Vector3 = e.global_position - a.pos; v.y = 0
+				if v.length() < a.R + 0.42:
+					var dano := roundi(a.dps * 0.5); e.ferir(dano, a.pos, 0.3); Fx.numero(self, e.global_position, dano, Color(1, 0.88, 0.4))
+		if a.resta <= 0.0: areas.erase(a)
+
+# pausa de impacto (o mundo quase congela por um instante) e tremor da câmera
+func pausa_impacto(seg: float) -> void:
+	Engine.time_scale = 0.05
+	await get_tree().create_timer(seg, true, false, true).timeout
+	Engine.time_scale = 1.0
+
+var tremor := 0.0
+func tremer(f: float) -> void: tremor = max(tremor, f)
 
 func _physics_process(delta: float) -> void:
-	heroi.mover(controles.dir, controles.atacar, controles.consumir_esquiva(), delta)
+	heroi.mover(controles.dir, controles.atacar, controles.consumir_esquiva(), delta, controles.consumir_q(), controles.consumir_e())
+	_areas(delta)
+	mapa.animar(delta, heroi, cam)
+	controles.bq.definir(heroi.recarga_q / heroi.RECARGA_Q, heroi.recarga_q, heroi.mana >= heroi.CUSTO_Q)
+	controles.be.definir(heroi.recarga_e / heroi.RECARGA_E, heroi.recarga_e, heroi.mana >= heroi.CUSTO_E)
 	var alvo := heroi.global_position + Vector3(heroi.mira.x, 0, heroi.mira.z) * 0.9
 	var desejo := alvo + Vector3(1, 0, 1).normalized() * 30.0 * cos(deg_to_rad(30)) + Vector3.UP * 30.0 * sin(deg_to_rad(30))
 	cam.global_position = cam.global_position.lerp(desejo, min(1.0, delta * 6.0)) if cam.global_position != Vector3.ZERO else desejo
 	cam.look_at(cam.global_position - (desejo - alvo), Vector3.UP)
+	tremor = max(0.0, tremor - delta * 2.5)
+	cam.h_offset = randf_range(-1, 1) * tremor * 0.12; cam.v_offset = randf_range(-1, 1) * tremor * 0.12
 	_atualizar_hud()
 
 func _colher() -> void:
 	for f in flores.duplicate():
 		var s: Sprite3D = f[0]
 		if Vector2(heroi.global_position.x - s.position.x, heroi.global_position.z - s.position.z).length() < 0.9:
-			colhidas += 1; s.queue_free(); f[1].queue_free(); flores.erase(f)
+			colhidas += 1; Fx.faiscas(self, s.position, 22, Color(1, 0.6, 0.3), 3.5, 0.3)
+			s.queue_free(); f[1].queue_free(); flores.erase(f)
+			_faixa("Planta rara coletada (%d/%d)" % [min(colhidas, m.alvo), m.alvo])
 
 func _atualizar_hud() -> void:
 	_barra(hud_vida, heroi.vida / heroi.vida_max); _barra(hud_mana, heroi.mana / heroi.mana_max)
@@ -110,8 +169,18 @@ func _atualizar_hud() -> void:
 	txt_obj.text = "%s (%d/%d)." % [m.texto, min(feito, m.alvo), m.alvo]
 	if feito >= m.alvo and not concluida:
 		concluida = true; _fim("Missão concluída!")
-	if not heroi.vivo and not concluida and not aviso.visible:
-		_fim("Você caiu…")
+	aviso.visible = concluida or not heroi.vivo
+	if not heroi.vivo and not concluida: aviso.text = "Você caiu… voltando em instantes" 
+
+var faixa: Label
+func _faixa(t: String) -> void:
+	if faixa == null:
+		faixa = Label.new(); faixa.add_theme_font_size_override("font_size", 46); faixa.add_theme_color_override("font_color", Color(1, 0.86, 0.45))
+		faixa.add_theme_constant_override("outline_size", 12); faixa.add_theme_color_override("font_outline_color", Color.BLACK)
+		faixa.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; faixa.set_anchors_preset(Control.PRESET_CENTER_TOP)
+		faixa.size = Vector2(1200, 80); faixa.position = Vector2(-600, 230); aviso.get_parent().add_child(faixa)
+	faixa.text = t; faixa.modulate.a = 1.0
+	var tw := faixa.create_tween(); tw.tween_interval(1.2); tw.tween_property(faixa, "modulate:a", 0.0, 0.4)
 
 func _fim(msg: String) -> void:
 	aviso.text = msg; aviso.visible = true
@@ -168,6 +237,13 @@ func _texto_barra(pai: Control, b: Dictionary, k: float) -> Label:
 # ---------------- teste automático (prints) ----------------
 func _modo_teste() -> void:
 	var cena: String = args.get("cena", "inicio")
+	if cena == "habilidade":
+		var alvo2: Escorpiao = null
+		for c in get_children(): if c is Escorpiao: alvo2 = c; break
+		if alvo2: alvo2.global_position = heroi.global_position + Vector3(1.4, 0, 0)
+		await get_tree().create_timer(0.6).timeout
+		controles.usar_q = true
+		await get_tree().create_timer(0.5).timeout
 	if cena == "luta":
 		var alvo: Escorpiao = null
 		for c in get_children(): if c is Escorpiao: alvo = c; break

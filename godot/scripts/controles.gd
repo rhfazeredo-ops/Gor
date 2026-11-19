@@ -6,6 +6,10 @@ class_name Controles
 var dir := Vector2.ZERO
 var atacar := false
 var _botao := false
+var usar_q := false
+var usar_e := false
+var bq: BotaoHab
+var be: BotaoHab
 var esquivar := false
 var _dedo := -1
 var _centro := Vector2.ZERO
@@ -24,6 +28,10 @@ func _ready() -> void:
 	atk.button_down.connect(func(): _botao = true)
 	atk.button_up.connect(func(): _botao = false)
 	add_child(atk)
+	bq = BotaoHab.criar(self, "res://assets/ui/consagracao.png", -430, -340, 140)
+	bq.button_down.connect(func(): usar_q = true)
+	be = BotaoHab.criar(self, "res://assets/ui/protecao.png", -230, -450, 140)
+	be.button_down.connect(func(): usar_e = true)
 	var esq := Button.new(); esq.text = "⇄"; esq.add_theme_font_size_override("font_size", 64)
 	esq.anchor_left = 1; esq.anchor_top = 1; esq.anchor_right = 1; esq.anchor_bottom = 1
 	esq.offset_left = -430; esq.offset_top = -180; esq.offset_right = -300; esq.offset_bottom = -50
@@ -56,6 +64,14 @@ func _process(_d: float) -> void:
 	elif _dedo == -1 and k.length() == 0.0: dir = Vector2.ZERO
 	atacar = _botao or Input.is_key_pressed(KEY_SPACE)
 	if Input.is_key_pressed(KEY_SHIFT): esquivar = true
+	if Input.is_key_pressed(KEY_Q): usar_q = true
+	if Input.is_key_pressed(KEY_E): usar_e = true
+
+func consumir_q() -> bool:
+	var v := usar_q; usar_q = false; return v
+
+func consumir_e() -> bool:
+	var v := usar_e; usar_e = false; return v
 
 func consumir_esquiva() -> bool:
 	var e := esquivar; esquivar = false; return e
@@ -65,3 +81,28 @@ func _draw() -> void:
 	draw_circle(_centro, RAIO, Color(1, 0.9, 0.7, 0.18))
 	draw_arc(_centro, RAIO, 0, TAU, 48, Color(0.95, 0.8, 0.45, 0.6), 4.0)
 	draw_circle(_centro + (_ponta - _centro).limit_length(RAIO), 52, Color(1, 0.92, 0.75, 0.55))
+
+# botão redondo de habilidade com recarga (escurece em "pizza" e mostra os segundos)
+class BotaoHab extends TextureButton:
+	var frac := 0.0; var seg := 0.0; var sem_mana := false
+	static func criar(pai: Control, icone: String, x: float, y: float, t: float) -> BotaoHab:
+		var b := BotaoHab.new(); b.texture_normal = load(icone); b.ignore_texture_size = true
+		b.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
+		b.anchor_left = 1; b.anchor_top = 1; b.anchor_right = 1; b.anchor_bottom = 1
+		b.offset_left = x; b.offset_top = y; b.offset_right = x + t; b.offset_bottom = y + t
+		b.clip_contents = true; pai.add_child(b); return b
+	func definir(f: float, s: float, mana_ok: bool) -> void:
+		frac = f; seg = s; sem_mana = not mana_ok; queue_redraw()
+	func _draw() -> void:
+		var c := size / 2.0; var r: float = min(size.x, size.y) / 2.0
+		if sem_mana and frac <= 0.0: draw_rect(Rect2(Vector2.ZERO, size), Color(0.05, 0.08, 0.25, 0.5))
+		if frac > 0.0:
+			var pts := PackedVector2Array([c]); var n := 40
+			for i in n + 1:
+				var a := -PI / 2.0 + TAU * frac * float(i) / n
+				pts.append(c + Vector2(cos(a), sin(a)) * r * 1.5)
+			draw_rect(Rect2(Vector2.ZERO, size), Color(0, 0, 0, 0))
+			draw_colored_polygon(pts, Color(0.03, 0.02, 0.06, 0.72))
+			var f := get_theme_default_font()
+			draw_string_outline(f, Vector2(0, c.y + 18), str(int(ceil(seg))), HORIZONTAL_ALIGNMENT_CENTER, size.x, 52, 10, Color.BLACK)
+			draw_string(f, Vector2(0, c.y + 18), str(int(ceil(seg))), HORIZONTAL_ALIGNMENT_CENTER, size.x, 52, Color(1, 0.95, 0.85))

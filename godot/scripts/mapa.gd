@@ -6,6 +6,8 @@ class_name Mapa
 const PPM := 45.25            # pixels por metro na escala do jogo (1 tile = 1 metro)
 var dados: Dictionary
 var colisores: Array = []
+var moles: Array = []      # grama/arbustos: balançam quando alguém passa
+var altos: Array = []      # rochas/árvores altas: ficam translúcidas com o herói atrás
 
 func montar(layout: String) -> void:
 	var tudo: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://dados/mapas.json"))
@@ -49,6 +51,11 @@ func _peca(d: Dictionary, pecas: Dictionary) -> void:
 	s.position = Vector3(d.x, 0.0, d.y)
 	if d.flat: s.render_priority = -1
 	add_child(s)
+	if d.phys == "mole":
+		s.billboard = BaseMaterial3D.BILLBOARD_DISABLED
+		moles.append({ "s": s, "d": d, "sway": 0.0, "v": 0.0, "seed": randf() * 6.0 })
+	elif d.h > 45 and not d.flat:
+		altos.append({ "s": s, "d": d, "atras": false })
 
 func _colisoes() -> void:
 	var corpo := StaticBody3D.new(); add_child(corpo)
@@ -89,3 +96,31 @@ func livre(x: float, y: float, r: float) -> bool:
 			for i in pts.size():
 				if Geometry2D.get_closest_point_to_segment(Vector2(x, y), pts[i], pts[(i + 1) % pts.size()]).distance_to(Vector2(x, y)) < r: return false
 	return true
+
+var _t := 0.0
+func animar(delta: float, heroi: Node3D, cam: Camera3D) -> void:
+	_t += delta
+	var hp := heroi.global_position; var hv: Vector3 = heroi.velocity
+	for m in moles:
+		var d: Dictionary = m.d
+		var dx: float = hp.x - d.x; var dz: float = hp.z - d.y; var dist := sqrt(dx * dx + dz * dz)
+		var rr: float = 0.25 + d.w / 180.0
+		if dist < rr:
+			m.v += ((hv.x - hv.z) * 0.05 + (-1.0 if dx - dz > 0 else 1.0) * 0.6 * (1.0 - dist / rr)) * delta * 60.0
+		var vento := sin(_t * 1.7 + m.seed) * 0.03
+		m.v += (-(m.sway - vento) * 40.0 - m.v * 6.0) * delta
+		m.sway = clamp(m.sway + m.v * delta, -0.55, 0.55)
+		m.s.global_basis = cam.global_basis * Basis(Vector3(0, 0, 1), -m.sway)
+	var vh := get_viewport().get_visible_rect().size.y
+	var ppm: float = vh / cam.size
+	var hs := cam.unproject_position(hp + Vector3(0, 0.8, 0))
+	for a in altos:
+		var d: Dictionary = a.d
+		var base := cam.unproject_position(Vector3(d.x, 0, d.y))
+		var w: float = d.w / PPM * ppm; var h: float = d.h / PPM * ppm
+		var x0: float = base.x - d.ax / PPM * ppm
+		var atras: bool = (hp.x + hp.z) < (d.x + d.y) - 0.2 and hs.x > x0 and hs.x < x0 + w and hs.y < base.y and hs.y > base.y - h
+		if atras != a.atras:
+			a.atras = atras
+			a.s.alpha_cut = SpriteBase3D.ALPHA_CUT_DISABLED if atras else SpriteBase3D.ALPHA_CUT_OPAQUE_PREPASS
+			a.s.modulate.a = 0.45 if atras else 1.0

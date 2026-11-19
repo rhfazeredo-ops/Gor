@@ -29,17 +29,35 @@ func _ready() -> void:
 	for mi in modelo.find_children("*", "MeshInstance3D", true, false):
 		(mi as MeshInstance3D).material_override = mat
 	t = randf() * 3.0
+	# barra de vida (aparece depois do primeiro golpe)
+	barra = Node3D.new(); barra.position = Vector3(0, 1.55, 0); barra.visible = false; add_child(barra)
+	var img := Image.create(1, 1, false, Image.FORMAT_RGBA8); img.fill(Color.WHITE); var tex := ImageTexture.create_from_image(img)
+	for i in 2:
+		var sp := Sprite3D.new(); sp.texture = tex; sp.billboard = BaseMaterial3D.BILLBOARD_ENABLED; sp.no_depth_test = true
+		sp.shaded = false; sp.pixel_size = 1.0; sp.render_priority = 10 + i
+		sp.modulate = Color(0.1, 0.06, 0.12) if i == 0 else Color(0.88, 0.29, 0.23)
+		sp.scale = Vector3(0.95, 0.09, 1) if i == 0 else Vector3(0.88, 0.05, 1)
+		barra.add_child(sp)
+	vermelho = barra.get_child(1)
+
+var barra: Node3D; var vermelho: Sprite3D
+func _barra() -> void:
+	barra.visible = vivo and vida < vida_max
+	var f: float = clamp(vida / vida_max, 0.0, 1.0)
+	vermelho.scale.x = 0.88 * f
+	vermelho.position = Vector3(1, 0, -1).normalized() * (-0.44 * (1.0 - f))
 
 func _p(nome: String, v: float) -> void:
 	mat.set_shader_parameter(nome, v); mat_c.set_shader_parameter(nome, v)
 
-func ferir(d: float, de: Vector3) -> void:
+func ferir(d: float, de: Vector3, forca := 1.2) -> void:
 	if not vivo: return
 	vida -= d; flash = 1.0
 	var a := global_position - de; a.y = 0
-	empurrao = a.normalized() * 1.2
+	empurrao = a.normalized() * forca
+	_barra()
 	if vida <= 0.0:
-		vivo = false; t_morte = 0.0; morreu.emit()
+		vivo = false; t_morte = 0.0; morreu.emit(); barra.visible = false
 		collision_layer = 0; collision_mask = 0
 	elif estado != "ataque":
 		estado = "dano"; t_est = 0.0
@@ -66,7 +84,7 @@ func _physics_process(delta: float) -> void:
 			acertou = true
 			var ponta := global_position + dir * 0.8
 			if heroi.vivo and Vector2(heroi.global_position.x - ponta.x, heroi.global_position.z - ponta.z).length() < 0.75 + 0.32:
-				heroi.ferir(dano)
+				heroi.ferir(dano, global_position)
 		if t_est > 0.62: estado = "parado"; recarga = 1.4 + randf() * 0.6
 	elif estado == "dano":
 		t_est += delta
