@@ -1,8 +1,26 @@
-// Heróis da tela "Heróis" do lobby (5 vagas; as vazias mostram "+").
-// Para cada herói novo: rode tools/import-herois.py com a arte dele e acrescente uma entrada aqui.
-// stats de 0 a 1 (barras). raca → estandarte-<raca>.webp atrás do herói.
+// Heróis da tela "Heróis" do lobby. jogavel = id em HEROES (null = ainda não jogável: aparece com cadeado).
+// raca → estandarte-<raca>.webp atrás do herói. stats de 0 a 1 (barras).
+// Descrições e atributos dos não jogáveis são provisórios (ajuste à vontade).
 export const HEROIS = [
   { id: 'dalarian', jogavel: 'dalarian', nome: 'Dalarian', classe: 'Paladino', raca: 'humanos',
     desc: 'Guerreiro da fé e da justiça, protege os inocentes, fortalece seus aliados e enfrenta as trevas com determinação inabalável.',
     stats: { ataque: 0.62, defesa: 0.78, vida: 0.64, mobilidade: 0.5 } },
+  { id: 'aelina', jogavel: null, nome: 'Aelina', classe: 'Sacerdotisa', raca: 'humanos',
+    desc: 'Sacerdotisa do Sol de Terra de Gor. Cura os aliados e afasta as sombras com a luz do seu cetro.',
+    stats: { ataque: 0.35, defesa: 0.45, vida: 0.6, mobilidade: 0.5 } },
+  { id: 'ignara', jogavel: null, nome: 'Ignara', classe: 'Maga de Fogo', raca: 'humanos',
+    desc: 'Maga humana que domina as chamas. Incendeia grupos de inimigos com bolas de fogo e explosões.',
+    stats: { ataque: 0.85, defesa: 0.3, vida: 0.4, mobilidade: 0.55 } },
+  { id: 'ladino', jogavel: null, nome: 'Ladino', classe: 'Ladino', raca: 'humanos',
+    desc: 'Mercenário de passado misterioso. Rápido e letal com duas adagas, ataca pelas costas e some.',
+    stats: { ataque: 0.72, defesa: 0.35, vida: 0.45, mobilidade: 0.9 } },
+  { id: 'kaedrion', jogavel: null, nome: 'Kaedrion', classe: 'Templário Imperial', raca: 'vael',
+    desc: 'Templário Imperial de Vaelthar. Escudo e lâmina da lua: resiste a tudo para proteger seu povo.',
+    stats: { ataque: 0.6, defesa: 0.9, vida: 0.8, mobilidade: 0.35 } },
+  { id: 'nyxara', jogavel: null, nome: 'Nyxara', classe: 'Operativa do Eclipse', raca: 'vael',
+    desc: 'Operativa da Vigília do Eclipse. Lança glaives à distância e se move entre as sombras da lua.',
+    stats: { ataque: 0.75, defesa: 0.4, vida: 0.45, mobilidade: 0.85 } },
+  { id: 'vaelyra', jogavel: null, nome: 'Vaelyra', classe: 'Maga Arcana', raca: 'vael',
+    desc: 'Maga Arcana de Vaelthar. Controla o campo de batalha com magias da lua e do cristal arcano.',
+    stats: { ataque: 0.8, defesa: 0.35, vida: 0.4, mobilidade: 0.5 } },
 ];
