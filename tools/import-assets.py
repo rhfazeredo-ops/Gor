@@ -19,7 +19,7 @@ MAXW = 1000                                  # limite de largura gravada (px)
 man = {}
 for f in sorted(os.listdir(src)):
     if not f.endswith(('.png', '.webp')): continue
-    name = f.rsplit('.', 1)[0]
+    name = f.rsplit('.', 1)[0].split('@')[0]
     a = np.asarray(Image.open(os.path.join(src, f)).convert('RGB')).astype(np.float32)
     r, g, b = a[..., 0], a[..., 1], a[..., 2]
     green = g - np.maximum(r, b)
@@ -29,7 +29,8 @@ for f in sorted(os.listdir(src)):
     solid = al > 0.5
     # agrupa partes próximas (pedrinhas em volta de um item)
     H, W = solid.shape
-    d = max(6, int(min(H, W) * 0.022))
+    # distância de agrupamento: padrão 2,2% da imagem; folhas densas usam "nome@d8.png" (8 px)
+    d = int(f.split('@d')[1].split('.')[0]) if '@d' in f else max(6, int(min(H, W) * 0.022))
     lab, n = ndimage.label(ndimage.binary_dilation(solid, iterations=d))
     sizes = ndimage.sum(solid, lab, range(1, n + 1))
     big = sizes.max() if n else 0

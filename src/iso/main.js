@@ -6,6 +6,8 @@ import { loadBigDesert, buildBigDesert, sprite, updateDecos, drawColliders } fro
 import { ROOMS, parseMap } from './maps.js';
 import { loadHero3D } from './hero3d.js';
 import { createHud } from './hud.js';
+import { createDialogUI } from './dialog.js';
+const ui = createDialogUI();
 import { Input } from './input.js';
 import { Fx } from './fx.js';
 import { World, Hero, Slime, drawWorld, drawObjects, mapLights } from './game.js';
@@ -59,6 +61,17 @@ async function start(def) {
   catch (e) { document.body.insertAdjacentHTML('beforeend', `<div style="position:fixed;inset:0;display:grid;place-items:center;color:#fff;background:#200;z-index:99;padding:20px;font:14px monospace">Erro ao carregar o herói: ${e && e.message}</div>`); throw e; }
   setupHud(def);
   enterRoom(0);
+  intro();
+}
+// abertura: fala, escolha, missão e dica (kit de diálogo pintado)
+async function intro() {
+  await new Promise((r) => setTimeout(r, 700));
+  await ui.say('Dalárian', 'Precisamos seguir pelo cânion e descobrir o que está corrompendo o Desfiladeiro do Sol.');
+  const c = await ui.choose(['Aceitar a missão.', 'Perguntar mais detalhes.', 'Recusar.']);
+  if (c === 1) await ui.say('Dalárian', 'Gosmas surgem em ondas perto das ruínas. Derrote todas e o portal no fundo do cânion vai se abrir.');
+  if (c === 2) await ui.say('Dalárian', 'Recusar? A Luz não descansa enquanto o cânion sofre. Vamos.');
+  ui.mission('Nova Missão: O Desfiladeiro do Sol');
+  setTimeout(() => ui.tip('<u>Dica</u>: use a esquiva (⇄ ou Espaço) para evitar ataques.'), 4200);
 }
 function enterRoom(n) {
   roomIndex = n;
@@ -111,7 +124,7 @@ function rooms(dt) {
   const map = world.map;
   if (roomState === 'luta') {
     if (world.enemies.length === 0) {
-      if (wave >= map.ondas.length) { roomState = 'limpa'; world.doorOpen = true; banner('Sala limpa! A porta se abriu'); fx.shake = 0.4; return; }
+      if (wave >= map.ondas.length) { roomState = 'limpa'; world.doorOpen = true; fx.shake = 0.4; ui.info('Informação', 'Cânion limpo! Você recebeu a Bênção da Luz. Siga até o portal.'); return; }
       waveTimer -= dt;
       if (waveTimer <= 0) {
         for (const kind of map.ondas[wave]) {
@@ -278,11 +291,12 @@ function frame(now) {
   if (world) {
     // pausa de impacto (hit-stop): o mundo congela por um instante a cada golpe
     let wdt = dt;
+    if (ui.paused) wdt = 0;
     if (world.hitstop > 0) { world.hitstop -= dt; wdt = dt * 0.05; }
     hero.update(wdt, input, aimAt);
     for (const e of world.enemies) e.update(wdt, hero);
     updateAreas(wdt);
-    rooms(dt);
+    rooms(ui.paused ? 0 : dt);
     fx.update(wdt);
     if (world.map.decos) updateDecos(world, wdt, [hero, ...world.enemies], time);
 

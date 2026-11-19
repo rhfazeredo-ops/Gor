@@ -12,8 +12,11 @@ const rng = (seed) => () => ((seed = (Math.imul(seed, 1664525) + 1013904223) >>>
 const KIND = {
   paredao: { s: 0.27 }, pico: { s: 0.25, r: 1.6 }, rochedo: { s: 0.23, r: 1.9 }, ruina: { s: 0.3, r: 2.2 },
   lago: { s: 0.28, r: 2.3 }, arvore: { s: 0.19, r: 0.5 }, arbusto: { s: 0.1 }, grama: { s: 0.075 },
-  flores: { s: 0.09 }, rochas: { s: 0.14, r: 0.5 }, ossos: { s: 0.12 }, estandarte: { s: 0.13, r: 0.3 }, pilar: { s: 0.15, r: 0.5 },
+  flores: { s: 0.09 }, rochas: { s: 0.14, r: 0.5 }, ossos: { s: 0.12 }, estandarte: { s: 0.13, r: 0.3 }, pilar: { s: 0.15, r: 0.5 }, pedras: { s: 0.16 },
 };
+// séries desenhadas em outra escala de pixel (folhas com muitos itens): escala própria
+const SERIES = { 'arvore-7': 0.38, 'arbusto-7': 0.3, 'grama-5': 0.28, 'pedras-1': 0.16 };
+const seriesScale = (key) => SERIES[key.replace(/-\d+$/, '')];
 const kindOf = (name) => (name.startsWith('itens-2') ? 'ossos' : name.startsWith('itens-1-3') ? 'rochas' : name.startsWith('itens-1-4') ? 'arbusto' : name.startsWith('itens-1-2') ? 'grama' : name.replace(/-.*/, ''));
 
 let ART = null, GROUND = null;
@@ -31,7 +34,7 @@ export async function loadBigDesert() {
 }
 // sprite pronto para desenhar (escala aplicada)
 export function sprite(key, s = null) {
-  const a = ART[key], k = s ?? KIND[a.kind]?.s ?? 0.15;
+  const a = ART[key], k = s ?? seriesScale(key) ?? KIND[a.kind]?.s ?? 0.15;
   return { img: a.img, w: a.w * k, h: a.h * k, ax: a.ax * k, ay: a.ay * k };
 }
 
@@ -97,11 +100,11 @@ export function buildBigDesert() {
   const colliders = [], ramps = [];
   // física por tipo: 'chao' (passa por cima), 'mole' (passa por dentro e balança), 'solido', 'escada'
   const PHYS = { rochas: 'chao', ossos: 'chao', grama: 'mole', arbusto: 'mole', flores: 'mole', rochedo: 'solido', pico: 'solido', lago: 'solido',
-    arvore: 'tronco', pilar: 'solido', estandarte: 'tronco', paredao: 'parede', ruina: 'solido' };
+    arvore: 'tronco', pilar: 'solido', pedras: 'solido', estandarte: 'tronco', paredao: 'parede', ruina: 'solido' };
   const STAIRS = { 'ruina-escada-1': { side: 0.42, top: 0.62, h: 0.24 }, 'ruina-pilares-1-1': { side: 0.42, top: 0.62, h: 0.2 }, 'ruina-arco-1': { side: 0.42, top: 0.55, h: 0.2 } };
   const add = (key, x, y, o = {}) => {
     const a = ART[key]; if (!a) return;
-    const k = KIND[a.kind] || {}, s = (o.s ?? 1) * (k.s ?? 0.15);
+    const k = KIND[a.kind] || {}, s = (o.s ?? 1) * (seriesScale(key) ?? k.s ?? 0.15);
     const spr = { img: a.img, w: a.w * s, h: a.h * s, ax: (o.flip ? a.w - a.ax : a.ax) * s, ay: a.ay * s };
     const phys = o.phys || (STAIRS[key] ? 'escada' : PHYS[a.kind] || 'chao');
     const d = { key, x, y, flip: !!o.flip, spr, tall: spr.h > 45, phys, z: o.z ?? 0, sway: 0, swayV: 0, seed: Math.random() * 6 };
@@ -158,12 +161,20 @@ export function buildBigDesert() {
   for (const [k, x, y] of [['arvore-5-1', 15, 24], ['arvore-6-1', 30, 31], ['arvore-1-1', 5, 12], ['arvore-4-1', 24, 37], ['arvore-3-1', 37, 12], ['arvore-2-1', 12, 37]]) add(k, x, y);
   // vegetação, pedras e ossos espalhados (longe dos pontos de interesse)
   const busy = (x, y) => decos.some((d) => d.R > 0.4 && Math.hypot((d.cx ?? d.x) - x, (d.cy ?? d.y) - y) < d.R + 1.2);
-  const fill = (keys, n, minD = 0, sc = 1) => { for (let t = 0, c = 0; t < n * 20 && c < n; t++) { const x = 4 + r() * (W - 7), y = 4 + r() * (H - 7); if (busy(x, y) || Math.hypot(x - 21, y - 21) < minD) continue; add(keys[(r() * keys.length) | 0], x, y, { s: (0.8 + r() * 0.4) * sc, flip: r() < 0.5 }); c++; } };
+  const fill = (keys, n, minD = 0, sc = 1, phys) => { for (let t = 0, c = 0; t < n * 20 && c < n; t++) { const x = 4 + r() * (W - 7), y = 4 + r() * (H - 7); if (busy(x, y) || Math.hypot(x - 21, y - 21) < minD) continue; add(keys[(r() * keys.length) | 0], x, y, { s: (0.8 + r() * 0.4) * sc, flip: r() < 0.5, phys }); c++; } };
   fill(['grama-1-1', 'grama-2-1', 'grama-3-1', 'grama-4-1', 'itens-1-2'], 70);
   fill(['arbusto-1-1', 'arbusto-2-1', 'arbusto-3-1', 'arbusto-4-1', 'arbusto-5-1', 'arbusto-6-1', 'itens-1-4'], 22);
   fill(['rochas-1', 'rochas-2', 'rochas-3', 'rochas-4', 'rochas-5', 'rochas-6', 'rochas-7', 'rochas-8', 'rochas-9', 'rochas-10', 'itens-1-3'], 30, 4, 0.55);
   // algumas pedras maiores (sólidas)
   for (const [k, x, y] of [['rochas-1', 13, 20], ['rochas-6', 26, 29], ['rochas-8', 31, 37], ['rochas-2', 9, 25]]) add(k, x, y, { s: 1.4, phys: 'solido' });
+  // peças novas: árvores secas, arbustos, plantas rasteiras e pedras
+  for (const [k, x, y, o] of [['arvore-7-1', 19, 27], ['arvore-7-3', 8, 22], ['arvore-7-4', 34, 27], ['arvore-7-5', 26, 6.5], ['arvore-7-6', 38, 19], ['arvore-7-7', 5.5, 27],
+    ['arvore-7-8', 17, 7], ['arvore-7-2', 30, 37], ['arvore-7-9', 20, 36, { phys: 'solido' }], ['arvore-7-10', 37, 37, { phys: 'solido' }], ['arvore-7-11', 9, 16, { phys: 'mole' }]]) add(k, x, y, o);
+  for (const [k, x, y] of [['pedras-1-3', 26, 16], ['pedras-1-5', 14, 29], ['pedras-1-7', 31, 21], ['pedras-1-2', 17, 15]]) add(k, x, y);
+  const nums = (p, n) => Array.from({ length: n }, (_, i) => `${p}-${i + 1}`);
+  fill(nums('arbusto-7', 22), 22);
+  fill(nums('grama-5', 42), 38);
+  fill(['pedras-1-1', 'pedras-1-4', 'pedras-1-6', 'pedras-1-8'], 10, 4, 0.8, 'chao');
   fill(['ossos-1', 'ossos-6', 'itens-2-2', 'itens-2-3', 'itens-2-4', 'ossos-5'], 9, 5);
   // a escada do portal é caminhável (o anel da borda não a bloqueia)
   const solidAtC = (i, j) => colliders.some((c) => c.t === 'p' ? inPoly(c.pts, i + 0.5, j + 0.5) || distPoly(c.pts, i + 0.5, j + 0.5) < 0.3 : c.t === 'c' ? Math.hypot(i + 0.5 - c.x, j + 0.5 - c.y) < c.r + 0.3 : i + 0.5 > c.x0 - 0.3 && i + 0.5 < c.x1 + 0.3 && j + 0.5 > c.y0 - 0.3 && j + 0.5 < c.y1 + 0.3);

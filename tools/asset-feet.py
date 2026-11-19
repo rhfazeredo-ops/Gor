@@ -24,5 +24,10 @@ for name, pieces in m.items():
             ys = np.where(win.any(1))[0]
             if len(ys): prof.append([int(c), int(ys.max())])
         p['prof'] = prof
+        # imagens reduzidas (tools/shrink-assets.py): medidas voltam para a escala original
+        k = 1 / p.get('res', 1)
+        if k != 1:
+            p['foot'] = {key: round(v * k) for key, v in p['foot'].items()}
+            p['prof'] = [[round(x * k), round(y * k)] for x, y in p['prof']]
 json.dump(m, open(mp, 'w'), indent=1)
 print('ok')
