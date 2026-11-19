@@ -387,3 +387,6 @@ window.__game = { get hero() { return hero; }, get world() { return world; }, ge
 // tema: toca da abertura até o herói entrar num mapa (para em start, depois do carregamento)
 const openTitle = () => { tema.play(); showTitle(() => showHeroSelectArt((def) => start(def), openTitle), tema); };
 openTitle();
+
+// instalável (tela inicial do celular): só no site normal, não no HTML único
+if ('serviceWorker' in navigator && location.protocol === 'https:' && !document.querySelector('script[type=module]:not([src])')) navigator.serviceWorker.register('./sw.js').catch(() => {});
