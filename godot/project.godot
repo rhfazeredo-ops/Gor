@@ -3,9 +3,13 @@ config_version=5
 
 [application]
 config/name="Terra de Gor"
-run/main_scene="res://cenas/jogo.tscn"
+run/main_scene="res://cenas/menu.tscn"
 config/features=PackedStringArray("4.5", "GL Compatibility")
 config/icon="res://assets/ui/ataque.png"
+
+[autoload]
+
+Estado="*res://scripts/estado.gd"
 
 [display]
 window/size/viewport_width=1920

@@ -1,4 +1,4 @@
-# Terra de Gor (Godot) — fatia de teste: missão "Mate 20 escorpiões" no Ninho dos Escorpiões.
+# Terra de Gor (Godot) — missão escolhida no quadro da taverna (Estado.missao).
 # Câmera isométrica igual à versão web (ortográfica, 45° e 30° de inclinação), luz quente do deserto
 # com sombras reais, HUD pintado e música do deserto.
 extends Node3D
@@ -9,7 +9,9 @@ var heroi: Heroi
 var cam: Camera3D
 var controles: Controles
 var mortos := 0
-const ALVO := 20
+var colhidas := 0
+var flores: Array = []
+var m: Dictionary
 var hud_vida: Control; var hud_mana: Control; var txt_vida: Label; var txt_mana: Label
 var txt_obj: Label; var aviso: Label
 var concluida := false
@@ -20,14 +22,17 @@ func _ready() -> void:
 		var p := a.trim_prefix("--").split("=")
 		args[p[0]] = p[1] if p.size() > 1 else "1"
 	randomize()
-	mapa = Mapa.new(); add_child(mapa); mapa.montar("ninho")
+	m = Estado.missao
+	if args.has("missao"): m = Estado.MISSOES[0] if args.missao == "plantas" else Estado.MISSOES[1]
+	mapa = Mapa.new(); add_child(mapa); mapa.montar(m.layout)
 	_luz()
 	heroi = Heroi.new(); add_child(heroi)
 	heroi.position = Vector3(mapa.dados.start.x + 2.5, 0, mapa.dados.start.y + 2.5)
 	heroi.acertar.connect(_golpe)
 	cam = Camera3D.new(); cam.projection = Camera3D.PROJECTION_ORTHOGONAL; cam.size = VISTA_ALTURA
 	cam.near = 0.1; cam.far = 200.0; add_child(cam)
-	_escorpioes(ALVO)
+	if m.inimigos > 0: _escorpioes(m.inimigos)
+	if m.plantas: _flores()
 	_interface()
 	var mus := AudioStreamPlayer.new(); var st: AudioStreamMP3 = load("res://assets/som/deserto.mp3")
 	st.loop = true; mus.stream = st; mus.volume_db = -5.0; add_child(mus); mus.play()
@@ -63,6 +68,19 @@ func _escorpioes(n: int) -> void:
 		e.morreu.connect(func(): mortos += 1)
 		add_child(e)
 
+func _flores() -> void:
+	var pecas: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://dados/pecas.json"))
+	var tex: Texture2D = load("res://assets/deserto/" + pecas["flores-1"])
+	for p in mapa.dados.flores:
+		var s := Sprite3D.new(); s.texture = tex; s.billboard = BaseMaterial3D.BILLBOARD_ENABLED; s.shaded = false
+		s.alpha_cut = SpriteBase3D.ALPHA_CUT_OPAQUE_PREPASS
+		s.pixel_size = 0.95 / tex.get_width(); s.offset = Vector2(0, tex.get_height() / 2.0)
+		s.position = Vector3(p[0], 0, p[1]); add_child(s)
+		var anel := MeshInstance3D.new(); var tm := TorusMesh.new(); tm.inner_radius = 0.42; tm.outer_radius = 0.5; anel.mesh = tm
+		var am := StandardMaterial3D.new(); am.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED; am.albedo_color = Color(1, 0.8, 0.3)
+		am.emission_enabled = true; am.emission = Color(1, 0.7, 0.2); anel.material_override = am; anel.position = s.position + Vector3(0, 0.02, 0)
+		add_child(anel); flores.append([s, anel])
+
 func _golpe(de: Vector3, frente: Vector3) -> void:
 	for e in get_tree().get_nodes_in_group("_") : pass
 	for c in get_children():
@@ -79,14 +97,31 @@ func _physics_process(delta: float) -> void:
 	cam.look_at(cam.global_position - (desejo - alvo), Vector3.UP)
 	_atualizar_hud()
 
+func _colher() -> void:
+	for f in flores.duplicate():
+		var s: Sprite3D = f[0]
+		if Vector2(heroi.global_position.x - s.position.x, heroi.global_position.z - s.position.z).length() < 0.9:
+			colhidas += 1; s.queue_free(); f[1].queue_free(); flores.erase(f)
+
 func _atualizar_hud() -> void:
 	_barra(hud_vida, heroi.vida / heroi.vida_max); _barra(hud_mana, heroi.mana / heroi.mana_max)
 	txt_vida.text = "%d / %d" % [ceil(heroi.vida), heroi.vida_max]; txt_mana.text = "%d / %d" % [heroi.mana, heroi.mana_max]
-	txt_obj.text = "Mate 20 escorpiões (%d/%d)." % [min(mortos, ALVO), ALVO]
-	if mortos >= ALVO and not concluida:
-		concluida = true; aviso.text = "Missão concluída!"; aviso.visible = true
-	if not heroi.vivo and not concluida:
-		aviso.text = "Você caiu…"; aviso.visible = true
+	var feito: int = colhidas if m.tipo == "coletar" else mortos
+	txt_obj.text = "%s (%d/%d)." % [m.texto, min(feito, m.alvo), m.alvo]
+	if feito >= m.alvo and not concluida:
+		concluida = true; _fim("Missão concluída!")
+	if not heroi.vivo and not concluida and not aviso.visible:
+		_fim("Você caiu…")
+
+func _fim(msg: String) -> void:
+	aviso.text = msg; aviso.visible = true
+	var ok := Button.new(); ok.text = "Voltar à taverna"; ok.add_theme_font_size_override("font_size", 44)
+	var st := StyleBoxFlat.new(); st.bg_color = Color(0.2, 0.31, 0.75); st.border_color = Color(0.95, 0.78, 0.36); st.set_border_width_all(5); st.set_corner_radius_all(16)
+	st.content_margin_left = 40; st.content_margin_right = 40; st.content_margin_top = 14; st.content_margin_bottom = 14
+	for k in ["normal", "hover", "pressed"]: ok.add_theme_stylebox_override(k, st)
+	ok.set_anchors_preset(Control.PRESET_CENTER); ok.position = Vector2(-220, -40); ok.size = Vector2(440, 100)
+	aviso.get_parent().add_child(ok)
+	ok.pressed.connect(func(): Estado.ir_para = "lobby"; get_tree().change_scene_to_file("res://cenas/menu.tscn"))
 
 # ---------------- interface ----------------
 const HUD_W := 560.0
