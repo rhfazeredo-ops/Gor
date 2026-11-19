@@ -19,9 +19,9 @@ import temaInicial from '../assets/musica/tela-inicial.mp3?url';
 import { progress } from './progress.js';
 import { showLoading, loadingReady } from './loading.js';
 import { showLobby, lobbyReady } from './lobby.js';
+import { showHerois, heroisReady } from './herois.js';
 // tema da tela inicial: toca no menu e na seleção de heróis, some quando o jogo começa
 const tema = createTrack(temaInicial, { volume: 0.6, loopEnd: 150.6 });   // arquivo já sem o meio segundo inicial
-import { showHeroSelectArt } from './heroselect.js';
 
 const UI = import.meta.glob('../assets/ui/*.png', { query: '?url', import: 'default', eager: true });
 // =====================================================================
@@ -34,15 +34,17 @@ const cv = document.getElementById('game');
 const ctx = cv.getContext('2d');
 const lightCv = document.createElement('canvas');
 const lctx = lightCv.getContext('2d');
-// resolução fixa 1920x1080: o jogo é sempre desenhado nesse tamanho e escalado para caber na tela
-// (sem distorcer; sobras viram faixas escuras). HUD e botões se alinham à área do jogo.
-const GAME_W = 1920, GAME_H = 1080;
+// resolução nativa do aparelho em HD: altura fixa de 1080 px e largura conforme o formato da tela
+// (16:9 → 1920, 20:9 → 2400…), então ocupa a tela inteira sem faixas. A câmera mostra sempre a mesma
+// altura do mundo; telas mais compridas veem mais dos lados.
+const GAME_H = 1080;
 const VIEW_H = 330;                 // altura visível do mundo (herói ≈ 21% da tela)
 let zoom = 3, VW = 320, VH = 180, DPR = 1, camZoom = 1, GL = 0, GT = 0;
 
 function resize() {
-  const w = GAME_W, h = GAME_H;
-  if (cv.width !== w) { cv.width = w; cv.height = h; }
+  const ar = Math.min(Math.max(innerWidth / innerHeight, 4 / 3), 24 / 9);   // de 4:3 a 24:9
+  const h = GAME_H, w = Math.round(h * ar);
+  if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
   const s = Math.min(innerWidth / w, innerHeight / h);
   const cw = Math.round(w * s), ch = Math.round(h * s);
   GL = Math.round((innerWidth - cw) / 2); GT = Math.round((innerHeight - ch) / 2);
@@ -71,7 +73,7 @@ const toLow = (cx, cy) => [(cx - GL) * DPR / (zoom * camZoom), (cy - GT) * DPR /
 let sprites = null, heroDef = null, roomIndex = 0, wave = 0, waveTimer = 0, roomState = 'luta', fade = 0, power = 0;
 // o mapa e o herói começam a baixar assim que a tela inicial abre (em segundo plano)
 // prioridade: primeiro a arte da tela inicial e a música; depois (ou após 6 s) o mapa e o herói
-const preload = Promise.race([Promise.all([titleReady, tema.ready, loadingReady, lobbyReady]), new Promise((r) => setTimeout(r, 6000))])
+const preload = Promise.race([Promise.all([titleReady, tema.ready, loadingReady, lobbyReady, heroisReady]), new Promise((r) => setTimeout(r, 6000))])
   .then(() => Promise.all([loadBigDesert(), loadHero3D()]));
 preload.catch(() => {});
 // tela de carregamento com barra, enquanto o resto termina de baixar
@@ -105,7 +107,11 @@ function openLobby(def) {
   tema.stop(2);
   world = null;
   $('hud').classList.add('hidden'); $('buttons').classList.add('hidden');
-  showLobby({ onMission: playMission });
+  showLobby({
+    onMission: playMission,
+    // botão Heróis: escolhe com qual herói jogar as próximas missões
+    onHeroes: () => showHerois({ atual: heroDef.id, onPick: (h) => { heroDef = HEROES.find((x) => x.id === h.jogavel) || heroDef; } }),
+  });
 }
 function enterRoom(n) {
   roomIndex = n;
@@ -412,7 +418,8 @@ $('btn-full').addEventListener('click', async () => {
 
 window.__game = { get hero() { return hero; }, get world() { return world; }, get state() { return roomState; }, get room() { return roomIndex; }, get zoom() { return zoom * camZoom / DPR; }, enter: (n) => enterRoom(n) };
 // tema: toca da abertura até o herói entrar num mapa (para em start, depois do carregamento)
-const openTitle = () => { tema.play(); showTitle(() => showHeroSelectArt((def) => openLobby(def), openTitle), tema); };
+// Iniciar → taverna (herói padrão: o primeiro jogável; troca pelo botão Heróis)
+const openTitle = () => { tema.play(); showTitle(() => openLobby(HEROES.find((h) => h.playable)), tema); };
 openTitle();
 
 // instalável (tela inicial do celular): só no site normal, não no HTML único

@@ -30,7 +30,7 @@ const css = `
 #lobby .stage { background: url(${lobbyImg}) 0 0 / 100% 100%; }
 #lobby .spot { position: absolute; cursor: pointer; border-radius: 14px; -webkit-tap-highlight-color: transparent; }
 #lobby .spot:active { background: rgba(255,220,140,.18); }
-#lobby .toast, #quadro .toast { position: absolute; left: 50%; bottom: 8%; transform: translateX(-50%); background: rgba(20,12,8,.9); border: 2px solid #c9a24a;
+#lobby .toast, #quadro .toast { position: fixed; left: 50%; bottom: 8%; transform: translateX(-50%); background: rgba(20,12,8,.9); border: 2px solid #c9a24a;
   color: #f6e7cf; font: 700 1em Georgia, serif; padding: .5em 1.2em; border-radius: 4px; opacity: 0; transition: opacity .2s; pointer-events: none; white-space: nowrap; }
 #lobby .toast.show, #quadro .toast.show { opacity: 1; }
 #quadro .board { position: absolute; background: url(${quadroImg}) 0 0 / 100% 100%; transform: scale(.94); transition: transform .2s; }
@@ -44,13 +44,18 @@ const css = `
 `;
 
 let style = null;
+// preenche a tela inteira (corta um pouco em cima/embaixo em telas mais compridas que 16:9)
+function cover16x9(stage) {
+  const s = Math.max(innerWidth / 16, innerHeight / 9), w = s * 16, h = s * 9;
+  Object.assign(stage.style, { width: w + 'px', height: h + 'px', left: (innerWidth - w) / 2 + 'px', top: (innerHeight - h) / 2 + 'px', fontSize: Math.min(h, innerHeight * 16 / 9 * 9 / 16) * 0.03 + 'px' });
+}
 function fit16x9(stage) {
   const s = Math.min(innerWidth / 16, innerHeight / 9), w = s * 16, h = s * 9;
   Object.assign(stage.style, { width: w + 'px', height: h + 'px', left: (innerWidth - w) / 2 + 'px', top: (innerHeight - h) / 2 + 'px', fontSize: h * 0.03 + 'px' });
 }
 
 // abre o lobby; onMission(missão) é chamado quando um papel é escolhido
-export function showLobby({ onMission }) {
+export function showLobby({ onMission, onHeroes }) {
   if (!style) { style = document.createElement('style'); style.textContent = css; document.head.append(style); }
   const el = document.createElement('div'); el.id = 'lobby'; el.innerHTML = '<div class="blur"></div>';
   const stage = document.createElement('div'); stage.className = 'stage'; el.append(stage);
@@ -60,11 +65,11 @@ export function showLobby({ onMission }) {
   for (const sp of SPOTS) {
     const [x, y, w, h] = sp.box, d = document.createElement('div'); d.className = 'spot';
     Object.assign(d.style, { left: (100 * x) / LW + '%', top: (100 * y) / LH + '%', width: (100 * w) / LW + '%', height: (100 * h) / LH + '%' });
-    d.onclick = () => (sp.id === 'missoes' ? openBoard() : say(`${sp.txt}: em breve`));
+    d.onclick = () => (sp.id === 'missoes' ? openBoard() : sp.id === 'herois' && onHeroes ? onHeroes() : say(`${sp.txt}: em breve`));
     stage.append(d);
   }
   document.body.append(el);
-  const layout = () => fit16x9(stage);
+  const layout = () => cover16x9(stage);
   layout(); addEventListener('resize', layout);
 
   function openBoard() {

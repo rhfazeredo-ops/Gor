@@ -66,10 +66,14 @@ export function showTitle(onStart, music) {
   function pop(html) { popEl?.remove(); popEl = document.createElement('div'); popEl.className = 'pop'; popEl.innerHTML = html; stage.append(popEl); popEl.onclick = (e) => { e.stopPropagation(); popEl.remove(); popEl = null; }; }
   // mesma regra do jogo: 16:9 inteiro na tela
   function layout() {
-    const s = Math.min(innerWidth / 16, innerHeight / 9), w = s * 16, h = s * 9;
-    Object.assign(stage.style, { width: w + 'px', height: h + 'px', left: (innerWidth - w) / 2 + 'px', top: (innerHeight - h) / 2 + 'px' });
-    const step = h * 0.064;
-    menu.style.fontSize = step * 0.5 + 'px'; stage.style.fontSize = h * 0.03 + 'px';
+    const s = Math.max(innerWidth / 16, innerHeight / 9), w = s * 16, h = s * 9, top = Math.min(0, innerHeight - h) * 0.15;   // logo no alto: corta mais embaixo
+    Object.assign(stage.style, { width: w + 'px', height: h + 'px', left: (innerWidth - w) / 2 + 'px', top: top + 'px' });
+    const step = innerHeight * 0.064;
+    menu.style.fontSize = step * 0.5 + 'px'; stage.style.fontSize = innerHeight * 0.03 + 'px';
+    // menu: 59% da arte, mas nunca abaixo da borda visível da tela
+    const visBottom = innerHeight - top;   // em coordenadas do stage
+    menu.style.top = Math.min(h * 0.59, visBottom - step * items.length - innerHeight * 0.035) + 'px';
+    if (tap) tap.style.paddingBottom = Math.max(0, h - visBottom) + innerHeight * 0.14 + 'px';
     els.forEach((e) => { e.style.height = step + 'px'; e.style.lineHeight = step + 'px'; });
   }
   layout(); addEventListener('resize', layout);
