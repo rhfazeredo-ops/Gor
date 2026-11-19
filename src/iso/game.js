@@ -4,6 +4,7 @@ import { drawFlame } from './castle.js';
 import { drawBigGround, pushDecos, drawFlatDecos, hitsCollider, groundHeight } from './bigdesert.js';
 import { SpriteAnim, dirFromTileVec } from './sprites.js';
 import { ABILITIES } from '../data/abilities.js';
+import { monsterAnim } from './monstros.js';
 
 // 1 tile ≈ 1,8 m (o losango de 64 px corresponde a 1,81 m nos sprites)
 export const METERS_PER_TILE = 1.81;
@@ -332,6 +333,86 @@ export class Slime {
       ctx.fillStyle = '#1a1020'; ctx.fillRect(x0 - 1, y0 - 1, w + 2, 4);
       ctx.fillStyle = '#5a1a1a'; ctx.fillRect(x0, y0, w, 2);
       ctx.fillStyle = '#e04a3a'; ctx.fillRect(x0, y0, Math.max(0, Math.round(w * this.hp / this.maxHp)), 2);
+    }
+  }
+}
+
+// ---------------- escorpião do deserto ----------------
+// Anda direto até o herói, para perto dele, arma o ferrão (aviso visível) e dá o bote.
+// Mais lento e resistente que as gosmas; o golpe dói mais.
+export class Escorpiao {
+  constructor(world, x, y) {
+    this.world = world; this.kind = 'escorpiao'; this.x = x; this.y = y;
+    this.hp = this.maxHp = 220; this.speed = 1.55; this.dmg = 18; this.r = 0.42;
+    this.alive = true; this.dead = false; this.t = 0; this.state = 'idle'; this.st = 0;
+    this.vx = 0; this.vy = 0; this.hurtT = 0; this.cool = 0.8; this.spawnT = 0.5; this.flash = 0;
+    this.anim = monsterAnim('escorpiao'); this.wander = { x: 0, y: 0, t: 0 };
+  }
+  face(dx, dy) { if (Math.abs(dx) + Math.abs(dy) > 1e-4) this.anim.dir = dirFromTileVec(dx, dy); }
+  hurt(dmg, from, push = 1.2) {
+    if (!this.alive) return;
+    this.hp -= dmg; this.hurtT = 0.2; this.flash = 1;
+    const dx = this.x - from.x, dy = this.y - from.y, l = Math.hypot(dx, dy) || 1;
+    this.vx = dx / l * push; this.vy = dy / l * push;          // pesado: empurra pouco
+    if (this.hp <= 0) {
+      this.alive = false; this.world.kills++; this.state = 'morte';
+      this.anim.play('morte', { restart: true });
+      this.world.corpses = this.world.corpses || []; this.world.corpses.push(this);
+      this.world.fx.puff(this.x, this.y, '#8a3a2a', 16);
+    } else if (this.state !== 'ataque') this.anim.play('dano', { restart: true, onEnd: () => this.alive && this.anim.play('idle') });
+  }
+  update(dt, hero) {
+    const W = this.world;
+    this.t += dt; this.hurtT -= dt; this.cool -= dt; this.spawnT -= dt; this.flash = Math.max(0, this.flash - dt * 4);
+    this.anim.update(dt);
+    if (Math.abs(this.vx) + Math.abs(this.vy) > 0.01) { W.move(this, this.vx * dt, this.vy * dt); this.vx *= Math.pow(0.001, dt); this.vy *= Math.pow(0.001, dt); }
+    if (this.spawnT > 0) return;
+    const dx = hero.x - this.x, dy = hero.y - this.y, d = Math.hypot(dx, dy);
+    if (this.state === 'ataque') {
+      this.st += dt;
+      // o ferrão desce no meio da animação
+      if (!this.hitDone && this.st > 0.36) {
+        this.hitDone = true;
+        const fx = Math.cos(this.dirA), fy = Math.sin(this.dirA);
+        const hx = this.x + fx * 0.8, hy = this.y + fy * 0.8;
+        if (hero.alive && Math.hypot(hero.x - hx, hero.y - hy) < 0.75 + hero.r) hero.hurt(this.dmg, this);
+        W.fx.sparks(hx, hy, 6, { n: 8, c1: '#ff6a4a', c2: '#7a1a10', up: 40 });
+      }
+      if (this.st > 0.62) { this.state = 'idle'; this.cool = 1.4 + Math.random() * 0.6; this.anim.play('idle'); }
+      return;
+    }
+    const sees = hero.alive && d < 8;
+    if (sees && d < 1.25 + this.r && this.cool <= 0) {
+      this.state = 'ataque'; this.st = 0; this.hitDone = false; this.dirA = Math.atan2(dy, dx);
+      this.face(dx, dy); this.anim.play('ataque', { restart: true }); return;
+    }
+    let mx = 0, my = 0;
+    if (sees && d > 1.0 + this.r) { mx = dx / d; my = dy / d; }
+    else if (!sees) {
+      this.wander.t -= dt;
+      if (this.wander.t <= 0) { const a = Math.random() * Math.PI * 2; this.wander = { x: Math.cos(a), y: Math.sin(a), t: 1.5 + Math.random() * 2 }; if (Math.random() < 0.5) this.wander.x = this.wander.y = 0; }
+      mx = this.wander.x * 0.5; my = this.wander.y * 0.5;
+    }
+    if (mx || my) { W.move(this, mx * this.speed * dt, my * this.speed * dt); this.face(mx, my); if (this.anim.name !== 'dano') this.anim.play('andar'); }
+    else { if (sees) this.face(dx, dy); if (this.anim.name === 'andar') this.anim.play('idle'); }
+    for (const o of W.enemies) {
+      if (o === this || !o.alive) continue;
+      const ox = this.x - o.x, oy = this.y - o.y, od = Math.hypot(ox, oy), min = this.r + o.r;
+      if (od < min && od > 0.001) W.move(this, ox / od * (min - od) * 0.5, oy / od * (min - od) * 0.5);
+    }
+  }
+  draw(ctx) {
+    const W = this.world, [sx, sy] = W.toScreen(this.x, this.y);
+    shadow(ctx, sx, sy, 30);
+    if (this.spawnT > 0) ctx.globalAlpha = 1 - this.spawnT / 0.5;
+    if (this.state === 'morte' && this.anim.done) ctx.globalAlpha = Math.max(0, 1 - (this.t - this.deadAt) / 1.2);
+    this.anim.draw(ctx, sx, sy, this.flash);
+    ctx.globalAlpha = 1;
+    if (this.alive && this.hp < this.maxHp) {
+      const w = 40, x0 = sx - w / 2, y0 = sy - 62;
+      ctx.fillStyle = '#1a1020'; ctx.fillRect(x0 - 1, y0 - 1, w + 2, 5);
+      ctx.fillStyle = '#5a1a1a'; ctx.fillRect(x0, y0, w, 3);
+      ctx.fillStyle = '#e04a3a'; ctx.fillRect(x0, y0, Math.max(0, Math.round(w * this.hp / this.maxHp)), 3);
     }
   }
 }

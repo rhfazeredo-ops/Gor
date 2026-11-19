@@ -1,0 +1,37 @@
+{
+ "style": "pintado",
+ "frameW": 320,
+ "frameH": 303,
+ "anchor": [
+  160,
+  199
+ ],
+ "scale": 0.5,
+ "anims": {
+  "idle": {
+   "frames": 8,
+   "fps": 8,
+   "loop": true
+  },
+  "andar": {
+   "frames": 8,
+   "fps": 14,
+   "loop": true
+  },
+  "ataque": {
+   "frames": 10,
+   "fps": 16,
+   "loop": false
+  },
+  "dano": {
+   "frames": 5,
+   "fps": 18,
+   "loop": false
+  },
+  "morte": {
+   "frames": 10,
+   "fps": 12,
+   "loop": false
+  }
+ }
+}

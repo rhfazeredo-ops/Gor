@@ -6,7 +6,7 @@ const s=new THREE.Scene();s.add(new THREE.HemisphereLight(0xffffff,0x666666,2.2)
 const g=await new GLTFLoader().loadAsync(Q.get('f'));s.add(g.scene);
 const b=new THREE.Box3().setFromObject(g.scene),c=b.getCenter(new THREE.Vector3()),h=(b.max.y-b.min.y)*0.6;
 const cam=new THREE.OrthographicCamera(-h*0.8,h*0.8,h,-h,0.01,100);r.setScissorTest(true);
-[0,90,180,270].forEach((a,i)=>{const t=a*Math.PI/180;cam.position.set(c.x+Math.sin(t)*5,c.y,c.z+Math.cos(t)*5);cam.lookAt(c);r.setViewport(i*400,0,400,500);r.setScissor(i*400,0,400,500);r.render(s,cam);});
+[0,90,180,270].forEach((a,i)=>{const t=a*Math.PI/180;cam.position.set(c.x+Math.sin(t)*5,c.y+(Q.has("top")?3:0),c.z+Math.cos(t)*5);cam.lookAt(c);r.setViewport(i*400,0,400,500);r.setScissor(i*400,0,400,500);r.render(s,cam);});
 // também salva a textura
 let tex;g.scene.traverse(o=>{if(o.isMesh&&o.material.map)tex=o.material.map.image;});
 if(tex){const cv=document.createElement('canvas');cv.width=512;cv.height=512;cv.getContext('2d').drawImage(tex,0,0,512,512);window.texURL=cv.toDataURL('image/png');}

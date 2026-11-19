@@ -10,7 +10,7 @@ import { createDialogUI } from './dialog.js';
 const ui = createDialogUI();
 import { Input } from './input.js';
 import { Fx } from './fx.js';
-import { World, Hero, Slime, drawWorld, drawObjects, mapLights } from './game.js';
+import { World, Hero, Slime, Escorpiao, drawWorld, drawObjects, mapLights } from './game.js';
 import { HEROES } from '../data/heroes.js';
 import { ABILITIES } from '../data/abilities.js';
 import { showTitle, titleReady } from './title.js';
@@ -20,6 +20,7 @@ import { progress } from './progress.js';
 import { showLoading, loadingReady } from './loading.js';
 import { showLobby, lobbyReady } from './lobby.js';
 import { showHerois, heroisReady } from './herois.js';
+import { loadMonstros } from './monstros.js';
 // tema da tela inicial: toca no menu e na seleção de heróis, some quando o jogo começa
 const tema = createTrack(temaInicial, { volume: 0.6, loopEnd: 150.6 });   // arquivo já sem o meio segundo inicial
 
@@ -74,7 +75,7 @@ let sprites = null, heroDef = null, roomIndex = 0, wave = 0, waveTimer = 0, room
 // o mapa e o herói começam a baixar assim que a tela inicial abre (em segundo plano)
 // prioridade: primeiro a arte da tela inicial e a música; depois (ou após 6 s) o mapa e o herói
 const preload = Promise.race([Promise.all([titleReady, tema.ready, loadingReady, lobbyReady, heroisReady]), new Promise((r) => setTimeout(r, 6000))])
-  .then(() => Promise.all([loadBigDesert(), loadHero3D()]));
+  .then(() => Promise.all([loadBigDesert(), loadHero3D(), loadMonstros()]));
 preload.catch(() => {});
 // tela de carregamento com barra, enquanto o resto termina de baixar
 async function waitAssets() {
@@ -180,7 +181,7 @@ function rooms(dt) {
         for (const kind of map.ondas[wave]) {
           let p, tries = 0;
           do { p = map.open[(Math.random() * map.open.length) | 0]; tries++; } while (tries < 400 && (Math.hypot(p.x - hero.x, p.y - hero.y) < 4 || Math.hypot(p.x - hero.x, p.y - hero.y) > 9));
-          const e = new Slime(world, p.x, p.y, kind === 'r' ? 'roxa' : 'verde');
+          const e = kind === 'e' ? new Escorpiao(world, p.x, p.y) : new Slime(world, p.x, p.y, kind === 'r' ? 'roxa' : 'verde');
           e.spawnT = 0.9; world.enemies.push(e);
           fx.ring(p.x, p.y, 0.9, 0.9, [200, 120, 255]);
           fx.sparks(p.x, p.y, 4, { n: 10, c1: '#e0b0ff', c2: '#8040c0', up: 60 });
@@ -354,6 +355,8 @@ function frame(now) {
     if (world.hitstop > 0) { world.hitstop -= dt; wdt = dt * 0.05; }
     hero.update(wdt, input, aimAt);
     for (const e of world.enemies) e.update(wdt, hero);
+    // corpos (animação de morte e sumiço) depois de saírem da lista de inimigos
+    if (world.corpses) { for (const c of world.corpses) { c.t += wdt; c.anim.update(wdt); if (c.anim.done && c.deadAt == null) c.deadAt = c.t; } world.corpses = world.corpses.filter((c) => c.deadAt == null || c.t - c.deadAt < 1.3); }
     updateAreas(wdt);
     rooms(ui.paused ? 0 : dt);
     fx.update(wdt);
@@ -388,7 +391,7 @@ function frame(now) {
     else drawAbyss(time);
     drawWorld(ctx, world, hero, null, VW, VH, time);
     fx.draw(ctx, view, 'chao');
-    drawObjects(ctx, world, hero, [hero, ...world.enemies], VW, VH, time);
+    drawObjects(ctx, world, hero, [hero, ...world.enemies, ...(world.corpses || [])], VW, VH, time);
     if (world.map.tema) {      // rochas escuras em primeiro plano
       const rocks = art.themes[world.map.tema].rocks;
       if (rocks.length) for (const rk of world.fgRocks) { const pr = rocks[rk.k % rocks.length], [x, y] = world.toScreen(rk.x, rk.y); if (x > -150 && x < VW + 150 && y > -50 && y < VH + 200) ctx.drawImage(pr.img, x - pr.ax, y - pr.ay + 30, pr.w, pr.h); }
