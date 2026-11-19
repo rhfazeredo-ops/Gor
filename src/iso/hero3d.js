@@ -5,6 +5,9 @@ import { SpriteAnim } from './sprites.js';
 import meta from '../assets/sprites/dalarian-3d/sprites.json';
 const URLS = import.meta.glob('../assets/sprites/dalarian-3d/*.webp', { eager: true, query: '?url', import: 'default' });
 
+// tamanho do herói no mapa (1 = altura de 50 px usada no bake)
+export const HERO_SCALE = 1.25;
+
 export async function loadHero3D() {
   const byName = {};
   for (const [p, url] of Object.entries(URLS)) byName[p.split('/').pop().replace('.webp', '')] = url;
@@ -16,7 +19,7 @@ export async function loadHero3D() {
     img.src = byName[a.sheet || name];
   })));
   const anim = new SpriteAnim({ meta, sheets });
-  anim.scale = meta.scale;
+  anim.scale = meta.scale * HERO_SCALE;
   anim.play('idle');
   return anim;
 }
