@@ -20,7 +20,7 @@ func _ready() -> void:
 # prints automáticos das telas (usado só nos testes)
 func _foto(dir: String, n: String) -> void:
 	await get_tree().create_timer(0.8).timeout
-	get_viewport().get_texture().get_image().save_png(dir + "/" + n + ".png")
+	get_viewport().get_texture().get_image().save_png(dir.get_slice("#", 0) + "/" + n + ".png")
 
 func _teste(dir: String) -> void:
 	await _foto(dir, "1-inicio")
@@ -32,6 +32,16 @@ func _teste(dir: String) -> void:
 	await _foto(dir, "3-quadro")
 	for c in tela.get_children(): if c != tela.get_child(0): c.queue_free()
 	abrir_herois(); await _foto(dir, "4-herois")
+	for c in tela.get_children(): if c != tela.get_child(0): c.queue_free()
+	abrir_quadro(); await get_tree().process_frame
+	var papeis := []
+	for b in tela.find_children("*", "Button", true, false): if b.size.y > 600: papeis.append(b)
+	papeis[int(dir.get_slice("#", 1)) if "#" in dir else 1].pressed.emit()
+	for b in tela.find_children("*", "Button", true, false):
+		if b.text == "Iniciar": b.pressed.emit()
+	await _foto(dir.get_slice("#", 0), "5-carregando")
+	await get_tree().create_timer(4.0).timeout
+	get_viewport().get_texture().get_image().save_png(dir.get_slice("#", 0) + "/6-missao.png")
 	get_tree().quit()
 
 func _trocar() -> Control:
@@ -123,7 +133,7 @@ func abrir_quadro() -> void:
 	var dim := ColorRect.new(); dim.color = Color(0.03, 0.02, 0.06, 0.6); dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT); camada.add_child(dim)
 	dim.gui_input.connect(func(e): if e is InputEventMouseButton and e.pressed: camada.queue_free())
 	var palco := Palco.criar(camada, 1920, 1280, false, load("res://assets/telas/quadro.webp"))
-	var escolhida := {}
+	var escolhida := [null]          # (lista: as funções internas enxergam a mesma escolha)
 	var papeis := []
 	var iniciar := Button.new(); iniciar.text = "Iniciar"; iniciar.disabled = true
 	iniciar.add_theme_font_size_override("font_size", 56); iniciar.add_theme_color_override("font_color", Color(1, 0.96, 0.86))
@@ -145,14 +155,14 @@ func abrir_quadro() -> void:
 		var b := Button.new(); b.flat = true; b.size = Vector2(pw, ph); b.focus_mode = Control.FOCUS_NONE; c.add_child(b)
 		papeis.append([c, brilho, i])
 		b.pressed.connect(func():
-			escolhida = m; iniciar.disabled = false
+			escolhida[0] = m; iniciar.disabled = false
 			for p in papeis:
 				var sel: bool = p[2] == i
 				p[1].visible = sel
 				p[0].rotation_degrees = 0.0 if sel else [-2.5, 2.0, -1.5, 3.0][p[2] % 4]
 				p[0].scale = Vector2(1.06, 1.06) if sel else Vector2.ONE)
 	palco.caixa(iniciar, 760, 1105, 400, 110)
-	iniciar.pressed.connect(func(): if escolhida: _comecar(escolhida))
+	iniciar.pressed.connect(func(): if escolhida[0] != null: _comecar(escolhida[0]))
 	var fechar := Button.new(); fechar.text = "×"; fechar.add_theme_font_size_override("font_size", 90)
 	fechar.add_theme_stylebox_override("normal", estilo(Color(0.16, 0.09, 0.05), dourado, 6, 70))
 	fechar.add_theme_stylebox_override("hover", estilo(Color(0.22, 0.13, 0.07), dourado, 6, 70))

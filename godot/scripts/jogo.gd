@@ -41,6 +41,10 @@ func _ready() -> void:
 	var mus := AudioStreamPlayer.new(); var st: AudioStreamMP3 = load("res://assets/som/deserto.mp3")
 	st.loop = true; mus.stream = st; mus.volume_db = -5.0; add_child(mus); mus.play()
 	if args.has("shot"): _modo_teste()
+	elif args.has("teste"):
+		await get_tree().create_timer(3.0).timeout
+		get_viewport().get_texture().get_image().save_png(String(args.teste).get_slice("#", 0) + "/6-missao.png")
+		get_tree().quit()
 
 func _luz() -> void:
 	var sol := DirectionalLight3D.new()
