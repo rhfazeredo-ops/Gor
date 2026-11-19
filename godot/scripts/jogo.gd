@@ -115,14 +115,15 @@ func _golpe(de: Vector3, frente: Vector3) -> void:
 var areas := []
 func _consagrar(pos: Vector3) -> void:
 	var R := 3.0 / 1.81
-	pausa_impacto(0.1); tremer(1.0)
-	Fx.anel(self, pos, R + 0.9); Fx.faiscas(self, pos, 50, Color(1, 0.85, 0.4), 6.0, 0.2)
-	Fx.consagracao(self, pos, R, 6.0)
-	for e in _escorpioes_vivos():
-		var v: Vector3 = e.global_position - pos; v.y = 0
-		if v.length() < R + 0.42:
-			var dano := roundi(heroi.atk * 1.2); e.ferir(dano, pos, 4.0); Fx.numero(self, e.global_position, dano, Color(1, 0.88, 0.4))
-	areas.append({ "pos": pos, "R": R, "dps": heroi.atk * 0.2 * 5.0, "resta": 6.0, "tick": 0.5 })
+	Fx.martelo_de_luz(self, pos, func():
+		pausa_impacto(0.1); tremer(1.0)
+		Fx.anel(self, pos, R + 0.9); Fx.faiscas(self, pos, 50, Color(1, 0.85, 0.4), 6.0, 0.2)
+		Fx.consagracao(self, pos, R, 6.0)
+		for e in _escorpioes_vivos():
+			var v: Vector3 = e.global_position - pos; v.y = 0
+			if v.length() < R + 0.42:
+				var dano := roundi(heroi.atk * 1.2); e.ferir(dano, pos, 4.0); Fx.numero(self, e.global_position, dano, Color(1, 0.88, 0.4))
+		areas.append({ "pos": pos, "R": R, "dps": heroi.atk * 0.2 * 5.0, "resta": 6.0, "tick": 0.5 }))
 
 func _areas(delta: float) -> void:
 	for a in areas.duplicate():
@@ -247,6 +248,11 @@ func _modo_teste() -> void:
 		if alvo2: alvo2.global_position = heroi.global_position + Vector3(1.4, 0, 0)
 		await get_tree().create_timer(0.6).timeout
 		controles.usar_q = true
+		if args.has("seq"):
+			for i in 5:
+				await get_tree().create_timer(float(args.seq)).timeout
+				get_viewport().get_texture().get_image().save_png(String(args.shot).replace(".png", "-%d.png" % i))
+			get_tree().quit(); return
 		await get_tree().create_timer(0.5).timeout
 	if cena == "luta":
 		var alvo: Escorpiao = null
