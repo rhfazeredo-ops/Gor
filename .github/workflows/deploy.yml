@@ -17,8 +17,9 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 20, cache: npm }
       - run: npm ci
-      - run: npm run build
+      # só o jogo, arquivos separados (sem o limite de tamanho do arquivo único)
+      - run: npx vite build --config vite.itch.config.js
       - uses: actions/upload-pages-artifact@v3
-        with: { path: dist }
+        with: { path: dist-itch }
       - id: d
         uses: actions/deploy-pages@v4
