@@ -91,6 +91,7 @@ async function start(def) {
   catch (e) { document.body.insertAdjacentHTML('beforeend', `<div style="position:fixed;inset:0;display:grid;place-items:center;color:#fff;background:#200;z-index:99;padding:20px;font:14px monospace">Erro ao carregar o herói: ${e && e.message}</div>`); throw e; }
   setupHud(def);
   enterRoom(0);
+  tema.stop(2);
 }
 function enterRoom(n) {
   roomIndex = n;
@@ -383,5 +384,6 @@ $('btn-full').addEventListener('click', async () => {
 });
 
 window.__game = { get hero() { return hero; }, get world() { return world; }, get state() { return roomState; }, get room() { return roomIndex; }, get zoom() { return zoom * camZoom / DPR; }, enter: (n) => enterRoom(n) };
-const openTitle = () => { tema.play(); showTitle(() => showHeroSelectArt((def) => { tema.stop(2); start(def); }, openTitle)); };
+// tema: toca da abertura até o herói entrar num mapa (para em start, depois do carregamento)
+const openTitle = () => { tema.play(); showTitle(() => showHeroSelectArt((def) => start(def), openTitle), tema); };
 openTitle();

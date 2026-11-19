@@ -20,11 +20,39 @@ async function decode(url) {
   return new Promise((ok, err) => context().decodeAudioData(data, ok, err));
 }
 
-export function createTrack(url, { volume = 0.6, loopEnd = null, loopStart = 0 } = {}) {
-  let buffer = null, src = null, g = null;
+export function createTrack(url, opts = {}) {
+  return url.startsWith('data:') ? webAudioTrack(url, opts) : streamTrack(url, opts);
+}
+
+// site normal (GitHub Pages / itch): <audio> em streaming — começa a tocar com poucos segundos baixados
+function streamTrack(url, { volume = 0.6, loopEnd = null } = {}) {
+  const el = new Audio(); el.src = url; el.preload = 'auto'; el.loop = true; el.volume = 0;
+  let want = false, fadeT = 0;
+  const fade = (to, secs, done) => {
+    clearInterval(fadeT); const from = el.volume, t0 = performance.now();
+    fadeT = setInterval(() => { const k = Math.min(1, (performance.now() - t0) / (secs * 1000)); el.volume = from + (to - from) * k; if (k >= 1) { clearInterval(fadeT); done && done(); } }, 30);
+  };
+  if (loopEnd) el.addEventListener('timeupdate', () => { if (el.currentTime >= loopEnd) el.currentTime = 0; });
+  const tryPlay = () => { if (!want || !el.paused) return; el.play().then(() => fade(volume, 1.5)).catch(() => {}); };
+  // celular: só toca depois do primeiro toque/tecla
+  addEventListener('pointerdown', tryPlay, true); addEventListener('keydown', tryPlay, true); addEventListener('touchend', tryPlay, true);
+  const ready = new Promise((r) => { el.addEventListener('canplay', r, { once: true }); el.addEventListener('error', r, { once: true }); });
+  const t = {
+    ready,
+    get playing() { return !el.paused; },
+    play() { want = true; tryPlay(); },
+    stop(fadeOut = 1.2) { want = false; fade(0, fadeOut, () => el.pause()); },
+  };
+  window.__musica = { get estado() { return el.paused ? 'parada' : 'tocando'; }, get tocando() { return !el.paused; } };
+  return t;
+}
+
+// HTML único (link do Claude): a página bloqueia <audio> com data:, então decodifica na Web Audio
+function webAudioTrack(url, { volume = 0.6, loopEnd = null, loopStart = 0 } = {}) {  let buffer = null, src = null, g = null;
   const ready = decode(url).then((b) => (buffer = b)).catch(() => null);
   return {
     ready,
+    get playing() { return !!src && ctx.state === 'running'; },
     async play(fadeIn = 1.5) {
       await ready; if (!buffer || src) return;
       const c = context();

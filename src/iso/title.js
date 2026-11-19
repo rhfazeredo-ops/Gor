@@ -24,13 +24,28 @@ const css = `
 #title .pop { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); background: rgba(12,16,36,.92); border: 2px solid #c9a24a;
   color: #f6ecd4; font: 1em Georgia, serif; padding: 1.1em 1.6em; border-radius: 4px; text-align: center; max-width: 80vw; line-height: 1.5; z-index: 2; }
 #title .pop b { color: #ffd86b; }
+#title .tap { position: absolute; inset: 0; z-index: 3; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 14%; cursor: pointer;
+  background: linear-gradient(transparent 55%, rgba(8,10,24,.55)); }
+#title .tap span { font: 700 1.9em Georgia, serif; padding: .35em 2.5em; background: linear-gradient(90deg, transparent, rgba(10,14,34,.8) 25%, rgba(10,14,34,.8) 75%, transparent); border-top: 1px solid #c9a24a; border-bottom: 1px solid #c9a24a; color: #fff3d8; text-shadow: 0 2px 0 #000, 0 0 10px #000; letter-spacing: .06em; animation: gor-pulse 1.4s ease-in-out infinite; }
+@keyframes gor-pulse { 50% { opacity: .55; } }
 `;
 
-export function showTitle(onStart) {
+export function showTitle(onStart, music) {
   const st = document.createElement('style'); st.textContent = css; document.head.append(st);
   const el = document.createElement('div'); el.id = 'title'; el.innerHTML = '<div class="blur"></div>'; document.body.append(el);
   const stage = document.createElement('div'); stage.className = 'stage'; el.append(stage);
   const menu = document.createElement('div'); menu.className = 'menu'; stage.append(menu);
+  // "toque para começar": o primeiro toque libera o som (regra dos navegadores) e mostra o menu
+  let tap = null;
+  if (!(music && music.playing)) {
+    tap = document.createElement('div'); tap.className = 'tap'; tap.innerHTML = '<span>Toque para começar</span>';
+    menu.style.visibility = 'hidden'; stage.append(tap);
+    const go = (e) => { e && e.preventDefault(); if (!tap) return; music && music.play(); tap.remove(); tap = null; menu.style.visibility = ''; removeEventListener('keydown', goKey, true); };
+    const goKey = (e) => { if (tap) { e.stopPropagation(); go(e); } };
+    tap.addEventListener('pointerdown', go); addEventListener('keydown', goKey, true);
+    // se o navegador já deixou tocar (PC), some sozinho
+    const chk = setInterval(() => { if (!tap) return clearInterval(chk); if (music && music.playing) { clearInterval(chk); go(); } }, 300);
+  }
   const temSave = !!localStorage.getItem('gor-save');
   const items = [
     ['Iniciar', () => go()],
