@@ -19,7 +19,7 @@ import temaInicial from '../assets/musica/tela-inicial.mp3?url';
 import { progress } from './progress.js';
 import { showLoading, loadingReady } from './loading.js';
 // tema da tela inicial: toca no menu e na seleção de heróis, some quando o jogo começa
-const tema = createTrack(temaInicial, { volume: 0.6, loopEnd: 151.0 });
+const tema = createTrack(temaInicial, { volume: 0.6, loopEnd: 150.6 });   // arquivo já sem o meio segundo inicial
 import { showHeroSelectArt } from './heroselect.js';
 
 const UI = import.meta.glob('../assets/ui/*.png', { query: '?url', import: 'default', eager: true });

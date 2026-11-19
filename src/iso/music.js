@@ -20,8 +20,10 @@ async function decode(url) {
   return new Promise((ok, err) => context().decodeAudioData(data, ok, err));
 }
 
+// Web Audio nos dois casos: o arquivo baixa e decodifica assim que a página abre (antes do toque),
+// então no primeiro toque o som sai na hora. (<audio> no celular só começa a baixar depois do toque.)
 export function createTrack(url, opts = {}) {
-  return url.startsWith('data:') ? webAudioTrack(url, opts) : streamTrack(url, opts);
+  return webAudioTrack(url, opts);
 }
 
 // site normal (GitHub Pages / itch): <audio> em streaming — começa a tocar com poucos segundos baixados
@@ -53,7 +55,7 @@ function webAudioTrack(url, { volume = 0.6, loopEnd = null, loopStart = 0 } = {}
   return {
     ready,
     get playing() { return !!src && ctx.state === 'running'; },
-    async play(fadeIn = 1.5) {
+    async play(fadeIn = 0.25) {
       await ready; if (!buffer || src) return;
       const c = context();
       g = c.createGain(); g.connect(gain);
