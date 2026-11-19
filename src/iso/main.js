@@ -16,6 +16,19 @@ import { ABILITIES } from '../data/abilities.js';
 import { showTitle, titleReady } from './title.js';
 import { createTrack } from './music.js';
 import temaInicial from '../assets/musica/tela-inicial.mp3?url';
+import musicaDeserto from '../assets/musica/deserto.mp3?url';
+// música de cada bioma (toca só nos mapas daquele tipo). O arquivo do deserto já começa nos 4 s da original.
+const MUSICA_BIOMA = { deserto: { url: musicaDeserto, loopEnd: 173.3, volume: 0.55 } };
+const trilhas = {};
+const trilha = (b) => MUSICA_BIOMA[b] && (trilhas[b] ??= createTrack(MUSICA_BIOMA[b].url, MUSICA_BIOMA[b]));
+let tocandoBioma = null;
+window.__bioma = () => ({ bioma: tocandoBioma, tocando: !!(tocandoBioma && trilhas[tocandoBioma].playing), tema: tema.playing });
+function musicaDoMapa(b) {
+  if (tocandoBioma === b) return;
+  if (tocandoBioma) trilha(tocandoBioma).stop(1.5);
+  tocandoBioma = b && MUSICA_BIOMA[b] ? b : null;
+  if (tocandoBioma) trilha(tocandoBioma).play(1.5);
+}
 import { progress } from './progress.js';
 import { showLoading, loadingReady } from './loading.js';
 import { showLobby, lobbyReady } from './lobby.js';
@@ -75,7 +88,8 @@ let sprites = null, heroDef = null, roomIndex = 0, wave = 0, waveTimer = 0, room
 // o mapa e o herói começam a baixar assim que a tela inicial abre (em segundo plano)
 // prioridade: primeiro a arte da tela inicial e a música; depois (ou após 6 s) o mapa e o herói
 const preload = Promise.race([Promise.all([titleReady, tema.ready, loadingReady, lobbyReady, heroisReady]), new Promise((r) => setTimeout(r, 6000))])
-  .then(() => Promise.all([loadBigDesert(), loadHero3D(), loadMonstros()]));
+  .then(() => Promise.all([loadBigDesert(), loadHero3D(), loadMonstros()]))
+  .then(() => { trilha('deserto'); });   // já decodifica a música do deserto em segundo plano
 preload.catch(() => {});
 // tela de carregamento com barra, enquanto o resto termina de baixar
 async function waitAssets() {
@@ -105,6 +119,7 @@ async function playMission(m) {
   // cada missão tem o seu conteúdo: plantas só na de coleta, escorpiões só na de caça
   if (!m.plantas) world.map.props = world.map.props.filter((p) => p.kind !== 'flor');
   if (m.inimigos) placeMonsters(m.inimigos);
+  musicaDoMapa(world.map.bioma);
 }
 // coloca um número fixo de escorpiões pelo mapa: longe do início, espalhados, vários perto das plantas
 function placeMonsters(n) {
@@ -123,6 +138,7 @@ function placeMonsters(n) {
 function openLobby(def) {
   if (def) heroDef = def;
   tema.stop(2);
+  musicaDoMapa(null);
   world = null;
   $('hud').classList.add('hidden'); $('buttons').classList.add('hidden');
   showLobby({

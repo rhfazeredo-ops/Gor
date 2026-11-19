@@ -247,7 +247,7 @@ export function buildBigDesert(variant = 'canion') {
   const arco = decos.find((d) => d.key === 'ruina-arco-1').ramp;
   const ex = (arco.x0 + arco.xTop) / 2 + 0.4, ey = (arco.y0 + arco.y1) / 2 - 0.4;
   return {
-    nome: LY.nome, tema: 'grande', grande: true, recompensa: 'fim',
+    nome: LY.nome, bioma: 'deserto', tema: 'grande', grande: true, recompensa: 'fim',
     ondas: [['e', 'e'], ['e', 'e', 'e'], ['e', 'e', 'e'], ['e', 'e', 'e', 'e']],
     tiles: [], path: PATH, w: W, h: H, floor, solid, walls: [], props, spawns: [], start: LY.start, door: { i: ex - 0.5, j: ey - 1.4 }, open, lago: null, ossos: [], decos, colliders, ramps,
   };
