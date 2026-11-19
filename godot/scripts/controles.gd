@@ -13,20 +13,20 @@ var _ponta := Vector2.ZERO
 const RAIO := 110.0
 
 func _ready() -> void:
-	set_anchors_preset(Control.PRESET_FULL_RECT)
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var atk := TextureButton.new()
 	atk.texture_normal = load("res://assets/ui/ataque.png")
 	atk.ignore_texture_size = true; atk.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
 	atk.custom_minimum_size = Vector2(190, 190); atk.size = Vector2(190, 190)
 	atk.anchor_left = 1; atk.anchor_top = 1; atk.anchor_right = 1; atk.anchor_bottom = 1
-	atk.position = Vector2(-240, -250)
+	atk.offset_left = -250; atk.offset_top = -260; atk.offset_right = -60; atk.offset_bottom = -70
 	atk.button_down.connect(func(): _botao = true)
 	atk.button_up.connect(func(): _botao = false)
 	add_child(atk)
 	var esq := Button.new(); esq.text = "⇄"; esq.add_theme_font_size_override("font_size", 64)
 	esq.anchor_left = 1; esq.anchor_top = 1; esq.anchor_right = 1; esq.anchor_bottom = 1
-	esq.position = Vector2(-430, -170); esq.size = Vector2(130, 130)
+	esq.offset_left = -430; esq.offset_top = -180; esq.offset_right = -300; esq.offset_bottom = -50
 	var st := StyleBoxFlat.new(); st.bg_color = Color(0.17, 0.11, 0.07, 0.85); st.set_corner_radius_all(65)
 	st.border_color = Color(0.79, 0.64, 0.29); st.set_border_width_all(5)
 	esq.add_theme_stylebox_override("normal", st); esq.add_theme_stylebox_override("pressed", st); esq.add_theme_stylebox_override("hover", st)

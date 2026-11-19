@@ -15,6 +15,7 @@ void fragment() {
   vec3 c = texture(tex, tela / (escala * tam_tex)).rgb;
   float n = noise(wpos.xz * 0.12) * 0.6 + noise(wpos.xz * 0.35) * 0.4;
   c *= mix(0.86, 1.1, n);
+  c = mix(vec3(dot(c, vec3(0.3, 0.59, 0.11))), c, 0.82) * 0.94;   // um pouco menos saturado
   // a luz do sol e o ambiente já são quentes: compensa para o chão manter as cores pintadas
   ALBEDO = c * vec3(0.86, 0.95, 1.12);   // = 1 / (ambiente + sol) no chão iluminado
 }

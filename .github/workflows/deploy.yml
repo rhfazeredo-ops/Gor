@@ -21,9 +21,12 @@ jobs:
       - run: npx vite build --config vite.itch.config.js
       # versão Godot (3D) no mesmo site, em /godot/
       - uses: actions/cache@v4
+        continue-on-error: true
         with: { path: "~/godot-4.5-stable\n~/.local/share/godot/export_templates", key: godot-4.5-stable }
       - run: tools/godot-ci.sh
-      - run: |
+        continue-on-error: true
+      - continue-on-error: true
+        run: |
           cd godot && godot --headless --import || true
           mkdir -p ../dist-godot && godot --headless --export-release "Web" ../dist-godot/index.html
           mkdir -p ../dist-itch/godot && cp -r ../dist-godot/* ../dist-itch/godot/
