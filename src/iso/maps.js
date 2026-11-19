@@ -15,7 +15,8 @@
 //   ;  laje entalhada   X  porta   F  braseiro   R  entulho
 import { buildBigDesert } from './bigdesert.js';
 export const ROOMS = [
-  { build: buildBigDesert },
+  { build: () => buildBigDesert('canion') },   // 0: Cânion (missão das plantas)
+  { build: () => buildBigDesert('ninho') },    // 1: Ninho (missão dos escorpiões)
 ];
 export const OLD_ROOMS = [
   {
