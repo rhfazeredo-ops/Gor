@@ -22,7 +22,7 @@ export function createHud(parent) {
     // v = { hp, maxHp, mp, maxMp, en, maxEn, level, cds: [0..1 ×4], shield }
     draw(v, dt) {
       if (!img.base.complete) return;
-      for (const b of ['hp', 'mp', 'en']) {
+      for (const b of Object.keys(info.bars)) {
         const f = Math.max(0, Math.min(1, v[b] / v['max' + b[0].toUpperCase() + b.slice(1)]));
         shown[b] += (f - shown[b]) * Math.min(1, dt * 14);
         trail[b] = f > trail[b] ? f : trail[b] + (f - trail[b]) * Math.min(1, dt * 2.5);
@@ -31,7 +31,7 @@ export function createHud(parent) {
       if (key === last) return; last = key;
       g.clearRect(0, 0, W, H);
       g.drawImage(img.base, 0, 0, W, H);
-      for (const b of ['hp', 'mp', 'en']) {
+      for (const b of Object.keys(info.bars)) {
         const B = info.bars[b], x0 = B.x * k, bw = B.w * k;
         const cut = (f) => x0 + bw * f;
         // rastro claro do que acabou de ser perdido
@@ -46,8 +46,8 @@ export function createHud(parent) {
         text(`${Math.ceil(val[0])} / ${val[1]}`, (B.x + B.w * 0.47) * k, (B.y + B.h / 2 + 2) * k, B.h * k * 0.62);
       }
       const L = info.level;
-      text(String(v.level), L.x * k, (L.y + 3) * k, L.r * k * 1.15);
-      info.slots.forEach((S, i) => {
+      if (L) text(String(v.level), L.x * k, (L.y + 3) * k, L.r * k * 1.15);
+      (info.slots || []).forEach((S, i) => {
         const f = v.cds[i] || 0;
         if (f <= 0) return;
         const cx = (S.x + S.w / 2) * k, cy = (S.y + S.h / 2) * k, rr = Math.max(S.w, S.h) * k;

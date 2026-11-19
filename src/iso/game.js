@@ -49,7 +49,7 @@ export function screenToTileDir(sx, sy) {
 
 // ---------------- herói ----------------
 // custo das habilidades e regeneração por segundo
-export const COST = { q: 35, e: 25, dash: 30, mpRegen: 7, enRegen: 28 };
+export const COST = { q: 35, e: 25, dash: 0, mpRegen: 7, enRegen: 28 };   // esquiva livre (o HUD só tem vida e mana)
 export class Hero {
   constructor(world, sprites, def) {
     this.world = world; this.def = def;

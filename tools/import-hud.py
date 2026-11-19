@@ -35,6 +35,7 @@ fills, base = {}, rgb.copy()
 for k, m in masks.items():
   m = m.copy(); m[:, :X0] = False
   rows = np.where(m.sum(1) > 300)[0]
+  if not len(rows): continue          # esta arte não tem essa barra
   y0, y1 = rows.min(), rows.max()
   hull = np.zeros((H, W), bool)
   for y in range(y0, y1 + 1):
@@ -65,17 +66,16 @@ for k, m in masks.items():
   info['bars'][k] = {'x': bx0, 'y': by0, 'w': bx1 - bx0 + 1, 'h': by1 - by0 + 1}
   print(k, info['bars'][k], 'texto', (int(tx.min()), int(tx.max())) if len(tx) else None)
 
-# --- nível: apaga o número dentro do círculo escuro ---
-yy, xx = np.mgrid[0:H, 0:W]
-cx, cy, R = round(510 * W / 2000), round(515 * W / 2000), 64   # círculo do nível (medido na arte)
-disk = (xx - cx) ** 2 + (yy - cy) ** 2 < R * R
-ring = disk & (mx < 60)
-bg = np.median(base[ring], axis=0)
-base[disk] = bg
-info['level'] = {'x': cx, 'y': cy, 'r': R}
-# espaços de habilidade (medidos na arte)
-k = W / 2000
-info['slots'] = [{'x': round((642 + i * 141) * k), 'y': round(468 * k), 'w': round(124 * k), 'h': round(122 * k)} for i in range(4)]
+# --- nível e espaços de habilidade: só na arte que tem (HUD de 3 barras) ---
+if '--nivel' in sys.argv:
+  cx, cy, R = round(510 * W / 2000), round(515 * W / 2000), 64   # círculo do nível (medido na arte)
+  yy, xx = np.mgrid[0:H, 0:W]
+  disk = (xx - cx) ** 2 + (yy - cy) ** 2 < R * R
+  ring = disk & (mx < 60)
+  base[disk] = np.median(base[ring], axis=0)
+  info['level'] = {'x': cx, 'y': cy, 'r': R}
+  k = W / 2000
+  info['slots'] = [{'x': round((642 + i * 141) * k), 'y': round(468 * k), 'w': round(124 * k), 'h': round(122 * k)} for i in range(4)]
 
 def save(arr, a, name, scale=0.5):
   img = Image.fromarray(np.dstack([np.clip(arr, 0, 255).astype(np.uint8), a]), 'RGBA')
