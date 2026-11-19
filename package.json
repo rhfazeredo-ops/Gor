@@ -10,6 +10,7 @@
     "pixel:convert": "node pixel/tools/convert-model.mjs",
     "pixel:island": "node pixel/tools/build-island.mjs",
     "build:single": "vite build --config vite.single.config.js",
+    "build:itch": "vite build --config vite.itch.config.js && python3 tools/zip-itch.py",
     "build:atelier": "vite build --config vite.atelier.config.js"
   },
   "dependencies": {
