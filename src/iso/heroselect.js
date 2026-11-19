@@ -47,10 +47,17 @@ export function showHeroSelectArt(onPick, onBack) {
   const at = (cls, [x, y, w, h], tag = 'div') => { const d = document.createElement(tag); d.className = cls; Object.assign(d.style, { left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px' }); stage.append(d); return d; };
   const cards = M.cards.map((c, k) => {
     const d = at('card', [c.x, c.y, c.w, c.h]);
-    d.style.background = `url(${CARTAS[k]}) 0 0 / 100% 100%`;
-    d.style.clipPath = `polygon(${c.poly.map(([x, y]) => `${x}px ${y}px`).join(',')})`;
-    if (!playable(k)) { const l = document.createElement('div'); l.className = 'lock'; l.textContent = '🔒 Em breve'; d.append(l); }
-    d.onclick = () => (sel === k ? confirm() : mark(k));
+    const pts = (k0) => { const cx = c.w / 2, cy = c.h / 2; return `polygon(${c.poly.map(([x, y]) => `${cx + (x - cx) * k0}px ${cy + (y - cy) * k0}px`).join(',')})`; };
+    d.style.clipPath = pts(1);
+    if (ROSTER[k]) {
+      d.style.background = `url(${CARTAS[k]}) 0 0 / 100% 100%`;
+      d.onclick = () => (sel === k ? confirm() : mark(k));
+    } else {
+      // vaga vazia: moldura dourada apagada e interior escuro
+      d.classList.add('vazia');
+      d.style.background = 'linear-gradient(160deg, #a8843c, #5e4114 50%, #9a7430)';
+      const inn = document.createElement('div'); inn.className = 'in vazia'; inn.style.clipPath = pts(0.955); d.append(inn);
+    }
     return d;
   });
   const nome = at('txt nome', M.nome), desc = at('txt desc', M.desc);
