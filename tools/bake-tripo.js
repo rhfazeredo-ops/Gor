@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { toonify, luzes, ink as inkPintado } from './estilo.js';
 import { buildTripoHero } from './tripo-rig.js';
 
 // =====================================================================
@@ -27,10 +28,8 @@ export async function bake(names = Object.keys(ANIMS)) {
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
   renderer.setPixelRatio(1); renderer.setSize(RS * 2, RS * 2); renderer.setClearColor(0, 0);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
-  const scene = new THREE.Scene(); scene.add(H.holder);
-  scene.add(new THREE.HemisphereLight(0xfff4e6, 0x5a4250, 2.0));
-  const key = new THREE.DirectionalLight(0xffe6c4, 1.7); key.position.set(-3, 6, 4); scene.add(key);
-  const rim = new THREE.DirectionalLight(0xa8c0ff, 0.9); rim.position.set(4, 3, -5); scene.add(rim);
+  const scene = new THREE.Scene(); scene.add(H.holder); toonify(H.holder);
+  luzes(scene);
   const el = THREE.MathUtils.degToRad(30);
   const ppu = (HERO_PX * RES) / (0.871 * Math.cos(el));
   const cam = new THREE.OrthographicCamera(-AX / ppu, (RS - AX) / ppu, AY / ppu, -(RS - AY) / ppu, -50, 50);
@@ -62,7 +61,7 @@ export async function bake(names = Object.keys(ANIMS)) {
         renderer.render(scene, cam);
         sctx.clearRect(0, 0, RS, RS);
         sctx.drawImage(renderer.domElement, 0, 0, RS, RS);    // supersampling 2×
-        g.drawImage(ink(small), f * RS, d * RS);
+        g.drawImage(inkPintado(small, 4.2), f * RS, d * RS);
       }
     }
     raw[name] = { sheet, frames, loop, fps: Math.round((frames / ((t1 - t0) / speed)) * 10) / 10 };

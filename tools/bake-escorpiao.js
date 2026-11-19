@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { toonify, luzes, ink as inkPintado } from './estilo.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 // =====================================================================
@@ -87,10 +88,8 @@ export async function bake(names = Object.keys(ANIMS)) {
   const holder = new THREE.Group(); holder.add(g.scene);
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
   renderer.setPixelRatio(1); renderer.setSize(RS * 2, RS * 2); renderer.setClearColor(0, 0); renderer.outputColorSpace = THREE.SRGBColorSpace;
-  const scene = new THREE.Scene(); scene.add(holder);
-  scene.add(new THREE.HemisphereLight(0xfff4e6, 0x5a4250, 2.1));
-  const key = new THREE.DirectionalLight(0xffe6c4, 1.8); key.position.set(-3, 6, 4); scene.add(key);
-  const rim = new THREE.DirectionalLight(0xa8c0ff, 0.8); rim.position.set(4, 3, -5); scene.add(rim);
+  const scene = new THREE.Scene(); scene.add(holder); toonify(holder);
+  luzes(scene);
   const el = THREE.MathUtils.degToRad(30), ppu = PX_PER_UNIT * RES;
   const cam = new THREE.OrthographicCamera(-AX / ppu, (RS - AX) / ppu, AY / ppu, -(RS - AY) / ppu, -50, 50);
   cam.position.set(0, Math.sin(el) * 10, Math.cos(el) * 10); cam.lookAt(0, 0, 0); cam.updateProjectionMatrix();
@@ -106,7 +105,7 @@ export async function bake(names = Object.keys(ANIMS)) {
         def({ walk: 0, walkAmt: 0, tail: 0, sway: 0, pinch: 0, claws: 0, bob: 0, ...POSE[name](u) });
         renderer.render(scene, cam);
         sctx.clearRect(0, 0, RS, RS); sctx.drawImage(renderer.domElement, 0, 0, RS, RS);
-        gx.drawImage(ink(small), f * RS, d * RS);
+        gx.drawImage(inkPintado(small, 3.4), f * RS, d * RS);
       }
     }
     raw[name] = { sheet, frames, loop, fps };

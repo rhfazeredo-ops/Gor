@@ -1,10 +1,10 @@
 {
  "style": "pintado",
- "frameW": 320,
- "frameH": 303,
+ "frameW": 324,
+ "frameH": 305,
  "anchor": [
-  160,
-  199
+  162,
+  201
  ],
  "scale": 0.5,
  "anims": {
