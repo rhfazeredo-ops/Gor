@@ -18,6 +18,7 @@ import { createTrack } from './music.js';
 import temaInicial from '../assets/musica/tela-inicial.mp3?url';
 import { progress } from './progress.js';
 import { showLoading, loadingReady } from './loading.js';
+import { showLobby, lobbyReady } from './lobby.js';
 // tema da tela inicial: toca no menu e na seleção de heróis, some quando o jogo começa
 const tema = createTrack(temaInicial, { volume: 0.6, loopEnd: 150.6 });   // arquivo já sem o meio segundo inicial
 import { showHeroSelectArt } from './heroselect.js';
@@ -70,7 +71,7 @@ const toLow = (cx, cy) => [(cx - GL) * DPR / (zoom * camZoom), (cy - GT) * DPR /
 let sprites = null, heroDef = null, roomIndex = 0, wave = 0, waveTimer = 0, roomState = 'luta', fade = 0, power = 0;
 // o mapa e o herói começam a baixar assim que a tela inicial abre (em segundo plano)
 // prioridade: primeiro a arte da tela inicial e a música; depois (ou após 6 s) o mapa e o herói
-const preload = Promise.race([Promise.all([titleReady, tema.ready, loadingReady]), new Promise((r) => setTimeout(r, 6000))])
+const preload = Promise.race([Promise.all([titleReady, tema.ready, loadingReady, lobbyReady]), new Promise((r) => setTimeout(r, 6000))])
   .then(() => Promise.all([loadBigDesert(), loadHero3D()]));
 preload.catch(() => {});
 // tela de carregamento com barra, enquanto o resto termina de baixar
@@ -82,16 +83,29 @@ async function waitAssets() {
   const tick = setInterval(() => el.set(progress.total ? progress.done / progress.total : 0), 120);
   try { await preload; el.set(1); await new Promise((r) => setTimeout(r, 250)); } finally { clearInterval(tick); el.remove(); }
 }
-async function start(def) {
-  heroDef = def;
+// missão escolhida no quadro da taverna: carrega (se preciso) e entra no mapa dela
+let mission = null, gameReady = false;
+async function playMission(m) {
+  mission = m;
   await waitAssets();
-  art.themes.grande = { props: { flor: sprite('flores-1', 0.06) }, rocks: [], ambient: 'rgba(70,20,10,0.10)' };
-  for (const sl of Object.values(art.slimes)) { sl.w *= 0.7; sl.h *= 0.7; sl.ax *= 0.7; sl.ay *= 0.7; }
-  try { sprites = await loadHero3D(); }
-  catch (e) { document.body.insertAdjacentHTML('beforeend', `<div style="position:fixed;inset:0;display:grid;place-items:center;color:#fff;background:#200;z-index:99;padding:20px;font:14px monospace">Erro ao carregar o herói: ${e && e.message}</div>`); throw e; }
-  setupHud(def);
-  enterRoom(0);
+  if (!gameReady) {
+    art.themes.grande = { props: { flor: sprite('flores-1', 0.06) }, rocks: [], ambient: 'rgba(70,20,10,0.10)' };
+    for (const sl of Object.values(art.slimes)) { sl.w *= 0.7; sl.h *= 0.7; sl.ax *= 0.7; sl.ay *= 0.7; }
+    try { sprites = await loadHero3D(); }
+    catch (e) { document.body.insertAdjacentHTML('beforeend', `<div style="position:fixed;inset:0;display:grid;place-items:center;color:#fff;background:#200;z-index:99;padding:20px;font:14px monospace">Erro ao carregar o herói: ${e && e.message}</div>`); throw e; }
+    gameReady = true;
+  }
+  hero = null; flores = 0;
+  setupHud(heroDef);
+  enterRoom(m.mapa);
+}
+// lobby (taverna): a música da abertura para aqui
+function openLobby(def) {
+  if (def) heroDef = def;
   tema.stop(2);
+  world = null;
+  $('hud').classList.add('hidden'); $('buttons').classList.add('hidden');
+  showLobby({ onMission: playMission });
 }
 function enterRoom(n) {
   roomIndex = n;
@@ -133,17 +147,28 @@ function collect() {
     if (p.kind !== 'flor' || p.taken) continue;
     if (Math.hypot(hero.x - (p.i + 0.5), hero.y - (p.j + 0.5)) < 0.9) {
       p.taken = true; flores++; ouro += 5;
-      fx.sparks(p.i + 0.5, p.j + 0.5, 10, { n: 22, up: 70 }); banner(world.map.tema === 'deserto' ? 'Flor do Deserto coletada' : 'Erva-Luz coletada', 1400);
+      const alvo = mission && mission.objetivo.tipo === 'coletar' ? mission.objetivo.alvo : 0;
+      fx.sparks(p.i + 0.5, p.j + 0.5, 10, { n: 22, up: 70 }); banner(alvo ? `Planta rara coletada (${Math.min(flores, alvo)}/${alvo})` : 'Planta rara coletada', 1400);
     }
   }
 }
 function rooms(dt) {
   collect();
+  const obj = mission && mission.objetivo;
+  if (obj && obj.tipo === 'coletar' && roomState !== 'vitoria' && flores >= obj.alvo) {
+    roomState = 'vitoria'; fx.shake = 0.3;
+    ui.info('Missão concluída', `Você coletou ${obj.alvo} plantas raras. Volte à taverna.`).then(() => openLobby());
+    return;
+  }
+  if (roomState === 'vitoria') return;
   world.enemies = world.enemies.filter((e) => e.alive);
   const map = world.map;
   if (roomState === 'luta') {
     if (world.enemies.length === 0) {
-      if (wave >= map.ondas.length) { roomState = 'limpa'; world.doorOpen = true; fx.shake = 0.4; ui.info('Informação', 'Cânion limpo! Você recebeu a Bênção da Luz. Siga até o portal.'); return; }
+      if (wave >= map.ondas.length) {
+        if (obj && obj.tipo === 'coletar') { wave = 0; waveTimer = 8; return; }   // missão de coleta: as criaturas voltam de tempos em tempos
+        roomState = 'limpa'; world.doorOpen = true; fx.shake = 0.4; ui.info('Informação', 'Cânion limpo! Você recebeu a Bênção da Luz. Siga até o portal.'); return;
+      }
       waveTimer -= dt;
       if (waveTimer <= 0) {
         for (const kind of map.ondas[wave]) {
@@ -199,7 +224,9 @@ function updateHud() {
     cds: [hero.cd.atk / abl.basico.recarga, hero.cd.e / abl.e.recarga, hero.cd.q / abl.q.recarga, hero.cd.dash / 0.8],
   }, hdt);
   const map = world.map;
-  $('objective').textContent = roomState === 'vitoria' ? 'Vitória! O cânion foi purificado.' : roomState === 'limpa' ? 'Siga até o portal em ruínas.' :
+  const obj = mission && mission.objetivo;
+  if (obj && obj.tipo === 'coletar') $('objective').textContent = roomState === 'vitoria' ? 'Missão concluída!' : `${obj.texto} (${Math.min(flores, obj.alvo)}/${obj.alvo}).`;
+  else $('objective').textContent = roomState === 'vitoria' ? 'Vitória! O cânion foi purificado.' : roomState === 'limpa' ? 'Siga até o portal em ruínas.' :
     `Derrote as criaturas do cânion (onda ${Math.max(1, wave)}/${map.ondas.length}).`;
   const ab = hero.ab;
   for (const [k, id, max] of [['q', 'btn-q', ab.q.recarga], ['e', 'btn-e', ab.e.recarga], ['dash', 'btn-dash', 0.8]]) {
@@ -385,7 +412,7 @@ $('btn-full').addEventListener('click', async () => {
 
 window.__game = { get hero() { return hero; }, get world() { return world; }, get state() { return roomState; }, get room() { return roomIndex; }, get zoom() { return zoom * camZoom / DPR; }, enter: (n) => enterRoom(n) };
 // tema: toca da abertura até o herói entrar num mapa (para em start, depois do carregamento)
-const openTitle = () => { tema.play(); showTitle(() => showHeroSelectArt((def) => start(def), openTitle), tema); };
+const openTitle = () => { tema.play(); showTitle(() => showHeroSelectArt((def) => openLobby(def), openTitle), tema); };
 openTitle();
 
 // instalável (tela inicial do celular): só no site normal, não no HTML único
