@@ -5,8 +5,8 @@ manifest continuam na escala original; 'res' guarda a fração real da imagem).
 import json, sys, os
 from PIL import Image
 # escala de desenho por tipo (igual a KIND em src/iso/bigdesert.js)
-S = {'paredao': .27, 'pico': .25, 'rochedo': .23, 'ruina': .3, 'lago': .28, 'arvore': .19, 'arbusto': .1, 'grama': .075,
-     'flores': .09, 'rochas': .14, 'ossos': .12, 'estandarte': .13, 'pilar': .15, 'pedras': .14, 'agua': .28}
+S = {'paredao': .36, 'pico': .33, 'rochedo': .31, 'ruina': .39, 'lago': .28, 'arvore': .19, 'arbusto': .1, 'grama': .075,
+     'flores': .09, 'rochas': .14, 'ossos': .12, 'estandarte': .17, 'pilar': .2, 'pedras': .14, 'agua': .28}
 def kind(n):
     if n.startswith('itens-2'): return 'ossos'
     if n.startswith('itens-1-3'): return 'rochas'

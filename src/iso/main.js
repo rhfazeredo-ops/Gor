@@ -27,7 +27,7 @@ const cv = document.getElementById('game');
 const ctx = cv.getContext('2d');
 const lightCv = document.createElement('canvas');
 const lctx = lightCv.getContext('2d');
-const VIEW_H = innerHeight < 520 ? 400 : 350;   // câmera próxima, como nos roguelikes de ação
+const VIEW_H = innerHeight < 520 ? 340 : 320;   // herói ≈ 21% da altura da tela   // câmera próxima, como nos roguelikes de ação
 let zoom = 3, VW = 320, VH = 180, DPR = 1, camZoom = 1;
 
 function resize() {

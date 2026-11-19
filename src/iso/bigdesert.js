@@ -10,9 +10,10 @@ import groundUrl from '../assets/deserto-chao/principal.webp?url';
 const rng = (seed) => () => ((seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 4294967296);
 // escala (unidades do mundo por pixel do asset) e colisão (tiles) por tipo
 const KIND = {
-  paredao: { s: 0.27 }, pico: { s: 0.25, r: 1.6 }, rochedo: { s: 0.23, r: 1.9 }, ruina: { s: 0.3, r: 2.2 },
+  // rochas e estruturas altas (≈2,5–4× o herói), como na referência de proporção
+  paredao: { s: 0.36 }, pico: { s: 0.33, r: 1.6 }, rochedo: { s: 0.31, r: 1.9 }, ruina: { s: 0.39, r: 2.2 },
   lago: { s: 0.28, r: 2.3 }, arvore: { s: 0.19, r: 0.5 }, arbusto: { s: 0.1 }, grama: { s: 0.075 },
-  flores: { s: 0.09 }, rochas: { s: 0.14, r: 0.5 }, ossos: { s: 0.12 }, estandarte: { s: 0.13, r: 0.3 }, pilar: { s: 0.15, r: 0.5 }, pedras: { s: 0.16 },
+  flores: { s: 0.09 }, rochas: { s: 0.14, r: 0.5 }, ossos: { s: 0.12 }, estandarte: { s: 0.17, r: 0.3 }, pilar: { s: 0.2, r: 0.5 }, pedras: { s: 0.16 },
 };
 // séries desenhadas em outra escala de pixel (folhas com muitos itens): escala própria
 const SERIES = { 'arvore-7': 0.38, 'arbusto-7': 0.3, 'grama-5': 0.28, 'pedras-1': 0.16 };
@@ -170,7 +171,7 @@ export function buildBigDesert() {
   for (const [k, x, y, o] of [
     ['rochedo-4-1', 12, 33], ['pico-1-1', 8, 45, { s: 0.9 }], ['rochedo-5-1', 15, 53], ['rochedo-3-1', 22, 62, { flip: true }],
     ['rochedo-2-1', 34, 13], ['pico-2-1', 47, 9, { s: 0.85 }], ['rochedo-3-1', 56, 19], ['rochedo-5-1', 63, 31, { flip: true }], ['rochedo-4-1', 61, 45, { flip: true }],
-    ['rochedo-6-1', 34, 24, { s: 0.75 }], ['rochedo-6-1', 54, 58, { s: 0.7, flip: true }], ['rochedo-1-1', 36, 58, { s: 0.8 }],
+    ['rochedo-6-1', 34, 24, { s: 0.75 }], ['rochedo-6-1', 61, 56, { s: 0.7, flip: true }], ['rochedo-1-1', 36, 58, { s: 0.8 }],
   ]) add(k, x, y, o);
 
   // 4) água: oásis ao lado da trilha e uma poça menor
