@@ -105,42 +105,44 @@ function distPoly(pts, x, y) {
 //   path: trilha livre (do início até a saída); ruinas/rochas/agua/arvores/pedras: [peça, x, y, opções]
 //   oasis: [x, y, raio interno, raio externo, quantidade]; ossos: [x, y, raio, quantidade]; start; seed
 const LAYOUTS = {
-  // Cânion: trilha diagonal do acampamento (embaixo) ao portal (alto), paredes de rocha dos lados, oásis
+  // Desfiladeiro do Sol (missão das plantas): cânion sinuoso do acampamento (embaixo) ao portal (alto),
+  // paredes de rocha contínuas, bolsões laterais com oásis e árvores onde crescem as plantas raras.
   canion: {
-    nome: 'Desfiladeiro do Sol', seed: 1234, start: { x: 58.5, y: 60.5 },
-    path: [[58, 60], [50, 51], [41, 46], [33, 38], [27, 28], [19, 19], [14, 13]],
-    ruinas: [['ruina-arco-1', 13, 9, { s: 1.15 }], ['estandarte-1-1', 7.5, 10], ['estandarte-1-1', 17.5, 11], ['pilar-1-1', 8, 17], ['pilar-1-1', 20, 15, { s: 0.85 }], ['ruina-pilares-2-1', 45, 23, { s: 0.85 }]],
-    rochas: [['rochedo-4-1', 12, 33], ['pico-1-1', 8, 45, { s: 0.9 }], ['rochedo-5-1', 15, 53], ['rochedo-3-1', 22, 62, { flip: true }],
-      ['rochedo-2-1', 34, 13], ['pico-2-1', 47, 9, { s: 0.85 }], ['rochedo-3-1', 56, 19], ['rochedo-5-1', 63, 31, { flip: true }], ['rochedo-4-1', 61, 45, { flip: true }],
-      ['rochedo-6-1', 34, 24, { s: 0.75 }], ['rochedo-6-1', 61, 56, { s: 0.7, flip: true }], ['rochedo-1-1', 36, 58, { s: 0.8 }]],
-    agua: [['lago-2-1', 47, 37], ['lago-1-1', 24, 47, { s: 0.8 }]],
-    oasis: [[47, 37, 3.6, 6.5, 26], [24, 47, 2.6, 4.5, 12]],
-    arvores: [['arvore-7-1', 51, 63], ['arvore-7-4', 52, 42], ['arvore-7-6', 42, 33], ['arvore-7-5', 21, 41], ['arvore-7-8', 30, 17],
-      ['arvore-7-7', 61, 52], ['arvore-7-2', 16, 27], ['arvore-7-3', 26, 56], ['arvore-7-9', 29, 50, { phys: 'solido' }], ['arvore-7-10', 57, 27, { phys: 'solido' }], ['arvore-7-11', 38, 52, { phys: 'solido' }]],
-    pedras: [['pedras-1-3', 40, 27], ['pedras-1-5', 30, 44], ['pedras-1-7', 57, 49]],
-    ossos: [40, 40, 22, 6],
+    nome: 'Desfiladeiro do Sol', seed: 1234, start: { x: 58.5, y: 61.5 },
+    path: [[58, 61], [55, 53], [48, 48], [42, 41], [44, 33], [37, 27], [28, 25], [21, 18], [14, 12]],
+    largura: 3.4,
+    // clareiras: [x, y, raio] — áreas abertas ligadas à trilha (acampamento, bolsões, pátio do portal)
+    clareiras: [[58, 61, 5], [13, 10, 6.5], [35, 45, 4.6], [30, 19, 4.2], [51, 57, 3.6], [49, 27, 3.8], [44, 34, 3.6]],
+    ruinas: [['ruina-arco-1', 12, 7, { s: 1.15 }], ['estandarte-1-1', 8, 8.5], ['estandarte-1-1', 16.5, 9.5], ['pilar-1-1', 9.5, 14], ['pilar-1-1', 18, 13.5, { s: 0.85 }],
+      ['ruina-pilares-2-1', 48, 26, { s: 0.8 }]],
+    rochas: [],
+    agua: [['lago-2-1', 34, 46, { s: 0.75 }]],
+    oasis: [[34, 46, 2.8, 4.6, 22]],
+    arvores: [['arvore-7-1', 38, 48], ['arvore-7-4', 31, 43], ['arvore-7-6', 32, 17], ['arvore-7-5', 54, 61], ['arvore-7-8', 51, 25],
+      ['arvore-7-2', 27, 21], ['arvore-7-9', 47, 30, { phys: 'solido' }], ['arvore-7-10', 63, 64, { phys: 'solido' }]],
+    pedras: [['pedras-1-3', 62, 57], ['pedras-1-5', 26, 28], ['pedras-1-7', 46, 51]],
+    ossos: [40, 36, 10, 4],
+    // plantas raras: nos bolsões e em recantos da trilha
+    flores: [[33, 43], [37, 47], [36, 42], [29, 17], [32, 21], [27, 18], [52, 56], [50, 58], [49, 25], [51, 29], [45, 35],
+      [43, 45], [24, 21], [17, 15]],
   },
-  // Ninho: bacia de areia no centro cercada por um anel de rochedos (com entradas), ruínas e ossadas no meio;
-  // trilha do canto esquerdo-baixo até o portal no canto direito-alto. Sem água (só uma poça seca no canto).
+  // Ninho dos Escorpiões (caça): desfiladeiro de entrada, arena circular cercada de rocha com ruínas e
+  // ossadas no centro, cavernas laterais e a saída até o portal. Sem água.
   ninho: {
-    nome: 'Ninho dos Escorpiões', seed: 4321, start: { x: 12.5, y: 60.5 },
-    path: [[12, 60], [20, 52], [28, 44], [36, 36], [44, 28], [52, 20], [59, 13]],
-    ruinas: [['ruina-arco-1', 60, 9, { s: 1.15 }], ['estandarte-1-1', 55, 11], ['estandarte-1-1', 65, 12],
+    nome: 'Ninho dos Escorpiões', seed: 4321, start: { x: 12.5, y: 61.5 },
+    path: [[12, 61], [18, 54], [25, 46], [36, 36], [47, 26], [54, 18], [60, 12]],
+    largura: 3.0,
+    clareiras: [[36, 36, 12.5], [12, 61, 4.6], [60, 10, 6.2], [23, 27, 4.2], [50, 47, 4.0]],
+    ruinas: [['ruina-arco-1', 60, 7, { s: 1.15 }], ['estandarte-1-1', 55.5, 9], ['estandarte-1-1', 65, 10],
       ['pilar-1-1', 36, 30.5], ['pilar-1-1', 41.5, 36, { s: 0.9 }], ['pilar-1-1', 30.5, 36, { s: 0.9 }], ['pilar-1-1', 36, 41.5],
-      ['ruina-pilares-2-1', 18, 22, { s: 0.85 }]],
-    rochas: [
-      // anel em volta da bacia (raio ~15), com aberturas na trilha e nos lados
-      ['rochedo-3-1', 36, 20], ['rochedo-5-1', 27, 22, { flip: true }], ['pico-1-1', 22, 28, { s: 0.85 }], ['rochedo-4-1', 21, 37],
-      ['rochedo-2-1', 20, 44], ['rochedo-5-1', 36, 52], ['pico-2-1', 46, 50, { s: 0.85 }], ['rochedo-4-1', 51, 42, { flip: true }],
-      ['rochedo-3-1', 51, 33, { flip: true }], ['rochedo-6-1', 45, 22, { s: 0.8 }],
-      // cantos e bordas
-      ['pico-2-1', 10, 12, { s: 0.9 }], ['rochedo-6-1', 8, 30, { s: 0.75 }], ['rochedo-1-1', 30, 64, { s: 0.85 }], ['rochedo-3-1', 62, 36, { flip: true }],
-      ['rochedo-4-1', 60, 56, { flip: true }], ['rochedo-6-1', 46, 63, { s: 0.75, flip: true }]],
-    agua: [['lago-1-1', 62, 64, { s: 0.7 }]],
-    oasis: [[62, 64, 2.2, 3.8, 8]],
-    arvores: [['arvore-7-6', 14, 46], ['arvore-7-1', 55, 50], ['arvore-7-4', 26, 13], ['arvore-7-8', 64, 26], ['arvore-7-9', 34, 58, { phys: 'solido' }], ['arvore-7-10', 50, 14, { phys: 'solido' }], ['arvore-7-11', 12, 52, { phys: 'solido' }]],
-    pedras: [['pedras-1-3', 29, 29], ['pedras-1-5', 43, 43], ['pedras-1-7', 15, 34]],
-    ossos: [36, 36, 9, 14],
+      ['ruina-pilares-2-1', 44, 42, { s: 0.85 }]],
+    rochas: [['pedras-1-3', 29, 29], ['pedras-1-5', 41, 42], ['pedras-1-7', 27, 41]],
+    agua: [],
+    oasis: [],
+    arvores: [['arvore-7-6', 26, 33], ['arvore-7-1', 46, 33], ['arvore-7-4', 22, 25], ['arvore-7-8', 51, 45], ['arvore-7-9', 39, 46, { phys: 'solido' }],
+      ['arvore-7-10', 32, 27, { phys: 'solido' }], ['arvore-7-11', 9, 57, { phys: 'solido' }]],
+    pedras: [],
+    ossos: [36, 36, 8, 18],
   },
 };
 
@@ -212,6 +214,45 @@ export function buildBigDesert(variant = 'canion') {
   // 2) ruínas, 3) rochas, 4) água, 5) árvores e pedras grandes — conforme o layout
   for (const [k, x, y, o] of [...LY.ruinas, ...LY.rochas, ...LY.agua, ...LY.arvores, ...LY.pedras]) add(k, x, y, o);
 
+  // 5b) paredes de rocha: "aberto" = trilha (largura) + clareiras. Rochas grandes na borda do aberto
+  // (paredes do cânion/arena) e rochas espaçadas no resto, para o mapa ter forma (não areia vazia).
+  const aberto = (x, y) => Math.min(distPath(x, y) - (LY.largura ?? 3), ...(LY.clareiras || []).map(([cx, cy, rc]) => Math.hypot(x - cx, y - cy) - rc));
+  const BORDA = ['rochedo-1-1', 'rochedo-2-1', 'rochedo-3-1', 'rochedo-4-1', 'rochedo-5-1', 'rochedo-6-1', 'rochedo-9-1'];
+  const FUNDO = ['rochedo-3-1', 'rochedo-4-1', 'rochedo-5-1', 'pico-1-1', 'pico-2-1', 'rochedo-2-1'];
+  const paredes = [];
+  if (LY.clareiras) {
+    // borda: percorre o contorno do aberto em passos de ~3 tiles
+    const pts = [];
+    for (let y = 3; y < H - 2; y += 0.5) for (let x = 3; x < W - 2; x += 0.5) { const v = aberto(x, y); if (v > 3.0 && v < 3.7) pts.push([x, y]); }
+    for (let k = pts.length - 1; k > 0; k--) { const j = (r() * (k + 1)) | 0; [pts[k], pts[j]] = [pts[j], pts[k]]; }
+    const usados = [];
+    for (const [x, y] of pts) {
+      if (usados.some(([ux, uy]) => Math.hypot(ux - x, uy - y) < 2.9)) continue;
+      const jx = x + (r() - 0.5) * 0.8, jy = y + (r() - 0.5) * 0.8;
+      if (aberto(jx, jy) < 2.8) continue;
+      usados.push([x, y]); paredes.push([pick(BORDA), jx, jy, { s: 0.72 + r() * 0.3, flip: r() < 0.5 }]);
+    }
+    // fundo: grade com sorteio, longe do aberto
+    for (let y = 4; y < H - 3; y += 4.2) for (let x = 4; x < W - 3; x += 4.2) {
+      const jx = x + (r() - 0.5) * 2.4, jy = y + (r() - 0.5) * 2.4;
+      if (aberto(jx, jy) > 6.5 && !usados.some(([ux, uy]) => Math.hypot(ux - jx, uy - jy) < 3.6)) { usados.push([jx, jy]); paredes.push([pick(FUNDO), jx, jy, { s: 0.8 + r() * 0.35, flip: r() < 0.5 }]); }
+    }
+    // de trás para frente (as da frente desenhadas por cima)
+    paredes.sort((p, q) => (p[1] + p[2]) - (q[1] + q[2]));
+    // coloca e confere a colisão real: se invadir o aberto, tira (e tenta menor)
+    for (const [k, x, y, o] of paredes) {
+      for (const esc of [1, 0.78, 0.6]) {
+        const nd = decos.length, nc = colliders.length;
+        add(k, x, y, { ...o, s: o.s * esc });
+        const c = colliders[colliders.length - 1];
+        const pts = colliders.length > nc && c.t === 'p' ? c.pts : [];
+        const invade = pts.some(([px, py]) => aberto(px, py) < 0.45);
+        if (!invade) break;
+        decos.length = nd; colliders.length = nc;
+      }
+    }
+  }
+
   // 6) vegetação em grupos (densa perto da água e na base das rochas, rala na areia aberta)
   const SECA = [...nums('grama-5', [1, 2, 3, 4, 5, 9, 10, 12, 14, 24, 25, 31, 36, 41, 42]), 'grama-1-1', 'grama-2-1', 'grama-3-1', 'grama-4-1'];
   const VERDE = [...nums('grama-5', [13, 18, 22, 26, 16, 17, 19, 20, 28, 29]), 'arbusto-1-1', 'arbusto-3-1'];
@@ -225,10 +266,10 @@ export function buildBigDesert(variant = 'canion') {
   };
   const ring = (keys, cx, cy, r0, r1, n) => { for (let t = 0, c = 0; t < n * 12 && c < n; t++) { const a = r() * Math.PI * 2, d = r0 + (r1 - r0) * r(); const x = cx + Math.cos(a) * d, y = cy + Math.sin(a) * d; if (busy(x, y, 0.3) || distPath(x, y) < 1.4) continue; add(pick(keys), x, y, { s: 0.8 + r() * 0.4, flip: r() < 0.5 }); c++; } };
   LY.oasis.forEach(([x, y, r0, r1, n], k) => { ring(VERDE, x, y, r0, r1, n); if (k === 0) ring(ARB, x, y, r0 + 0.4, r1 + 0.5, 5); });
-  for (const d of decos.filter((d) => /rochedo|pico|pedras|ruina|pilar/.test(d.key) && d.x > 4 && d.y > 4 && d.x < W - 2 && d.y < H - 2)) cluster([...SECA, ...ARB], d.cx ?? d.x, d.cy ?? d.y, (d.R || 1) + 2.5, 4);
+  for (const d of decos.filter((d) => /rochedo|pico|pedras|ruina|pilar/.test(d.key) && d.x > 4 && d.y > 4 && d.x < W - 2 && d.y < H - 2 && (!LY.clareiras || aberto(d.x, d.y) < 4))) cluster([...SECA, ...ARB], d.cx ?? d.x, d.cy ?? d.y, (d.R || 1) + 2.0, 3);
   for (const d of decos.filter((d) => /arvore-7-[1-8]$/.test(d.key))) cluster(SECA, d.x, d.y, 2.2, 3);
   // areia aberta: tufos esparsos e algumas pedrinhas (passa por cima) e ossos
-  for (let k = 0; k < 16; k++) cluster(SECA, 6 + r() * (W - 12), 6 + r() * (H - 12), 1.6, 2 + ((r() * 3) | 0));
+  for (let k = 0; k < 16; k++) { const x = 6 + r() * (W - 12), y = 6 + r() * (H - 12); if (!LY.clareiras || aberto(x, y) < 0) cluster(SECA, x, y, 1.6, 2 + ((r() * 3) | 0)); }
   cluster(nums('pedras-1', [1, 4, 6, 8]), W / 2, H / 2, W * 0.45, 14, { s: 0.75, phys: 'chao' });
   cluster(['rochas-1', 'rochas-2', 'rochas-3', 'rochas-4', 'rochas-5', 'rochas-7'], W / 2, H / 2, W * 0.45, 12, { s: 0.55 });
   cluster(['ossos-1', 'ossos-6', 'itens-2-2', 'itens-2-3', 'ossos-5'], LY.ossos[0], LY.ossos[1], LY.ossos[2], LY.ossos[3], { path: true });
@@ -236,7 +277,8 @@ export function buildBigDesert(variant = 'canion') {
   const solidAtC = (i, j) => colliders.some((c) => c.t === 'p' ? inPoly(c.pts, i + 0.5, j + 0.5) || distPoly(c.pts, i + 0.5, j + 0.5) < 0.3 : c.t === 'c' ? Math.hypot(i + 0.5 - c.x, j + 0.5 - c.y) < c.r + 0.3 : i + 0.5 > c.x0 - 0.3 && i + 0.5 < c.x1 + 0.3 && j + 0.5 > c.y0 - 0.3 && j + 0.5 < c.y1 + 0.3);
   // flores coletáveis
   const props = [];
-  for (let t = 0, c = 0; t < 900 && c < 14; t++) {
+  if (LY.flores) for (const [fx, fy] of LY.flores) { if (!solidAtC(Math.floor(fx), Math.floor(fy))) props.push({ i: Math.floor(fx), j: Math.floor(fy), kind: 'flor' }); }
+  for (let t = 0, c = props.length; t < 900 && c < 14; t++) {
     const i = 4 + ((r() * (W - 8)) | 0), j = 5 + ((r() * (H - 9)) | 0);
     if (solid[j * W + i] || solidAtC(i, j) || props.some((p) => Math.hypot(p.i - i, p.j - j) < 9)) continue;
     props.push({ i, j, kind: 'flor' }); c++;
@@ -249,7 +291,7 @@ export function buildBigDesert(variant = 'canion') {
   return {
     nome: LY.nome, bioma: 'deserto', tema: 'grande', grande: true, recompensa: 'fim',
     ondas: [['e', 'e'], ['e', 'e', 'e'], ['e', 'e', 'e'], ['e', 'e', 'e', 'e']],
-    tiles: [], path: PATH, w: W, h: H, floor, solid, walls: [], props, spawns: [], start: LY.start, door: { i: ex - 0.5, j: ey - 1.4 }, open, lago: null, ossos: [], decos, colliders, ramps,
+    tiles: [], path: PATH, largura: LY.largura ?? 3, clareiras: LY.clareiras || [], w: W, h: H, floor, solid, walls: [], props, spawns: [], start: LY.start, door: { i: ex - 0.5, j: ey - 1.4 }, open, lago: null, ossos: [], decos, colliders, ramps,
   };
 }
 

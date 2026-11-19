@@ -6,7 +6,7 @@ import { loadBigDesert, buildBigDesert } from '../src/iso/bigdesert.js';
   for (const v of ['canion', 'ninho']) {
     const m = buildBigDesert(v);
     out[v] = {
-      nome: m.nome, w: m.w, h: m.h, start: m.start, path: m.path, door: m.door,
+      nome: m.nome, w: m.w, h: m.h, start: m.start, path: m.path, door: m.door, largura: m.largura, clareiras: m.clareiras,
       flores: m.props.filter((p) => p.kind === 'flor').map((p) => [p.i + 0.5, p.j + 0.5]),
       decos: m.decos.map((d) => ({ key: d.key, x: +d.x.toFixed(3), y: +d.y.toFixed(3), flip: d.flip, z: d.z || 0, phys: d.phys,
         w: +d.spr.w.toFixed(2), h: +d.spr.h.toFixed(2), ax: +d.spr.ax.toFixed(2), ay: +d.spr.ay.toFixed(2), flat: !!d.flat })),

@@ -25,11 +25,37 @@ func _chao() -> void:
 	var pm := PlaneMesh.new(); pm.size = Vector2(w + 40, h + 40); m.mesh = pm
 	m.position = Vector3(w / 2.0, 0, h / 2.0)
 	var sm := ShaderMaterial.new(); sm.shader = load("res://shaders/chao.gdshader")
+	sm.set_shader_parameter("mascara", _mascara()); sm.set_shader_parameter("tam_mapa", Vector2(w, h))
 	var tex: Texture2D = load("res://assets/deserto/chao.webp")
 	sm.set_shader_parameter("tex", tex); sm.set_shader_parameter("tam_tex", Vector2(tex.get_width(), tex.get_height()))
 	m.material_override = sm
 	m.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(m)
+
+# máscara do chão (8 px por tile): R = trilha/clareira (chão batido), G = perto de rocha (pedregoso/sombra)
+func _mascara() -> ImageTexture:
+	var k := 8; var w: int = int(dados.w) * k; var h: int = int(dados.h) * k
+	var img := Image.create(w, h, false, Image.FORMAT_RGBA8)
+	var path: Array = dados.path; var larg: float = dados.get("largura", 3.0); var clar: Array = dados.get("clareiras", [])
+	var rochas := []
+	for d in dados.decos:
+		if String(d.key).begins_with("rochedo") or String(d.key).begins_with("pico") or String(d.key).begins_with("paredao") or String(d.key).begins_with("ruina"):
+			rochas.append(Vector3(d.x, d.y, d.w / 90.0))
+	for j in h:
+		for i in w:
+			var p := Vector2((i + 0.5) / k, (j + 0.5) / k)
+			var dp := 1e9
+			for q in path.size() - 1:
+				var a := Vector2(path[q][0], path[q][1]); var b := Vector2(path[q + 1][0], path[q + 1][1])
+				dp = min(dp, Geometry2D.get_closest_point_to_segment(p, a, b).distance_to(p))
+			var trilha: float = clamp(1.0 - (dp - larg * 0.45) / (larg * 0.8), 0.0, 1.0)
+			for c in clar: trilha = max(trilha, clamp(1.0 - (p.distance_to(Vector2(c[0], c[1])) - c[2] * 0.55) / (c[2] * 0.6), 0.0, 1.0) * 0.8)
+			var pedra := 0.0
+			for r in rochas:
+				var dr: float = p.distance_to(Vector2(r.x, r.y))
+				if dr < r.z + 3.0: pedra = max(pedra, clamp(1.0 - (dr - r.z * 0.6) / 3.0, 0.0, 1.0))
+			img.set_pixel(i, j, Color(trilha, pedra, 0, 1))
+	return ImageTexture.create_from_image(img)
 
 func _peca(d: Dictionary, pecas: Dictionary) -> void:
 	if not pecas.has(d.key): return

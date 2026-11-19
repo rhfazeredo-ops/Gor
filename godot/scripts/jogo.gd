@@ -38,6 +38,7 @@ func _ready() -> void:
 	if m.inimigos > 0: _escorpioes(m.inimigos)
 	if m.plantas: _flores()
 	_interface()
+	_atmosfera()
 	var mus := AudioStreamPlayer.new(); var st: AudioStreamMP3 = load("res://assets/som/deserto.mp3")
 	st.loop = true; mus.stream = st; mus.volume_db = -5.0; add_child(mus); mus.play()
 	if args.has("shot"): _modo_teste()
@@ -58,7 +59,35 @@ func _luz() -> void:
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	env.ambient_light_color = Color(1.0, 0.86, 0.7); env.ambient_light_energy = 0.62
 	env.tonemap_mode = Environment.TONE_MAPPER_LINEAR
+	# névoa quente ao longe (dá profundidade às bordas do cânion)
+	env.fog_enabled = true; env.fog_light_color = Color(0.95, 0.72, 0.5); env.fog_density = 0.0
+	env.fog_mode = Environment.FOG_MODE_DEPTH; env.fog_depth_begin = 34.0; env.fog_depth_end = 62.0; env.fog_depth_curve = 1.6
+	env.adjustment_enabled = true; env.adjustment_contrast = 1.06; env.adjustment_saturation = 1.04
 	amb.environment = env; add_child(amb)
+
+# poeira no ar (segue o herói) e vinheta quente nas bordas da tela
+var poeira: CPUParticles3D
+func _atmosfera() -> void:
+	poeira = CPUParticles3D.new(); poeira.amount = 60; poeira.lifetime = 7.0; poeira.preprocess = 7.0
+	poeira.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX; poeira.emission_box_extents = Vector3(14, 3, 14)
+	poeira.direction = Vector3(1, 0.1, -0.4); poeira.spread = 25.0; poeira.initial_velocity_min = 0.4; poeira.initial_velocity_max = 1.0
+	poeira.gravity = Vector3.ZERO; poeira.scale_amount_min = 0.6; poeira.scale_amount_max = 1.4
+	var q := QuadMesh.new(); q.size = Vector2(0.07, 0.07)
+	var mm := StandardMaterial3D.new(); mm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA; mm.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	mm.albedo_color = Color(1, 0.93, 0.78, 0.55); mm.vertex_color_use_as_albedo = true; q.material = mm; poeira.mesh = q
+	var g := Gradient.new(); g.set_color(0, Color(1, 1, 1, 0)); g.add_point(0.3, Color(1, 1, 1, 1)); g.set_color(g.get_point_count() - 1, Color(1, 1, 1, 0))
+	poeira.color_ramp = g; poeira.local_coords = false; add_child(poeira)
+	var cl := CanvasLayer.new(); cl.layer = -1; add_child(cl)
+	var v := ColorRect.new(); v.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT); v.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var sm := ShaderMaterial.new(); var sh := Shader.new()
+	sh.code = """shader_type canvas_item;
+void fragment() {
+  vec2 p = UV - 0.5; p.x *= 1.6;
+  float v = smoothstep(0.35, 0.95, length(p));
+  COLOR = vec4(0.18, 0.07, 0.03, v * 0.55);
+}"""
+	sm.shader = sh; v.material = sm; cl.add_child(v)
 
 func _escorpioes(n: int) -> void:
 	var st := Vector2(heroi.position.x, heroi.position.z)
@@ -148,6 +177,7 @@ func tremer(f: float) -> void: tremor = max(tremor, f)
 func _physics_process(delta: float) -> void:
 	heroi.mover(controles.dir, controles.atacar, controles.consumir_esquiva(), delta, controles.consumir_q(), controles.consumir_e())
 	_areas(delta)
+	if poeira: poeira.global_position = heroi.global_position + Vector3(0, 1.5, 0)
 	mapa.animar(delta, heroi, cam)
 	controles.bq.definir(heroi.recarga_q / heroi.RECARGA_Q, heroi.recarga_q, heroi.mana >= heroi.CUSTO_Q)
 	controles.be.definir(heroi.recarga_e / heroi.RECARGA_E, heroi.recarga_e, heroi.mana >= heroi.CUSTO_E)
@@ -155,6 +185,10 @@ func _physics_process(delta: float) -> void:
 	var desejo := alvo + Vector3(1, 0, 1).normalized() * 30.0 * cos(deg_to_rad(30)) + Vector3.UP * 30.0 * sin(deg_to_rad(30))
 	cam.global_position = cam.global_position.lerp(desejo, min(1.0, delta * 6.0)) if cam.global_position != Vector3.ZERO else desejo
 	cam.look_at(cam.global_position - (desejo - alvo), Vector3.UP)
+	if args.has("geral"):
+		var c := Vector3(mapa.dados.w / 2.0, 0, mapa.dados.h / 2.0); cam.size = 62.0
+		cam.global_position = c + Vector3(1, 0, 1).normalized() * 30.0 * cos(deg_to_rad(30)) + Vector3.UP * 30.0 * sin(deg_to_rad(30))
+		cam.look_at(c, Vector3.UP)
 	tremor = max(0.0, tremor - delta * 2.5)
 	cam.h_offset = randf_range(-1, 1) * tremor * 0.12; cam.v_offset = randf_range(-1, 1) * tremor * 0.12
 	_atualizar_hud()
