@@ -38,7 +38,14 @@ const css = `
 #quadro .papeis { position: absolute; left: 13.5%; top: 26%; width: 73%; height: 54%; display: flex; gap: 4%; justify-content: center; align-items: center; }
 #quadro .papel { height: 100%; aspect-ratio: 1060 / 1484; background: 0 0 / 100% 100% no-repeat; cursor: pointer; box-shadow: 0 .4em .8em rgba(0,0,0,.6);
   transition: transform .15s; -webkit-tap-highlight-color: transparent; }
-#quadro .papel:hover, #quadro .papel:active { transform: scale(1.05) rotate(0deg) !important; }
+#quadro .papel { transform: rotate(var(--rot)); }
+#quadro .papel.sel { transform: scale(1.06) rotate(0deg); box-shadow: 0 0 0 .16em #ffd45a, 0 0 .7em .25em #ffb92a, 0 0 1.8em .4em rgba(255,170,30,.6); }
+#quadro .iniciar { position: absolute; left: 50%; bottom: 3.5%; transform: translateX(-50%); padding: .45em 2.6em; border-radius: .5em; cursor: pointer;
+  font: 700 1.6em Georgia, serif; color: #fff4dc; text-shadow: 0 2px 0 #000; letter-spacing: .04em;
+  background: linear-gradient(#3a59c8, #1d2f86); border: .14em solid #f3c75a; box-shadow: 0 .25em .6em rgba(0,0,0,.6), inset 0 1px 0 #8aa4ff;
+  filter: grayscale(.9) brightness(.55); pointer-events: none; transition: filter .2s; -webkit-tap-highlight-color: transparent; }
+#quadro .iniciar.on { filter: none; pointer-events: auto; }
+#quadro .iniciar.on:active { transform: translateX(-50%) scale(.95); }
 #quadro .fechar { position: absolute; right: 2.5%; top: 2.5%; width: 7%; aspect-ratio: 1; border-radius: 50%; cursor: pointer; display: grid; place-items: center;
   background: radial-gradient(#3a2414, #1c100a); border: .18em solid #c9a24a; color: #f6e7cf; font: 700 2.2em Georgia, serif; line-height: 1; }
 `;
@@ -77,13 +84,18 @@ export function showLobby({ onMission, onHeroes }) {
     const qs = document.createElement('div'); qs.className = 'stage'; q.append(qs);
     const board = document.createElement('div'); board.className = 'board'; qs.append(board);
     const list = document.createElement('div'); list.className = 'papeis'; board.append(list);
-    MISSIONS.forEach((m, k) => {
+    // tocar num papel seleciona (contorno dourado); o botão Iniciar começa a missão escolhida
+    let escolhida = null;
+    const papeis = MISSIONS.map((m, k) => {
       const p = document.createElement('div'); p.className = 'papel'; p.title = m.nome;
       p.style.backgroundImage = `url(${papel(m.papel)})`;
-      p.style.transform = `rotate(${[-2.5, 2, -1.5, 3][k % 4]}deg)`;
-      p.onclick = (e) => { e.stopPropagation(); close(); closeLobby(); onMission(m); };
-      list.append(p);
+      p.style.setProperty('--rot', `${[-2.5, 2, -1.5, 3][k % 4]}deg`);
+      p.onclick = (e) => { e.stopPropagation(); escolhida = m; papeis.forEach((q) => q.classList.toggle('sel', q === p)); iniciar.classList.add('on'); };
+      list.append(p); return p;
     });
+    const iniciar = document.createElement('div'); iniciar.className = 'iniciar'; iniciar.textContent = 'Iniciar';
+    iniciar.onclick = (e) => { e.stopPropagation(); if (!escolhida) return; close(); closeLobby(); onMission(escolhida); };
+    board.append(iniciar);
     const x = document.createElement('div'); x.className = 'fechar'; x.textContent = '×'; board.append(x);
     const close = () => { q.classList.remove('show'); removeEventListener('resize', lay); setTimeout(() => q.remove(), 200); };
     x.onclick = close;
