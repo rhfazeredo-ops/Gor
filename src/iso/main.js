@@ -2,7 +2,7 @@ import { buildArt, paintGround, RES } from './art-hd.js';
 import { drawCavern, foregroundRocks } from './castle.js';
 import { drawThemeBackground } from './themes.js';
 import { desertMassifs } from './massif.js';
-import { loadBigDesert, buildBigDesert, sprite } from './bigdesert.js';
+import { loadBigDesert, buildBigDesert, sprite, updateDecos, drawColliders } from './bigdesert.js';
 import { ROOMS, parseMap } from './maps.js';
 import { createLiveHero } from '../char2d/live.js';
 import { Input } from './input.js';
@@ -52,8 +52,9 @@ let sprites = null, heroDef = null, roomIndex = 0, wave = 0, waveTimer = 0, room
 async function start(def) {
   heroDef = def;
   await loadBigDesert();
-  art.themes.grande = { props: { flor: sprite('flores-1', 0.075) }, rocks: [], ambient: 'rgba(70,20,10,0.10)' };
-  try { sprites = await createLiveHero({ res: 2, height: 92 }); }
+  art.themes.grande = { props: { flor: sprite('flores-1', 0.06) }, rocks: [], ambient: 'rgba(70,20,10,0.10)' };
+  for (const sl of Object.values(art.slimes)) { sl.w *= 0.7; sl.h *= 0.7; sl.ax *= 0.7; sl.ay *= 0.7; }
+  try { sprites = await createLiveHero({ res: 3, height: 50 }); }
   catch (e) { document.body.insertAdjacentHTML('beforeend', `<div style="position:fixed;inset:0;display:grid;place-items:center;color:#fff;background:#200;z-index:99;padding:20px;font:14px monospace">Erro ao carregar o herói: ${e && e.message}</div>`); throw e; }
   setupHud(def);
   enterRoom(0);
@@ -91,6 +92,7 @@ function banner(text, ms = 2500) {
   clearTimeout(banner.t); banner.t = setTimeout(() => b.classList.remove('show'), ms);
 }
 // ondas: inimigos surgem com um círculo de invocação; próxima onda quando todos caem
+const DEBUG = new URLSearchParams(location.search).has('debug');
 let flores = 0, ouro = 324;
 function collect() {
   for (const p of world.map.props) {
@@ -275,6 +277,7 @@ function frame(now) {
     updateAreas(wdt);
     rooms(dt);
     fx.update(wdt);
+    if (world.map.decos) updateDecos(world, wdt, [hero, ...world.enemies], time);
 
     // câmera: segue o herói olhando um pouco à frente (movimento/mira),
     // presa aos limites da sala, com zoom de impacto
@@ -312,6 +315,7 @@ function frame(now) {
     }
     drawLighting(time);
     fx.draw(ctx, view, 'ar');
+    if (DEBUG && world.map.colliders) drawColliders(ctx, world);
     if (!input.touch && input.mouse.inside) {
       const [mx, my] = toLow(input.mouse.x, input.mouse.y);
       ctx.strokeStyle = 'rgba(255,215,130,0.9)'; ctx.lineWidth = 1;

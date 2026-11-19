@@ -1,7 +1,7 @@
 import { TW, TH, WALL_H } from './art.js';
 import { RES } from './art-hd.js';
 import { drawFlame } from './castle.js';
-import { drawBigGround, pushDecos } from './bigdesert.js';
+import { drawBigGround, pushDecos, drawFlatDecos, hitsCollider, groundHeight } from './bigdesert.js';
 import { SpriteAnim, dirFromTileVec } from './sprites.js';
 import { ABILITIES } from '../data/abilities.js';
 
@@ -23,8 +23,11 @@ export class World {
     return this.map.solid[j * this.map.w + i];
   }
   blocked(x, y, r) {
-    return this.solidAt(x - r, y - r) || this.solidAt(x + r, y - r) || this.solidAt(x - r, y + r) || this.solidAt(x + r, y + r);
+    return this.solidAt(x - r, y - r) || this.solidAt(x + r, y - r) || this.solidAt(x - r, y + r) || this.solidAt(x + r, y + r)
+      || (this.map.colliders ? hitsCollider(this.map, x, y, r) : false);
   }
+  // altura do chão sob (x, y) — degraus de escadas
+  heightAt(x, y) { return this.map.ramps ? groundHeight(this.map, x, y) : 0; }
   // move com colisão separada por eixo (desliza nas paredes)
   move(e, dx, dy) {
     if (!this.blocked(e.x + dx, e.y, e.r)) e.x += dx;
@@ -216,8 +219,9 @@ export class Hero {
 
   draw(ctx) {
     const W = this.world;
-    const [sx, sy] = W.toScreen(this.x, this.y);
-    shadow(ctx, sx, sy, 22);
+    this.z = (this.z ?? 0) + (W.heightAt(this.x, this.y) - (this.z ?? 0)) * 0.35;
+    const [sx, sy] = W.toScreen(this.x, this.y, this.z);
+    shadow(ctx, sx, sy, W.map.grande ? 15 : 22);
     if (!this.alive) return;
     if (this.respawnBlink > 0 && Math.floor(this.respawnBlink * 12) % 2) return;
     this.anim.draw(ctx, sx, sy, this.flash);
@@ -334,7 +338,7 @@ export function shadow(ctx, sx, sy, r) {
 
 // ---------------- cenário ----------------
 export function drawWorld(ctx, W, hero, entities, vw, vh, time) {
-  if (W.map.grande) { drawBigGround(ctx, W); return; }
+  if (W.map.grande) { drawBigGround(ctx, W); drawFlatDecos(ctx, W, vw, vh); return; }
   // chão inteiro pintado num canvas grande: desenha só o pedaço visível
   const G = W.ground;
   const gx = W.cam.x - (-G.ox), gy = W.cam.y;       // canto da tela dentro do chão
@@ -404,7 +408,7 @@ export function drawObjects(ctx, W, hero, entities, vw, vh, time) {
     ctx.globalAlpha = 1;
   } });
   if (m.decos) pushDecos(list, W, ctx, hero, vw, vh);
-  for (const e of entities) list.push({ key: e.x + e.y, draw: () => e.draw(ctx) });
+  for (const e of entities) list.push({ key: e.x + e.y + ((e.z || 0) > 4 ? 6 : 0), draw: () => e.draw(ctx) });
   list.sort((a, b) => a.key - b.key);
   for (const o of list) o.draw();
 }
