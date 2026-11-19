@@ -211,7 +211,7 @@ export async function buildTripoHero({ model = './tripo/dalarian.glb', hammer = 
       const hm = (await L.loadAsync(hammerModel)).scene;
       hm.traverse((o) => { if (o.isMesh && o.material.map) o.material.map = recolorRedToBlue(o.material.map); });
       const hb = new THREE.Box3().setFromObject(hm), len = hb.max.y - hb.min.y;
-      const k = 0.46 / (0.27 * len), grip = hb.min.y + len * 0.28;
+      const k = 0.53 / (0.27 * len), grip = hb.min.y + len * 0.28;
       const inner = new THREE.Group(); inner.add(hm);
       hm.position.y = -grip; inner.rotation.x = Math.PI / 2; inner.scale.setScalar(k);
       weapon.add(inner);

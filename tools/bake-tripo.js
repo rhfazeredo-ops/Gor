@@ -13,13 +13,13 @@ const HERO_PX = 50, RES = 2.6;                  // altura do herói no jogo e re
 export const ANIMS = {
   // nome: [clipe, quadros, loop, velocidade, início, fim, martelo (giro), capa]
   idle: ['Sword_Idle', 12, true, 1, 0, null, 0, 0.06],
-  corrida: ['Jog_Fwd_Loop', 12, true, 1.35, 0, null, 2.3, 0.5],
+  corrida: ['Jog_Fwd_Loop', 12, true, 1.35, 0, null, -0.8, 0.5],
   ataque: ['Sword_Attack', 12, false, 1.9, 0.12, 0.95, 0, 0.2],
   consagracao: ['Spell_Simple_Shoot', 12, false, 1.2, 0, null, 0.6, 0.15],
   protecao: ['Spell_Simple_Enter', 10, false, 1.4, 0, null, 1.2, 0.1],
-  esquiva: ['Roll', 12, false, 3.0, 0, 1.1, 2.3, 0.3],
-  dano: ['Hit_Chest', 6, false, 1.3, 0, null, 2.3, 0.15],
-  morte: ['Death01', 14, false, 1, 0, null, 2.3, 0.1],
+  esquiva: ['Roll', 12, false, 3.0, 0, 1.1, -0.8, 0.3],
+  dano: ['Hit_Chest', 6, false, 1.3, 0, null, -0.8, 0.15],
+  morte: ['Death01', 14, false, 1, 0, null, -0.8, 0.1],
 };
 
 export async function bake(names = Object.keys(ANIMS)) {
@@ -41,7 +41,8 @@ export async function bake(names = Object.keys(ANIMS)) {
 
   const raw = {};
   for (const name of names) {
-    const [clipName, frames, loop, speed, t0, t1v, flip, cape] = ANIMS[name];
+    const [clipName, frames, loop, speed, t0, t1v, flip0, cape] = ANIMS[name];
+    const flip = Q.has('flip') ? +Q.get('flip') : flip0;
     const clip = H.clips[clipName];
     const t1 = t1v ?? clip.duration;
     H.mixer.stopAllAction();
