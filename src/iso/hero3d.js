@@ -2,22 +2,25 @@
 // uma folha WebP por animação (linhas = 8 direções, colunas = quadros).
 // As imagens entram no pacote pelo Vite (sem fetch, funciona com CSP).
 import { SpriteAnim } from './sprites.js';
+import { track } from './progress.js';
 import meta from '../assets/sprites/dalarian-3d/sprites.json';
 const URLS = import.meta.glob('../assets/sprites/dalarian-3d/*.webp', { eager: true, query: '?url', import: 'default' });
 
 // tamanho do herói no mapa (1 = altura de 50 px usada no bake)
 export const HERO_SCALE = 1.45;
 
-export async function loadHero3D() {
+let loading = null;
+export function loadHero3D() { return (loading ??= loadAll()); }
+async function loadAll() {
   const byName = {};
   for (const [p, url] of Object.entries(URLS)) byName[p.split('/').pop().replace('.webp', '')] = url;
   const sheets = {};
-  await Promise.all(Object.entries(meta.anims).map(([name, a]) => new Promise((ok, fail) => {
+  await Promise.all(Object.entries(meta.anims).map(([name, a]) => track(new Promise((ok, fail) => {
     const img = new Image();
     img.onload = () => { sheets[name] = img; ok(); };
     img.onerror = () => fail(new Error('sprite ' + name));
     img.src = byName[a.sheet || name];
-  })));
+  }))));
   const anim = new SpriteAnim({ meta, sheets });
   anim.scale = meta.scale * HERO_SCALE;
   anim.play('idle');

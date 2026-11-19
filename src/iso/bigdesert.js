@@ -4,6 +4,7 @@
 // raio de colisão. Chão: textura pintada repetida sem emenda.
 // =====================================================================
 import manifest from '../assets/deserto/manifest.json';
+import { track } from './progress.js';
 const URLS = import.meta.glob('../assets/deserto/*.webp', { query: '?url', import: 'default', eager: true });
 import groundUrl from '../assets/deserto-chao/principal.webp?url';
 
@@ -24,17 +25,20 @@ const alturaDe = (key, kind) => (/^arvore-7-(9|10|11)$/.test(key) ? null : /^arv
 const kindOf = (name) => (name.startsWith('itens-2') ? 'ossos' : name.startsWith('itens-1-3') ? 'rochas' : name.startsWith('itens-1-4') ? 'arbusto' : name.startsWith('itens-1-2') ? 'grama' : name.replace(/-.*/, ''));
 
 let ART = null, GROUND = null;
-export async function loadBigDesert() {
-  if (ART) return;
-  const load = (url) => new Promise((ok, err) => { const i = new Image(); i.onload = () => ok(i); i.onerror = err; i.src = url; });
-  ART = {};
+// baixa todas as peças uma vez só (chamadas repetidas esperam o mesmo download)
+let loading = null;
+export function loadBigDesert() { return (loading ??= loadAll()); }
+async function loadAll() {
+  const load = (url) => track(new Promise((ok, err) => { const i = new Image(); i.onload = () => ok(i); i.onerror = err; i.src = url; }));
+  const art = {};
   const jobs = [];
   for (const [name, pieces] of Object.entries(manifest)) pieces.forEach((p) => {
     const key = `${name}-${pieces.indexOf(p) + 1}`;
-    jobs.push(load(URLS[`../assets/deserto/${p.file}`]).then((img) => { ART[key] = { img, ...p, kind: kindOf(key) }; }));
+    jobs.push(load(URLS[`../assets/deserto/${p.file}`]).then((img) => { art[key] = { img, ...p, kind: kindOf(key) }; }));
   });
   jobs.push(load(groundUrl).then((i) => (GROUND = i)));
   await Promise.all(jobs);
+  ART = art;
 }
 // sprite pronto para desenhar (escala aplicada)
 export function sprite(key, s = null) {

@@ -9,16 +9,22 @@ function context() {
   if (!ctx) { ctx = new (window.AudioContext || window.webkitAudioContext)(); gain = ctx.createGain(); gain.connect(ctx.destination); }
   return ctx;
 }
-function decode(dataUrl) {
-  const b64 = dataUrl.slice(dataUrl.indexOf(',') + 1), bin = atob(b64), buf = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
-  return new Promise((ok, err) => context().decodeAudioData(buf.buffer, ok, err));
+// aceita arquivo separado (site normal: baixa com fetch) ou data URL (HTML único: decodifica sem fetch)
+async function decode(url) {
+  let data;
+  if (url.startsWith('data:')) {
+    const bin = atob(url.slice(url.indexOf(',') + 1)), buf = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
+    data = buf.buffer;
+  } else data = await (await fetch(url)).arrayBuffer();
+  return new Promise((ok, err) => context().decodeAudioData(data, ok, err));
 }
 
-export function createTrack(dataUrl, { volume = 0.6, loopEnd = null, loopStart = 0 } = {}) {
+export function createTrack(url, { volume = 0.6, loopEnd = null, loopStart = 0 } = {}) {
   let buffer = null, src = null, g = null;
-  const ready = decode(dataUrl).then((b) => (buffer = b)).catch(() => null);
+  const ready = decode(url).then((b) => (buffer = b)).catch(() => null);
   return {
+    ready,
     async play(fadeIn = 1.5) {
       await ready; if (!buffer || src) return;
       const c = context();

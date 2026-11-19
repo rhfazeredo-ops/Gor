@@ -1,6 +1,8 @@
 // Tela inicial (arte do usuário): a imagem inteira cabe na tela (proporção 16:9, como o jogo)
 // e o menu fica embaixo, no centro, sobre a vila e o rio.
 import bg from '../assets/title/tela-inicial.webp';
+// a arte começa a baixar já (o resto do jogo espera por ela)
+export const titleReady = new Promise((r) => { const i = new Image(); i.onload = i.onerror = r; i.src = bg; });
 
 const css = `
 #title { position: fixed; inset: 0; z-index: 20; background: #0d0a16; overflow: hidden; }
