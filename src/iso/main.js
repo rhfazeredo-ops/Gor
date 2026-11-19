@@ -101,12 +101,16 @@ async function playMission(m) {
   hero = null; flores = 0;
   setupHud(heroDef);
   enterRoom(m.mapa);
-  if (m.objetivo.tipo === 'coletar') placeMonsters(m.inimigos || 10);
+  world.kills = 0;
+  // cada missão tem o seu conteúdo: plantas só na de coleta, escorpiões só na de caça
+  if (!m.plantas) world.map.props = world.map.props.filter((p) => p.kind !== 'flor');
+  if (m.inimigos) placeMonsters(m.inimigos);
 }
 // coloca um número fixo de escorpiões pelo mapa: longe do início, espalhados, vários perto das plantas
 function placeMonsters(n) {
   const map = world.map, st = { x: hero.x, y: hero.y }, out = [];
-  const ok = (p) => Math.hypot(p.x - st.x, p.y - st.y) > 9 && out.every((q) => Math.hypot(q.x - p.x, q.y - p.y) > 5) && !world.blocked(p.x, p.y, 0.45);
+  const gap = n > 12 ? 4 : 5;
+  const ok = (p) => Math.hypot(p.x - st.x, p.y - st.y) > 9 && out.every((q) => Math.hypot(q.x - p.x, q.y - p.y) > gap) && !world.blocked(p.x, p.y, 0.45);
   const flores = map.props.filter((p) => p.kind === 'flor').sort(() => Math.random() - 0.5);
   for (const f of flores) {   // guardas: metade perto de plantas
     if (out.length >= Math.ceil(n / 2)) break;
@@ -180,10 +184,15 @@ function rooms(dt) {
     ui.info('Missão concluída', `Você coletou ${obj.alvo} plantas raras. Volte à taverna.`).then(() => openLobby());
     return;
   }
+  if (obj && obj.tipo === 'matar' && roomState !== 'vitoria' && world.kills >= obj.alvo) {
+    roomState = 'vitoria'; fx.shake = 0.3;
+    ui.info('Missão concluída', `Você eliminou ${obj.alvo} escorpiões. Volte à taverna.`).then(() => openLobby());
+    return;
+  }
   if (roomState === 'vitoria') return;
   world.enemies = world.enemies.filter((e) => e.alive);
   const map = world.map;
-  if (obj && obj.tipo === 'coletar') return;   // coleta: só os escorpiões já colocados no mapa (não nascem outros)
+  if (obj) return;   // missões: só o que foi colocado no mapa no início (nada renasce)
   if (roomState === 'luta') {
     if (world.enemies.length === 0) {
       if (wave >= map.ondas.length) {
@@ -245,7 +254,8 @@ function updateHud() {
   }, hdt);
   const map = world.map;
   const obj = mission && mission.objetivo;
-  if (obj && obj.tipo === 'coletar') $('objective').textContent = roomState === 'vitoria' ? 'Missão concluída!' : `${obj.texto} (${Math.min(flores, obj.alvo)}/${obj.alvo}). Escorpiões: ${world.enemies.length}`;
+  if (obj && obj.tipo === 'coletar') $('objective').textContent = roomState === 'vitoria' ? 'Missão concluída!' : `${obj.texto} (${Math.min(flores, obj.alvo)}/${obj.alvo}).`;
+  else if (obj && obj.tipo === 'matar') $('objective').textContent = roomState === 'vitoria' ? 'Missão concluída!' : `${obj.texto} (${Math.min(world.kills, obj.alvo)}/${obj.alvo}).`;
   else $('objective').textContent = roomState === 'vitoria' ? 'Vitória! O cânion foi purificado.' : roomState === 'limpa' ? 'Siga até o portal em ruínas.' :
     `Derrote as criaturas do cânion (onda ${Math.max(1, wave)}/${map.ondas.length}).`;
   const ab = hero.ab;
