@@ -25,9 +25,22 @@ const END = { 'DEF-head': [0, 0.86, 0.04], 'DEF-handL': [0.48, 0.63, 0.05], 'DEF
 const CAPE = [[0, 0.66, -0.06], [0, 0.42, -0.1], [0, 0.24, -0.13], [0, 0.12, -0.16]];
 
 const V = (a) => new THREE.Vector3(...a);
+// joias vermelhas que o Tripo inventou → azuis, como na arte do martelo
+function recolorRedToBlue(tex) {
+  const im = tex.image, c = document.createElement('canvas'); c.width = im.width; c.height = im.height;
+  const g = c.getContext('2d'); g.drawImage(im, 0, 0);
+  const d = g.getImageData(0, 0, c.width, c.height), p = d.data;
+  for (let i = 0; i < p.length; i += 4) {
+    const r = p[i], gg = p[i + 1], b = p[i + 2];
+    if (r > 140 && gg < 0.38 * r && b < 0.5 * r) { p[i] = r * 0.15; p[i + 1] = r * 0.55; p[i + 2] = Math.min(255, r * 1.05); }
+  }
+  g.putImageData(d, 0, 0);
+  const t = new THREE.CanvasTexture(c); t.flipY = tex.flipY; t.colorSpace = tex.colorSpace; t.wrapS = tex.wrapS; t.wrapT = tex.wrapT;
+  return t;
+}
 const wp = (o) => new THREE.Vector3().setFromMatrixPosition(o.matrixWorld);
 
-export async function buildTripoHero({ model = './tripo/dalarian.glb', hammer = true } = {}) {
+export async function buildTripoHero({ model = './tripo/dalarian.glb', hammer = true, hammerModel = './tripo/martelo.glb' } = {}) {
   const L = new GLTFLoader();
   const [mg, lg] = await Promise.all([L.loadAsync(model), L.loadAsync('./anim-lib/AnimationLibrary_Godot_Standard.gltf')]);
   let src; mg.scene.traverse((o) => { if (o.isMesh) src = o; });
@@ -192,9 +205,20 @@ export async function buildTripoHero({ model = './tripo/dalarian.glb', hammer = 
   // martelo do modelo antigo, preso na mão direita
   let weapon = null;
   if (hammer) {
-    const old = buildDalarian();
     weapon = new THREE.Group();
-    const w = old.weapon.right; w.removeFromParent(); w.position.set(0, 0, 0); weapon.add(w);
+    if (hammerModel) {
+      // martelo do Tripo: em pé (+Y, cabeça em cima) → deitado para a frente (+Z), empunhado a 28% do comprimento
+      const hm = (await L.loadAsync(hammerModel)).scene;
+      hm.traverse((o) => { if (o.isMesh && o.material.map) o.material.map = recolorRedToBlue(o.material.map); });
+      const hb = new THREE.Box3().setFromObject(hm), len = hb.max.y - hb.min.y;
+      const k = 0.46 / (0.27 * len), grip = hb.min.y + len * 0.28;
+      const inner = new THREE.Group(); inner.add(hm);
+      hm.position.y = -grip; inner.rotation.x = Math.PI / 2; inner.scale.setScalar(k);
+      weapon.add(inner);
+    } else {
+      const old = buildDalarian();
+      const w = old.weapon.right; w.removeFromParent(); w.position.set(0, 0, 0); weapon.add(w);
+    }
     const hr = bone('DEF-handR');
     hr.add(weapon);
     hr.updateMatrixWorld(true);
