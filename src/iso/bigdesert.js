@@ -17,6 +17,9 @@ const KIND = {
 // séries desenhadas em outra escala de pixel (folhas com muitos itens): escala própria
 const SERIES = { 'arvore-7': 0.38, 'arbusto-7': 0.3, 'grama-5': 0.28, 'pedras-1': 0.16 };
 const seriesScale = (key) => SERIES[key.replace(/-\d+$/, '')];
+// altura-alvo no jogo (px) para vegetação: proporção com o herói (~72 px) e as rochas (~200 px)
+const ALTURA = { grama: 24, flores: 22, arbusto: 36 };
+const alturaDe = (key, kind) => (/^arvore-7-(9|10|11)$/.test(key) ? null : /^arvore-7/.test(key) ? 150 : ALTURA[kind] ?? null);
 const kindOf = (name) => (name.startsWith('itens-2') ? 'ossos' : name.startsWith('itens-1-3') ? 'rochas' : name.startsWith('itens-1-4') ? 'arbusto' : name.startsWith('itens-1-2') ? 'grama' : name.replace(/-.*/, ''));
 
 let ART = null, GROUND = null;
@@ -45,7 +48,7 @@ function basePolygon(a, s, flip, trunk) {
   const H = a.h;
   let prof = a.prof.slice();
   const low = Math.max(...prof.map((p) => p[1]));
-  prof = prof.filter((p) => p[1] >= low - H * (trunk ? 0.07 : 0.5));
+  prof = prof.filter((p) => p[1] >= low - H * (trunk ? 0.12 : 0.5));
   if (prof.length < 3) return null;
   let F = prof.map(([px, py]) => [(px - a.ax) * s * (flip ? -1 : 1), (py - a.ay) * s]);
   F.sort((p, q) => p[0] - q[0]);
@@ -61,7 +64,7 @@ function basePolygon(a, s, flip, trunk) {
   });
   let P = [...F, ...back];
   // encolhe um pouco para o herói poder encostar (o raio dele completa o resto)
-  const k = trunk ? 0.8 : 1.0, cx = P.reduce((t, p) => t + p[0], 0) / P.length, cy = P.reduce((t, p) => t + p[1], 0) / P.length;
+  const k = trunk ? 0.95 : 1.0, cx = P.reduce((t, p) => t + p[0], 0) / P.length, cy = P.reduce((t, p) => t + p[1], 0) / P.length;
   return P.map(([X, Y]) => [cx + (X - cx) * k, cy + (Y - cy) * k]);
 }
 function polyCenter(pts) {
@@ -104,7 +107,7 @@ export function buildBigDesert() {
   const STAIRS = { 'ruina-escada-1': { side: 0.42, top: 0.62, h: 0.24 }, 'ruina-pilares-1-1': { side: 0.42, top: 0.62, h: 0.2 }, 'ruina-arco-1': { side: 0.42, top: 0.55, h: 0.2 } };
   const add = (key, x, y, o = {}) => {
     const a = ART[key]; if (!a) return;
-    const k = KIND[a.kind] || {}, s = (o.s ?? 1) * (seriesScale(key) ?? k.s ?? 0.15);
+    const k = KIND[a.kind] || {}, alvo = alturaDe(key, a.kind), s = (o.s ?? 1) * (alvo ? alvo / a.h : seriesScale(key) ?? k.s ?? 0.15);
     const spr = { img: a.img, w: a.w * s, h: a.h * s, ax: (o.flip ? a.w - a.ax : a.ax) * s, ay: a.ay * s };
     const phys = o.phys || (STAIRS[key] ? 'escada' : PHYS[a.kind] || 'chao');
     const d = { key, x, y, flip: !!o.flip, spr, tall: spr.h > 45, phys, z: o.z ?? 0, sway: 0, swayV: 0, seed: Math.random() * 6 };
@@ -175,7 +178,7 @@ export function buildBigDesert() {
 
   // 5) árvores secas (uma por grupo, perto de rocha ou água) e troncos caídos
   for (const [k, x, y, o] of [['arvore-7-1', 51, 63], ['arvore-7-4', 52, 42], ['arvore-7-6', 42, 33], ['arvore-7-5', 21, 41], ['arvore-7-8', 30, 17],
-    ['arvore-7-7', 61, 52], ['arvore-7-2', 16, 27], ['arvore-7-3', 26, 56], ['arvore-7-9', 29, 50, { phys: 'solido' }], ['arvore-7-10', 57, 27, { phys: 'solido' }]]) add(k, x, y, o);
+    ['arvore-7-7', 61, 52], ['arvore-7-2', 16, 27], ['arvore-7-3', 26, 56], ['arvore-7-9', 29, 50, { phys: 'solido' }], ['arvore-7-10', 57, 27, { phys: 'solido' }], ['arvore-7-11', 38, 52, { phys: 'solido' }]]) add(k, x, y, o);
   for (const [k, x, y] of [['pedras-1-3', 40, 27], ['pedras-1-5', 30, 44], ['pedras-1-7', 57, 49]]) add(k, x, y);
 
   // 6) vegetação em grupos (densa perto da água e na base das rochas, rala na areia aberta)

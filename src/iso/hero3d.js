@@ -6,7 +6,7 @@ import meta from '../assets/sprites/dalarian-3d/sprites.json';
 const URLS = import.meta.glob('../assets/sprites/dalarian-3d/*.webp', { eager: true, query: '?url', import: 'default' });
 
 // tamanho do herói no mapa (1 = altura de 50 px usada no bake)
-export const HERO_SCALE = 1.25;
+export const HERO_SCALE = 1.45;
 
 export async function loadHero3D() {
   const byName = {};
