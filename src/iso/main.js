@@ -144,7 +144,14 @@ const $ = (id) => document.getElementById(id);
 let hudArt = null, hudT = performance.now();
 function setupHud(def) {
   $('hero-name').textContent = `${def.nome} · ${def.titulo}`;
-  if (!hudArt) hudArt = createHud($('hud'));
+  if (!hudArt) {
+    hudArt = createHud($('hud'));
+    // quadro de objetivo logo abaixo do retrato/vida/mana
+    const box = document.createElement('div'); box.id = 'obj-box';
+    box.innerHTML = '<div class="obj-t">Objetivo</div>';
+    box.append($('objective'));
+    $('hud-canvas').after(box);
+  }
   const ab = ABILITIES[def.id];
   for (const [k, id] of [['basico', 'btn-attack'], ['q', 'btn-q'], ['e', 'btn-e']]) {
     const el = $(id);
@@ -162,8 +169,8 @@ function updateHud() {
     cds: [hero.cd.atk / abl.basico.recarga, hero.cd.e / abl.e.recarga, hero.cd.q / abl.q.recarga, hero.cd.dash / 0.8],
   }, hdt);
   const map = world.map;
-  $('objective').textContent = roomState === 'vitoria' ? 'Vitória!' : roomState === 'limpa' ? `${map.nome} · vá até a porta` :
-    `${map.nome} · Sala ${roomIndex + 1}/${ROOMS.length} · Onda ${Math.max(1, wave)}/${map.ondas.length}`;
+  $('objective').textContent = roomState === 'vitoria' ? 'Vitória! O cânion foi purificado.' : roomState === 'limpa' ? 'Siga até o portal em ruínas.' :
+    `Derrote as criaturas do cânion (onda ${Math.max(1, wave)}/${map.ondas.length}).`;
   const ab = hero.ab;
   for (const [k, id, max] of [['q', 'btn-q', ab.q.recarga], ['e', 'btn-e', ab.e.recarga], ['dash', 'btn-dash', 0.8]]) {
     const el = $(id), c = hero.cd[k];
