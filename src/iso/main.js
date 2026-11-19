@@ -183,8 +183,8 @@ function rooms(dt) {
           do { p = map.open[(Math.random() * map.open.length) | 0]; tries++; } while (tries < 400 && (Math.hypot(p.x - hero.x, p.y - hero.y) < 4 || Math.hypot(p.x - hero.x, p.y - hero.y) > 9));
           const e = kind === 'e' ? new Escorpiao(world, p.x, p.y) : new Slime(world, p.x, p.y, kind === 'r' ? 'roxa' : 'verde');
           e.spawnT = 0.9; world.enemies.push(e);
-          fx.ring(p.x, p.y, 0.9, 0.9, [200, 120, 255]);
-          fx.sparks(p.x, p.y, 4, { n: 10, c1: '#e0b0ff', c2: '#8040c0', up: 60 });
+          if (kind === 'e') { fx.puff(p.x, p.y, '#c98a52', 20); fx.sparks(p.x, p.y, 2, { n: 12, c1: '#e8b07a', c2: '#8a5030', up: 40, g: 160 }); }   // sai da areia
+          else { fx.ring(p.x, p.y, 0.9, 0.9, [200, 120, 255]); fx.sparks(p.x, p.y, 4, { n: 10, c1: '#e0b0ff', c2: '#8040c0', up: 60 }); }
         }
         wave++; waveTimer = 1.0;
       }

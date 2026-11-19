@@ -223,7 +223,7 @@ export function buildBigDesert() {
   const ex = (arco.x0 + arco.xTop) / 2 + 0.4, ey = (arco.y0 + arco.y1) / 2 - 0.4;
   return {
     nome: 'Desfiladeiro do Sol', tema: 'grande', grande: true, recompensa: 'fim',
-    ondas: [['g', 'g', 'g', 'e'], ['g', 'g', 'r', 'e', 'g'], ['r', 'e', 'g', 'e', 'g'], ['e', 'r', 'e', 'g', 'e', 'g']],
+    ondas: [['e', 'e'], ['e', 'e', 'e'], ['e', 'e', 'e'], ['e', 'e', 'e', 'e']],
     tiles: [], path: PATH, w: W, h: H, floor, solid, walls: [], props, spawns: [], start: { x: 58.5, y: 60.5 }, door: { i: ex - 0.5, j: ey - 1.4 }, open, lago: null, ossos: [], decos, colliders, ramps,
   };
 }
