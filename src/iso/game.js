@@ -107,7 +107,7 @@ export class Hero {
     if (P.has('dash') && this.cd.dash <= 0 && this.dashT <= 0 && this.en >= COST.dash) {
       this.en -= COST.dash;
       const d = mag > 0.1 ? mv : this.face;
-      this.dashDir = { x: d.x, y: d.y }; this.dashT = 0.2; this.cd.dash = 0.8; this.invuln = Math.max(this.invuln, 0.22);
+      this.dashDir = { x: d.x, y: d.y }; this.dashT = 0.34; this.cd.dash = 0.8; this.invuln = Math.max(this.invuln, 0.36);   // rolamento mais lento (mesma distância)
       this.faceTo(d.x, d.y); this.action = null;
       this.anim.play('esquiva', { restart: true });
       fx.puff(this.x, this.y); use();
@@ -139,7 +139,7 @@ export class Hero {
     // ---- movimento ----
     if (this.dashT > 0) {
       this.dashT -= dt;
-      W.move(this, this.dashDir.x * 11 * dt, this.dashDir.y * 11 * dt);
+      W.move(this, this.dashDir.x * 6.8 * dt, this.dashDir.y * 6.8 * dt);
       if (this.dashT <= 0 && !this.action) this.anim.play('idle');
     } else {
       const locked = this.action && (this.action.type === 'q' || this.action.type === 'e');

@@ -106,7 +106,6 @@ function collect() {
       fx.sparks(p.i + 0.5, p.j + 0.5, 10, { n: 22, up: 70 }); banner(world.map.tema === 'deserto' ? 'Flor do Deserto coletada' : 'Erva-Luz coletada', 1400);
     }
   }
-  const c = document.getElementById('counters'); if (c) c.innerHTML = `<span>💎 ${flores}</span><span>🪙 ${ouro}</span><span>🗝️ ${roomIndex}</span>`;
 }
 function rooms(dt) {
   collect();
