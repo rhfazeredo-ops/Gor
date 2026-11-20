@@ -30,6 +30,9 @@ com Gaussian splats). Detalhes técnicos em `tecnicas.md`; código reaproveitáv
 - Preferências de jogo do Terra de Gor: sem contadores (moedas/diamantes/chaves) na tela; música do título desde
   a abertura até o lobby; música do deserto só nos mapas de deserto, a partir dos 4 s.
 
+- **Teste pelo site:** a cada atualização, mandar o link do site no fim da resposta (é como o dono testa,
+  sem baixar APK). Dallarian: https://rhfazeredo-ops.github.io/Dallarian/ — o APK só quando ele pedir.
+
 ## Fluxo padrão
 1. Entender o pedido → olhar o código → fazer.
 2. Testar no Godot sem tela (ver `tecnicas.md` → "Godot sem tela") e **olhar os prints**.
