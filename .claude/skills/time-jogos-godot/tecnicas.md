@@ -39,7 +39,10 @@
 - Tronco simples (6 lados, abrindo na base) + copa de ~25 retângulos planos cruzados, cada um com o desenho de
   um galho de fundo transparente (gerado em código: Image RGBA em tons de cinza; graveto curvo que afina e se
   divide, cachos de folhas com formato de folha — oval de pontas finas com nervura —, claras no alto do cacho;
-  a cor vem da instância). Pinheiro: 7 andares de cartões de agulhas caídos 18–32° + 2 cruzados na ponta.
+  a cor vem da instância). Pinheiro: 11 andares de galhos; cada galho é um cartão **dobrado em telhado** (metades caindo para os
+  lados) e **curvado para baixo** (ponta cai mais) — 4 quads; + 2 cartões cruzados na ponta.
+  Cuidado: `fora.rotated(fora.cross(UP), +a)` levanta o galho (sinal); calcular a queda direto em y.
+  Desenho de agulhas com traços de 2 px e denso: traço de 1 px some nos mipmaps (alfa < 0,5 → discard).
   Arbusto: 5 cartões cruzados + 1 deitado.
 - Shader: corte duro do alfa (`discard` < 0,5 → opaco, sem ordenar), textura NEAREST com mipmaps, luz pela face
   em dois tons, vento maior no alto. A mesma árvore de perto e de longe (sem troca de detalhe).
