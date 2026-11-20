@@ -20,6 +20,21 @@
 - Renderizador **Compatibility** (celular/web): MultiMesh **não recebe sombra** de DirectionalLight →
   desenhar sombras no shader (manchas pontilhadas por personagem, ver splats).
 
+## Primeira pessoa com visual PS1 (Dallarian)
+- Imagem 3D numa SubViewport dentro de SubViewportContainer com `stretch_shrink = 4` e filtro NEAREST
+  (≈480×270), e um shader canvas_item no container: paleta reduzida + pontilhado Bayer.
+- Shader PS1 (unshaded): luz calculada no vértice, vértices presos à grade da tela (tremem),
+  textura 32 px sem suavização, neblina por distância no vértice. Clarão de relâmpago por
+  `global uniform` (declarado em `[shader_globals]` do project.godot).
+- Pixel splats em primeira pessoa: quads virados para a câmera montados no vertex shader
+  (`em_pe` = só no eixo vertical, para grama), corte duro da gaussiana → sem ordenação.
+  Grama em blocos de 20 m com `visibility_range_end` ≈ 42 m.
+- **Colisão de terreno com ConcavePolygonShape3D: ligar `backface_collision`** (senão o jogador atravessa o
+  chão se os triângulos estiverem "virados").
+- Shaders com `cull_disabled` para não depender da ordem dos vértices das malhas geradas por código.
+- GDScript: `var x := array[i]` de Array sem tipo não compila → declarar o tipo (`var x: Color = ...`).
+- Gerar malhas por código: SurfaceTool com várias superfícies (uma por material) no mesmo ArrayMesh.
+
 ## Câmera isométrica igual à arte 2D
 - Ortográfica, giro 45°, inclinação 30° → projeção 2:1 exata (losango de 64×32 px por tile).
 - 1 tile = 1 m; 45,25 px por metro (64/√2). Tela: x ∝ (x − z), y ∝ (x + z).
