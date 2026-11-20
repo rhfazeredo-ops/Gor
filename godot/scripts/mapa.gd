@@ -7,7 +7,8 @@ const PPM := 45.25            # pixels por metro na escala do jogo (1 tile = 1 m
 var dados: Dictionary
 var colisores: Array = []
 var moles: Array = []      # grama/arbustos: balançam quando alguém passa
-var altos: Array = []      # rochas/árvores altas: ficam translúcidas com o herói atrás
+var altos: Array = []
+var splat: ChaoSplat         # chão de teste em Gaussian splats (ou null)      # rochas/árvores altas: ficam translúcidas com o herói atrás
 
 func montar(layout: String) -> void:
 	var tudo: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://dados/mapas.json"))
@@ -31,6 +32,10 @@ func _chao() -> void:
 	m.material_override = sm
 	m.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(m)
+	# teste: chão de Gaussian splats estilo pixel art (--splat, ou ?splat no navegador)
+	if Estado.chao_splat:
+		sm.set_shader_parameter("liso", true)
+		splat = ChaoSplat.new(); add_child(splat); splat.montar(self, sm)
 
 # máscara do chão (8 px por tile): R = trilha/clareira (chão batido), G = perto de rocha (pedregoso/sombra)
 func _mascara() -> ImageTexture:

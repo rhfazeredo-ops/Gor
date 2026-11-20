@@ -11,6 +11,8 @@ var heroi := "dalarian"
 var missao: Dictionary = MISSOES[1]
 var ir_para := "inicio"          # tela que o menu abre: "inicio" ou "lobby"
 var musica_menu: AudioStreamPlayer
+# teste do chão em Gaussian splats: "--splat" na linha de comando ou "?splat" no endereço do navegador
+var chao_splat := "--splat" in OS.get_cmdline_user_args() or (OS.has_feature("web") and str(JavaScriptBridge.eval("location.search")).contains("splat"))
 
 func _ready() -> void:
 	musica_menu = AudioStreamPlayer.new()

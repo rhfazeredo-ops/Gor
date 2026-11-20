@@ -8,6 +8,7 @@ uniform sampler2D mascara : filter_linear;
 uniform float escala = 0.42;
 uniform vec2 tam_tex = vec2(1024.0, 1024.0);
 uniform vec2 tam_mapa = vec2(72.0, 72.0);
+uniform bool liso = false;      // por baixo do chão de splats: só o tom médio, sem rachaduras
 varying vec3 wpos;
 void vertex() { wpos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz; }
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -16,7 +17,7 @@ float noise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
 float fbm(vec2 p) { return noise(p) * 0.5 + noise(p * 2.1) * 0.3 + noise(p * 4.3) * 0.2; }
 void fragment() {
   vec2 tela = vec2((wpos.x - wpos.z) * 32.0, (wpos.x + wpos.z) * 16.0);
-  vec3 c = texture(tex, tela / (escala * tam_tex)).rgb;
+  vec3 c = liso ? textureLod(tex, tela / (escala * tam_tex), 6.0).rgb * 0.92 : texture(tex, tela / (escala * tam_tex)).rgb;
   vec2 uvm = wpos.xz / tam_mapa;
   vec4 m = texture(mascara, uvm);
   float bord = smoothstep(0.03, 0.12, (fbm(wpos.xz * 0.9) - 0.5) * 0.15 + 0.06);

@@ -27,7 +27,7 @@ func _ready() -> void:
 	mapa = Mapa.new(); add_child(mapa); mapa.montar(m.layout)
 	if args.has("colisao"): mapa.desenhar_colisoes()
 	_luz()
-	heroi = Heroi.new(); add_child(heroi)
+	heroi = Heroi.new(); add_child(heroi); heroi.add_to_group("sombra")
 	heroi.position = Vector3(mapa.dados.start.x + 2.5, 0, mapa.dados.start.y + 2.5)
 	heroi.inicio = heroi.position
 	heroi.acertar.connect(_golpe)
@@ -104,6 +104,7 @@ func _escorpioes(n: int) -> void:
 	for p in pos:
 		var e := Escorpiao.new(); e.heroi = heroi; e.position = Vector3(p.x, 0, p.y)
 		e.morreu.connect(func(): mortos += 1)
+		e.set_meta("raio_sombra", 0.9); e.add_to_group("sombra")
 		add_child(e)
 
 func _flores() -> void:
@@ -180,6 +181,7 @@ func _physics_process(delta: float) -> void:
 	_areas(delta)
 	if poeira: poeira.global_position = heroi.global_position + Vector3(0, 1.5, 0)
 	mapa.animar(delta, heroi, cam)
+	if mapa.splat: mapa.splat.sombras(get_tree().get_nodes_in_group("sombra"))
 	if m.plantas:
 		if args.has("pegar") and controles.bp.visible: controles.pegar = true; args.erase("pegar")
 		_colher()
