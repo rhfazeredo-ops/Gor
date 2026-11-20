@@ -59,6 +59,18 @@
 - Reduzir triângulos: `codigo/decimar.mjs` (gltf-transform + meshoptimizer: weld → simplify). 96k → 23k sem
   diferença visível na câmera do jogo. Texturas ≤ 1024 px para personagem pequeno na tela.
 - Exportar para o Godot: GLTFExporter (three.js) numa página aberta pelo Playwright, binário em base64.
+- **Modelos do Tripo chegam pesados e às vezes com defeito** (visto no Dallarian):
+  - ~1 milhão de triângulos, textura 2048 JPEG, compressão `EXT_meshopt_compression` + `KHR_mesh_quantization`
+    (precisa do `MeshoptDecoder` para ler);
+  - **peças soltas a mais**: um "bastão" fino na frente da personagem; ou, quando a folha de 4 vistas vai como
+    uma imagem só, **vários objetos juntos** (5 espadas num modelo).
+  - Ferramentas: `tools/tripo-pecas.mjs` (lista as peças soltas com triângulos e caixa) e
+    `tools/tripo-ps1.mjs entrada saida <tris> <px> [mín] [só_a_peça_N]` (descompacta, tira peças pequenas ou
+    fica só com a N-ésima, reduz triângulos com meshoptimizer e a textura com sharp, grava GLB comum).
+  - Resultados bons: personagem 2.500 tris + textura 512; espada 500 tris + 256.
+  - Conferir sempre com `godot/ferramentas/ver_modelo.gd` (folha com 4 vistas + close).
+  - No Godot: trocar o material do GLB pelo shader PS1 usando a `albedo_texture` original (`modelo_ps1()`).
+  - Personagem do Tripo vem de frente para +X: girar -90° em Y para ficar de frente para +Z.
 - Monstro simples: animar por deformação de vértices no shader (escorpião) em vez de rig.
 
 ## Chão em Gaussian splats estilo pixel art (`codigo/splat_chao.gdshader`, `codigo/chao_splat.gd`)
