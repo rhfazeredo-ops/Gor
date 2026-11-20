@@ -1,0 +1,11 @@
+<!doctype html><body style="margin:0;background:#0f0"><script type="module">
+import * as THREE from 'three';import {buildTripoHero} from './tripo-rig.js';
+const H=await buildTripoHero();
+const r=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});r.setSize(1200,400);document.body.appendChild(r.domElement);r.setClearColor(0x00ff00);
+const sc=new THREE.Scene();sc.add(H.holder);sc.add(new THREE.HemisphereLight(0xffffff,0x554455,2));
+const cam=new THREE.OrthographicCamera(-0.6,0.6,0.5,-0.5,-10,10);r.setScissorTest(true);
+// 1) pose de ligação (sem animação)  2) T-pose do clipe  3) vista de cima da pose de ligação
+const vistas=[[0,0.45,3,false],[3,0.45,0,true],[0.001,3,0.001,false]];
+vistas.forEach(([x,y,z,clip],i)=>{H.mixer.stopAllAction(); if(clip){const a=H.mixer.clipAction(H.clips['A_TPose']);a.reset().play();H.mixer.setTime(0);H.fixHips();} else H.skeleton.pose();
+ H.holder.updateMatrixWorld(true);cam.position.set(x,y,z);cam.lookAt(0,0.45,0);r.setViewport(i*400,0,400,400);r.setScissor(i*400,0,400,400);r.render(sc,cam);});
+window.done=1;</script>

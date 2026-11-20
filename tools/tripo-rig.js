@@ -13,16 +13,43 @@ import { buildDalarian } from '../src/models/dalarian.js';
 // 3. Capa com 3 ossos próprios, movidos à mão (levanta com a corrida).
 // =====================================================================
 
-// articulações medidas na malha (metros do modelo; frente = +Z, esquerda = +X)
-const J = {
-  'DEF-hips': [0, 0.45, 0.02], 'DEF-spine001': [0, 0.5, 0.02], 'DEF-spine002': [0, 0.56, 0.02], 'DEF-spine003': [0, 0.62, 0.02],
-  'DEF-neck': [0, 0.705, 0.025], 'DEF-head': [0, 0.745, 0.03],
-  'DEF-shoulderL': [0.03, 0.7, 0.04], 'DEF-upper_armL': [0.13, 0.67, 0.03], 'DEF-forearmL': [0.265, 0.645, 0.035], 'DEF-handL': [0.385, 0.635, 0.045],
-  'DEF-thighL': [0.075, 0.43, 0.02], 'DEF-shinL': [0.09, 0.26, 0.03], 'DEF-footL': [0.105, 0.075, 0.02], 'DEF-toeL': [0.105, 0.018, 0.11],
+// perfis de modelo: articulações medidas na malha (metros; frente = +Z, esquerda = +X), ponta da cabeça/mãos/pés,
+// ossos da capa e regra para separar a capa e o tabardo do corpo.
+const PERFIS = {
+  // primeiro modelo do Tripo (49 mil triângulos, textura 4K)
+  antigo: {
+    modelo: './tripo/dalarian.glb',
+    J: { 'DEF-hips': [0, 0.45, 0.02], 'DEF-spine001': [0, 0.5, 0.02], 'DEF-spine002': [0, 0.56, 0.02], 'DEF-spine003': [0, 0.62, 0.02],
+      'DEF-neck': [0, 0.705, 0.025], 'DEF-head': [0, 0.745, 0.03],
+      'DEF-shoulderL': [0.03, 0.7, 0.04], 'DEF-upper_armL': [0.13, 0.67, 0.03], 'DEF-forearmL': [0.265, 0.645, 0.035], 'DEF-handL': [0.385, 0.635, 0.045],
+      'DEF-thighL': [0.075, 0.43, 0.02], 'DEF-shinL': [0.09, 0.26, 0.03], 'DEF-footL': [0.105, 0.075, 0.02], 'DEF-toeL': [0.105, 0.018, 0.11] },
+    END: { 'DEF-head': [0, 0.86, 0.04], 'DEF-handL': [0.48, 0.63, 0.05], 'DEF-toeL': [0.105, 0.015, 0.16] },
+    CAPE: [[0, 0.66, -0.06], [0, 0.42, -0.1], [0, 0.24, -0.13], [0, 0.12, -0.16]],
+    capa: (x, y, z, ax) => y < 0.64 && y > 0.1 && ax < 0.26 && (z < -0.05 - Math.max(0, 0.5 - y) * 0.05 || (y < 0.45 && ax > 0.165 && z < 0.06)),
+  },
+  // modelo novo "dalarian 1k" (textura 1K, cores chapadas da arte; braços em T levemente para trás; capa longa)
+  '1k': {
+    modelo: './tripo/dalarian-1k.glb',
+    J: { 'DEF-hips': [0, 0.45, 0.0], 'DEF-spine001': [0, 0.5, 0.0], 'DEF-spine002': [0, 0.56, 0.0], 'DEF-spine003': [0, 0.62, 0.0],
+      'DEF-neck': [0, 0.71, 0.0], 'DEF-head': [0, 0.75, 0.01],
+      'DEF-shoulderL': [0.03, 0.7, 0.0], 'DEF-upper_armL': [0.15, 0.69, -0.035], 'DEF-forearmL': [0.311, 0.668, -0.035], 'DEF-handL': [0.469, 0.66, -0.035],
+      'DEF-thighL': [0.075, 0.43, 0.0], 'DEF-shinL': [0.085, 0.26, 0.02], 'DEF-footL': [0.11, 0.075, 0.02], 'DEF-toeL': [0.12, 0.018, 0.11] },
+    END: { 'DEF-head': [0, 0.876, 0.02], 'DEF-handL': [0.55, 0.657, -0.035], 'DEF-toeL': [0.12, 0.015, 0.16] },
+    // os braços vêm ~32° para trás: gira cada braço no ombro até ficar reto para o lado (T-pose do esqueleto)
+    bracos: { pivo: [0.15, -0.035], ang: 0.553, x0: 0.11, x1: 0.19, y0: 0.585, y1: 0.625 },
+    CAPE: [[0, 0.64, -0.09], [0, 0.42, -0.11], [0, 0.24, -0.13], [0, 0.10, -0.15]],
+    capa: (x, y, z, ax) => y < 0.62 && y > 0.08 && ax < 0.27 && (z < -0.088 - Math.max(0, 0.45 - y) * 0.03 || (y < 0.42 && ax > 0.16 && z < 0.03)),
+  },
 };
-for (const [k, v] of Object.entries({ ...J })) if (k.endsWith('L')) J[k.slice(0, -1) + 'R'] = [-v[0], v[1], v[2]];
-const END = { 'DEF-head': [0, 0.86, 0.04], 'DEF-handL': [0.48, 0.63, 0.05], 'DEF-handR': [-0.48, 0.63, 0.05], 'DEF-toeL': [0.105, 0.015, 0.16], 'DEF-toeR': [-0.105, 0.015, 0.16] };
-const CAPE = [[0, 0.66, -0.06], [0, 0.42, -0.1], [0, 0.24, -0.13], [0, 0.12, -0.16]];
+let J, END, CAPE;
+function usarPerfil(p) {
+  J = { ...p.J }; for (const [k, v] of Object.entries(p.J)) if (k.endsWith('L')) J[k.slice(0, -1) + 'R'] = [-v[0], v[1], v[2]];
+  END = { ...p.END }; for (const [k, v] of Object.entries(p.END)) if (k.endsWith('L')) END[k.slice(0, -1) + 'R'] = [-v[0], v[1], v[2]];
+  // braços endireitados: o direito fica do outro lado do corpo em z (rotação no mesmo sentido do esquerdo)
+  if (p.bracos) for (const k of ['DEF-upper_armR', 'DEF-forearmR', 'DEF-handR']) J[k] = [J[k][0], J[k][1], -J[k][2]];
+  if (p.bracos) END['DEF-handR'] = [END['DEF-handR'][0], END['DEF-handR'][1], -END['DEF-handR'][2]];
+  CAPE = p.CAPE;
+}
 
 const V = (a) => new THREE.Vector3(...a);
 // joias vermelhas que o Tripo inventou → azuis, como na arte do martelo
@@ -40,7 +67,8 @@ function recolorRedToBlue(tex) {
 }
 const wp = (o) => new THREE.Vector3().setFromMatrixPosition(o.matrixWorld);
 
-export async function buildTripoHero({ model = './tripo/dalarian.glb', hammer = true, hammerModel = './tripo/martelo.glb' } = {}) {
+export async function buildTripoHero({ perfil = '1k', model = null, hammer = true, hammerModel = './tripo/martelo.glb' } = {}) {
+  const P0 = PERFIS[perfil]; usarPerfil(P0); model = model || P0.modelo;
   const L = new GLTFLoader();
   const [mg, lg] = await Promise.all([L.loadAsync(model), L.loadAsync('./anim-lib/AnimationLibrary_Godot_Standard.gltf')]);
   let src; mg.scene.traverse((o) => { if (o.isMesh) src = o; });
@@ -120,6 +148,21 @@ export async function buildTripoHero({ model = './tripo/dalarian.glb', hammer = 
   const skelBones = [...bones, ...cape];
   const idx = new Map(skelBones.map((b, i) => [b, i]));
   const geo = src.geometry.clone();
+  if (P0.bracos) {
+    const B = P0.bracos, ps = geo.attributes.position, ns = geo.attributes.normal;
+    const sst = (a, b, v) => { const t = Math.min(1, Math.max(0, (v - a) / (b - a))); return t * t * (3 - 2 * t); };
+    for (let v = 0; v < ps.count; v++) {
+      const x = ps.getX(v), y = ps.getY(v), z = ps.getZ(v), sg = Math.sign(x) || 1;
+      const t = sst(B.x0, B.x1, Math.abs(x)) * sst(B.y0, B.y1, y);
+      if (t <= 0) continue;
+      // os dois braços estão girados no mesmo sentido (esquerdo para trás, direito para a frente): mesmo ângulo
+      const phi = B.ang * t, c = Math.cos(phi), sn = Math.sin(phi);
+      const px = sg * B.pivo[0], pz = sg * B.pivo[1], dx = x - px, dz = z - pz;
+      ps.setXYZ(v, px + dx * c - dz * sn, y, pz + dx * sn + dz * c);
+      const nx = ns.getX(v), nz = ns.getZ(v); ns.setXYZ(v, nx * c - nz * sn, ns.getY(v), nx * sn + nz * c);
+    }
+    ps.needsUpdate = true; ns.needsUpdate = true;
+  }
   const pos = geo.attributes.position, N = pos.count;
   const W = Array.from({ length: N }, () => new Map());
   const p = new THREE.Vector3(), q = new THREE.Vector3(), ab = new THREE.Vector3();
@@ -127,18 +170,36 @@ export async function buildTripoHero({ model = './tripo/dalarian.glb', hammer = 
   const H = (b) => idx.get(bone(b));
   const capeW = (m, y) => {
     // ao longo da capa: peito → cape0 → cape1 → cape2
-    const ys = [0.66, 0.42, 0.24, 0.12], ids = [idx.get(chest), idx.get(cape[0]), idx.get(cape[1]), idx.get(cape[2])];
+    const ys = CAPE.map((c) => c[1]), ids = [idx.get(chest), idx.get(cape[0]), idx.get(cape[1]), idx.get(cape[2])];
     if (y >= ys[0]) { m.set(ids[0], 1); return; }
     for (let i = 0; i < 3; i++) if (y >= ys[i + 1] || i === 2) {
       const t = THREE.MathUtils.clamp((ys[i] - y) / (ys[i] - ys[i + 1]), 0, 1);
       m.set(ids[i], (m.get(ids[i]) || 0) + 1 - t); m.set(ids[i + 1], (m.get(ids[i + 1]) || 0) + t); return;
     }
   };
+  // capa por ligação da malha: começa nos pontos claramente da capa e cresce pelos vizinhos que ainda
+  // "parecem capa" (atrás do corpo, abaixo dos ombros). Evita a barra presa às pernas (pontas esticadas).
+  const kw = (v) => `${pos.getX(v).toFixed(4)},${pos.getY(v).toFixed(4)},${pos.getZ(v).toFixed(4)}`;
+  const wmap = new Map(), w0 = new Int32Array(N);
+  for (let v = 0; v < N; v++) { const k = kw(v); if (!wmap.has(k)) wmap.set(k, wmap.size); w0[v] = wmap.get(k); }
+  const nb0 = Array.from({ length: wmap.size }, () => []);
+  const ix = geo.index.array;
+  for (let t = 0; t < ix.length; t += 3) for (let q = 0; q < 3; q++) { const u = w0[ix[t + q]], w = w0[ix[t + (q + 1) % 3]]; nb0[u].push(w); nb0[w].push(u); }
+  const wp0 = new Float32Array(wmap.size * 3);
+  for (let v = 0; v < N; v++) { wp0[w0[v] * 3] = pos.getX(v); wp0[w0[v] * 3 + 1] = pos.getY(v); wp0[w0[v] * 3 + 2] = pos.getZ(v); }
+  const ehCapa = new Uint8Array(wmap.size);
+  const fila = [];
+  for (let g = 0; g < wmap.size; g++) {
+    const x = wp0[g * 3], y = wp0[g * 3 + 1], z = wp0[g * 3 + 2];
+    if (P0.capa(x, y, z, Math.abs(x)) && z < -0.1) { ehCapa[g] = 1; fila.push(g); }
+  }
+  const solta = (g) => { const x = wp0[g * 3], y = wp0[g * 3 + 1], z = wp0[g * 3 + 2]; return y < 0.62 && y > 0.05 && z < -0.02 && Math.abs(x) < 0.29; };
+  while (fila.length) { const g = fila.pop(); for (const h of nb0[g]) if (!ehCapa[h] && solta(h)) { ehCapa[h] = 1; fila.push(h); } }
   const kind = new Uint8Array(N);   // 0 corpo, 1 capa, 2 tabardo
   for (let v = 0; v < N; v++) {
     p.fromBufferAttribute(pos, v);
     const { x, y, z } = p, ax = Math.abs(x);
-    const isCape = y < 0.64 && y > 0.1 && ax < 0.26 && (z < -0.05 - Math.max(0, 0.5 - y) * 0.05 || (y < 0.45 && ax > 0.165 && z < 0.06));
+    const isCape = ehCapa[w0[v]] === 1;
     const isFlap = !isCape && ax < 0.07 && y < 0.46 && y > 0.12 && z > 0.035;
     const m = W[v];
     if (isCape) { kind[v] = 1; capeW(m, y); continue; }
