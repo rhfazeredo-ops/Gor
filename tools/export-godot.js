@@ -28,7 +28,7 @@ async function run() {
     clips.push(c);
   }
   const ex = new GLTFExporter();
-  const glb = await ex.parseAsync(root, { binary: true, animations: clips, onlyVisible: true, maxTextureSize: 2048 });
+  const glb = await ex.parseAsync(root, { binary: true, animations: clips, onlyVisible: true, maxTextureSize: 1024 });
   const b = new Uint8Array(glb); let s = ''; for (let i = 0; i < b.length; i += 0x8000) s += String.fromCharCode(...b.subarray(i, i + 0x8000));
   window.__glb = btoa(s); window.done = 1;
 }

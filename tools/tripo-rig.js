@@ -29,7 +29,7 @@ const PERFIS = {
   },
   // modelo novo "dalarian 1k" (textura 1K, cores chapadas da arte; braços em T levemente para trás; capa longa)
   '1k': {
-    modelo: './tripo/dalarian-1k.glb',
+    modelo: './tripo/dalarian-1k-lp.glb',   // 23 mil triângulos (tools/decimar.mjs a partir do dalarian-1k.glb)
     J: { 'DEF-hips': [0, 0.45, 0.0], 'DEF-spine001': [0, 0.5, 0.0], 'DEF-spine002': [0, 0.56, 0.0], 'DEF-spine003': [0, 0.62, 0.0],
       'DEF-neck': [0, 0.71, 0.0], 'DEF-head': [0, 0.75, 0.01],
       'DEF-shoulderL': [0.03, 0.7, 0.0], 'DEF-upper_armL': [0.15, 0.69, -0.035], 'DEF-forearmL': [0.311, 0.668, -0.035], 'DEF-handL': [0.469, 0.66, -0.035],
