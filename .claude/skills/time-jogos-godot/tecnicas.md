@@ -35,6 +35,11 @@
 - GDScript: `var x := array[i]` de Array sem tipo não compila → declarar o tipo (`var x: Color = ...`).
 - Gerar malhas por código: SurfaceTool com várias superfícies (uma por material) no mesmo ArrayMesh.
 
+## Estilo pixel leve para vegetação
+- Grama: cada folha é **um retângulo** (2 triângulos) de ponta quadrada, cor da base à ponta em 4 degraus.
+- Folhas das árvores: splats **quadrados** (`quadrado = true` no splat.gdshader), girados um pouco cada um
+  pela posição, canto inferior direito um tom mais escuro.
+
 ## Braços em primeira pessoa (animação procedural, sem esqueleto)
 - Pivôs das mãos presos à câmera; poses como dados: espada = [posição do cabo, direção da lâmina, giro do fio]
   (montar a Basis a partir da direção é bem mais fácil de acertar do que ângulos de Euler).
@@ -54,6 +59,11 @@
   senão cobre o rio de longe).
 - Montanhas de borda: altura que **satura** (`alto * (1 - exp(-d/32))`), nunca potência (vira 500 m).
 - Neblina mais fraca no alto (`nb *= 1 - smoothstep(14,70,y)*0.5`) para ver a silhueta dos limites.
+- **Construções nunca flutuando:** cada uma chama `reg.aplanar(centro, meia_medida, ângulo, margem)` ANTES de
+  montar o terreno; a altura do piso é a média do chão nos cantos/centro e o terreno aplana o retângulo
+  (+1 m de folga) e volta suave na margem. Alicerce descendo 1,2 m. Grupos juntos (acampamento) = um plano só
+  (planos sobrepostos com alturas diferentes fazem degrau). Teste `--checar` mede o vão em cada canto.
+- Atenção: `rotation.y = a` gira (x,z) por **-a** em `Vector2.rotated`.
 - Jogador preso na região e fora da água funda: volta para a última posição boa.
 - Desenho de mapa de referência de jogo de terceiros: aproveitar só princípios (vila no cruzamento,
   rio dividindo áreas, bordas fechadas, clareiras com pontos de interesse), não o traçado.
