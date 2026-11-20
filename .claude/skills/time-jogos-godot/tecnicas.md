@@ -46,6 +46,18 @@
   sair por baixo da tela — manter a mão em y ≥ -0,32 e z ≈ -0,55 (câmera com FOV 70).
 - Argumentos `--chave=valor` com "=" no valor: `split("=", true, 1)`.
 
+## Região grande de mundo aberto (Dallarian, 1,2 km)
+- Mapa em código (`regiao.gd`): linhas de estradas e rio rasterizadas uma vez em grades de distância (4 m),
+  só nas células perto de cada segmento → altura/cor/água em qualquer ponto ficam baratas.
+- Terreno em pedaços de 64 m: versão simples (8 m) sempre montada com `visibility_range_begin`, versão
+  detalhada (2 m, com colisão) só perto do jogador; a simples desce um pouco (e bem mais perto da água,
+  senão cobre o rio de longe).
+- Montanhas de borda: altura que **satura** (`alto * (1 - exp(-d/32))`), nunca potência (vira 500 m).
+- Neblina mais fraca no alto (`nb *= 1 - smoothstep(14,70,y)*0.5`) para ver a silhueta dos limites.
+- Jogador preso na região e fora da água funda: volta para a última posição boa.
+- Desenho de mapa de referência de jogo de terceiros: aproveitar só princípios (vila no cruzamento,
+  rio dividindo áreas, bordas fechadas, clareiras com pontos de interesse), não o traçado.
+
 ## Câmera isométrica igual à arte 2D
 - Ortográfica, giro 45°, inclinação 30° → projeção 2:1 exata (losango de 64×32 px por tile).
 - 1 tile = 1 m; 45,25 px por metro (64/√2). Tela: x ∝ (x − z), y ∝ (x + z).
