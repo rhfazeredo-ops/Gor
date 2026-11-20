@@ -79,6 +79,10 @@
   onde vai a preparação, quantos quadros dura o corte, onde termina e como volta. No vídeo de espada e escudo
   do dono: guarda com a espada EM PÉ à direita e o escudo embaixo à esquerda; preparação rápida que tira a
   espada da tela; corte de ~0,1 s atravessando a tela; termina fora da tela e volta SUBINDO por baixo.
+- **Peso no golpe**: preparação que DESACELERA no alto (1-(1-u)^2,6) com a espada visível (dá para ver ela
+  "carregar"), corpo/câmera inclinando para trás; corte que começa devagar e ACELERA (u^2,2) com a câmera
+  avançando e girando junto; no fim do corte, pausa de impacto (~0,07 s; forte 0,12 s) + tremor da câmera;
+  embalo depois do corte (a lâmina passa do ponto e para devagar); andar a 45% da velocidade atacando.
 - Sensação de golpe: rastro da lâmina (faixa clara só na metade de fora da lâmina, some em 0,11 s) e a câmera
   vira 2–5° junto com o corte (yaw), além do pitch/roll.
 - Ações (escudada) = lista de [duração, pose, tranco da câmera]; golpe com easing "rápido no
