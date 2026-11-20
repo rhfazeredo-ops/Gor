@@ -150,3 +150,19 @@ func animar(delta: float, heroi: Node3D, cam: Camera3D) -> void:
 			a.atras = atras
 			a.s.alpha_cut = SpriteBase3D.ALPHA_CUT_DISABLED if atras else SpriteBase3D.ALPHA_CUT_OPAQUE_PREPASS
 			a.s.modulate.a = 0.45 if atras else 1.0
+
+# depuração: desenha os contornos de colisão no chão (linhas ciano)
+func desenhar_colisoes() -> void:
+	var im := ImmediateMesh.new(); var mi := MeshInstance3D.new(); mi.mesh = im
+	var mat := StandardMaterial3D.new(); mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED; mat.albedo_color = Color(0, 1, 1)
+	mat.no_depth_test = true; mat.render_priority = 50; mi.material_override = mat; add_child(mi)
+	im.surface_begin(Mesh.PRIMITIVE_LINES)
+	for c in colisores:
+		var pts := []
+		if c.t == "p": for p in c.pts: pts.append(Vector3(p[0], 0.05, p[1]))
+		elif c.t == "c":
+			for i in 24: var a := TAU * i / 24.0; pts.append(Vector3(c.x + cos(a) * c.r, 0.05, c.y + sin(a) * c.r))
+		else: pts = [Vector3(c.x0, 0.05, c.y0), Vector3(c.x1, 0.05, c.y0), Vector3(c.x1, 0.05, c.y1), Vector3(c.x0, 0.05, c.y1)]
+		for i in pts.size():
+			im.surface_add_vertex(pts[i]); im.surface_add_vertex(pts[(i + 1) % pts.size()])
+	im.surface_end()

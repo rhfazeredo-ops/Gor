@@ -49,11 +49,11 @@ export function sprite(key, s = null) {
 // polígono da base em pixels de tela (relativo à âncora): contorno de baixo do desenho é a
 // borda da frente; a de trás é o espelho dela pela corda entre as pontas esquerda e direita.
 // Troncos: só as colunas perto do chão (raízes), ignorando a copa.
-function basePolygon(a, s, flip, trunk) {
+function basePolygon(a, s, flip, frac = 0.5, k = 1.0) {
   const H = a.h;
   let prof = a.prof.slice();
   const low = Math.max(...prof.map((p) => p[1]));
-  prof = prof.filter((p) => p[1] >= low - H * (trunk ? 0.12 : 0.5));
+  prof = prof.filter((p) => p[1] >= low - H * frac);
   if (prof.length < 3) return null;
   let F = prof.map(([px, py]) => [(px - a.ax) * s * (flip ? -1 : 1), (py - a.ay) * s]);
   F.sort((p, q) => p[0] - q[0]);
@@ -67,10 +67,19 @@ function basePolygon(a, s, flip, trunk) {
     const u = (2 * (X - L[0])) / (wid || 1) - 1;
     return [X, Math.min(2 * chord(X) - Y, Y - wid * 0.5 * Math.sqrt(Math.max(0, 1 - u * u)))];
   });
-  let P = [...F, ...back];
+  // casco convexo: sem "dentes" no contorno por onde o herói entraria no desenho
+  let P = hull([...F, ...back]);
   // encolhe um pouco para o herói poder encostar (o raio dele completa o resto)
-  const k = trunk ? 0.95 : 1.0, cx = P.reduce((t, p) => t + p[0], 0) / P.length, cy = P.reduce((t, p) => t + p[1], 0) / P.length;
+  const cx = P.reduce((t, p) => t + p[0], 0) / P.length, cy = P.reduce((t, p) => t + p[1], 0) / P.length;
   return P.map(([X, Y]) => [cx + (X - cx) * k, cy + (Y - cy) * k]);
+}
+function hull(pts) {
+  const p = pts.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  const cr = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+  const lo = [], up = [];
+  for (const q of p) { while (lo.length > 1 && cr(lo[lo.length - 2], lo[lo.length - 1], q) <= 0) lo.pop(); lo.push(q); }
+  for (const q of p.reverse()) { while (up.length > 1 && cr(up[up.length - 2], up[up.length - 1], q) <= 0) up.pop(); up.push(q); }
+  return lo.slice(0, -1).concat(up.slice(0, -1));
 }
 function polyCenter(pts) {
   let A = 0, cx = 0, cy = 0;
@@ -161,6 +170,7 @@ export function buildBigDesert(variant = 'canion') {
     const k = KIND[a.kind] || {}, alvo = alturaDe(key, a.kind), s = (o.s ?? 1) * (alvo ? alvo / a.h : seriesScale(key) ?? k.s ?? 0.15);
     const spr = { img: a.img, w: a.w * s, h: a.h * s, ax: (o.flip ? a.w - a.ax : a.ax) * s, ay: a.ay * s };
     const phys = o.phys || (STAIRS[key] ? 'escada' : PHYS[a.kind] || 'chao');
+    const nc0 = colliders.length;
     const d = { key, x, y, flip: !!o.flip, spr, tall: spr.h > 45, phys, z: o.z ?? 0, sway: 0, swayV: 0, seed: Math.random() * 6 };
     // pegada medida no próprio asset: elipse no chão cuja borda da frente encosta na base desenhada
     const f = a.foot || { x0: 0, x1: a.w, front: a.ay };
@@ -168,7 +178,10 @@ export function buildBigDesert(variant = 'canion') {
     const toT = (X, Y) => [X / 64 + Y / 32, Y / 32 - X / 64];
     const [ox, oy] = toT(midX, front - half / 2);       // centro da elipse (em relação à âncora)
     const R = (half / 45) * 0.95;
-    const poly = (phys === 'solido' || phys === 'tronco') && a.prof ? basePolygon(a, s, !!o.flip, phys === 'tronco') : null;
+    // rochas: base inteira (metade de baixo do contorno); árvores caídas/tocos: só o tronco no chão (sem galhos);
+    // árvores em pé: um círculo no tronco (raízes e capim ao redor não bloqueiam)
+    const fr = a.kind === 'arvore' ? [0.22, 0.8] : a.kind === 'pedras' ? [0.6, 0.85] : a.kind === 'rochas' ? [0.5, 0.9] : [0.5, 1.0];
+    const poly = phys === 'solido' && a.prof ? basePolygon(a, s, !!o.flip, fr[0], fr[1]) : null;
     if (poly) {
       // polígono da base medido no contorno do desenho (frente) e espelhado (fundo)
       const pts = poly.map(([X, Y]) => { const [tx, ty] = toT(X, Y); return [x + tx, y + ty]; });
@@ -176,7 +189,7 @@ export function buildBigDesert(variant = 'canion') {
       d.cx = c[0]; d.cy = c[1]; d.R = c[2];
       colliders.push({ t: 'p', pts, x0: Math.min(...pts.map((p) => p[0])), x1: Math.max(...pts.map((p) => p[0])), y0: Math.min(...pts.map((p) => p[1])), y1: Math.max(...pts.map((p) => p[1])) });
     } else if (phys === 'solido') { d.cx = x + ox; d.cy = y + oy; d.R = R; colliders.push({ t: 'c', x: d.cx, y: d.cy, r: R }); }
-    else if (phys === 'tronco') { const r0 = a.kind === 'estandarte' ? 0.16 : 0.26; const [tx, ty] = toT(midX, front - 6); d.cx = x + tx; d.cy = y + ty; d.R = r0; colliders.push({ t: 'c', x: d.cx, y: d.cy, r: r0 }); }
+    else if (phys === 'tronco') { const r0 = a.kind === 'estandarte' ? 0.16 : 0.4; const [tx, ty] = a.kind === 'estandarte' ? toT(midX, front - 6) : [ox, oy]; d.cx = x + tx; d.cy = y + ty; d.R = r0; colliders.push({ t: 'c', x: d.cx, y: d.cy, r: r0 }); }
     if (phys === 'escada') {
       // quadrado do tamanho do sprite; degraus descem para +x; lado +y é bloco sólido; fundo é plataforma alta
       const S = (half * 2 / 64) * 0.95, st = STAIRS[key];
@@ -189,6 +202,7 @@ export function buildBigDesert(variant = 'canion') {
       d.ramp = ramps[ramps.length - 1];
     }
     if (phys === 'chao') d.flat = true;
+    if (colliders.length > nc0) d.col = colliders.slice(nc0);
     decos.push(d);
   };
   // borda: anel sólido (atrás 3 tiles, frente 2)
@@ -260,7 +274,7 @@ export function buildBigDesert(variant = 'canion') {
   const cluster = (keys, cx, cy, rad, n, o = {}) => {
     for (let t = 0, c = 0; t < n * 12 && c < n; t++) {
       const a = r() * Math.PI * 2, d = rad * Math.sqrt(r()), x = cx + Math.cos(a) * d, y = cy + Math.sin(a) * d;
-      if (x < 4 || y < 4 || x > W - 3 || y > H - 3 || busy(x, y, 0.4) || (!o.path && distPath(x, y) < 1.4)) continue;
+      if (x < 4 || y < 4 || x > W - 3 || y > H - 3 || busy(x, y, 0.4) || (!o.path && distPath(x, y) < (o.phys === 'solido' ? (LY.largura ?? 3) + 0.8 : 1.4))) continue;
       add(pick(keys), x, y, { s: (o.s ?? 1) * (0.8 + r() * 0.4), flip: r() < 0.5, phys: o.phys }); c++;
     }
   };
@@ -270,7 +284,7 @@ export function buildBigDesert(variant = 'canion') {
   for (const d of decos.filter((d) => /arvore-7-[1-8]$/.test(d.key))) cluster(SECA, d.x, d.y, 2.2, 3);
   // areia aberta: tufos esparsos e algumas pedrinhas (passa por cima) e ossos
   for (let k = 0; k < 16; k++) { const x = 6 + r() * (W - 12), y = 6 + r() * (H - 12); if (!LY.clareiras || aberto(x, y) < 0) cluster(SECA, x, y, 1.6, 2 + ((r() * 3) | 0)); }
-  cluster(nums('pedras-1', [1, 4, 6, 8]), W / 2, H / 2, W * 0.45, 14, { s: 0.75, phys: 'chao' });
+  cluster(nums('pedras-1', [1, 4, 6, 8]), W / 2, H / 2, W * 0.45, 14, { s: 0.75, phys: 'solido' });
   cluster(['rochas-1', 'rochas-2', 'rochas-3', 'rochas-4', 'rochas-5', 'rochas-7'], W / 2, H / 2, W * 0.45, 12, { s: 0.55 });
   cluster(['ossos-1', 'ossos-6', 'itens-2-2', 'itens-2-3', 'ossos-5'], LY.ossos[0], LY.ossos[1], LY.ossos[2], LY.ossos[3], { path: true });
   // a escada do portal é caminhável (o anel da borda não a bloqueia)

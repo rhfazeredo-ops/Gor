@@ -11,6 +11,8 @@ var usar_e := false
 var bq: BotaoHab
 var be: BotaoHab
 var esquivar := false
+var pegar := false
+var bp: Button
 var _dedo := -1
 var _centro := Vector2.ZERO
 var _ponta := Vector2.ZERO
@@ -40,6 +42,19 @@ func _ready() -> void:
 	esq.add_theme_stylebox_override("normal", st); esq.add_theme_stylebox_override("pressed", st); esq.add_theme_stylebox_override("hover", st)
 	esq.button_down.connect(func(): esquivar = true)
 	add_child(esq)
+	# botão de interação (só aparece perto de algo que dá para pegar)
+	bp = Button.new(); bp.text = "PEGAR"; bp.add_theme_font_size_override("font_size", 40)
+	bp.add_theme_color_override("font_color", Color(1, 0.95, 0.8)); bp.add_theme_constant_override("outline_size", 8)
+	bp.add_theme_color_override("font_outline_color", Color(0.15, 0.07, 0.02))
+	bp.anchor_left = 1; bp.anchor_top = 1; bp.anchor_right = 1; bp.anchor_bottom = 1
+	bp.offset_left = -700; bp.offset_top = -230; bp.offset_right = -470; bp.offset_bottom = -120
+	var sp := StyleBoxFlat.new(); sp.bg_color = Color(0.2, 0.42, 0.16, 0.92); sp.set_corner_radius_all(55)
+	sp.border_color = Color(0.98, 0.82, 0.38); sp.set_border_width_all(6); sp.shadow_size = 10; sp.shadow_color = Color(0, 0, 0, 0.4)
+	var sp2 := sp.duplicate(); sp2.bg_color = Color(0.3, 0.58, 0.22, 0.95)
+	bp.add_theme_stylebox_override("normal", sp); bp.add_theme_stylebox_override("hover", sp); bp.add_theme_stylebox_override("pressed", sp2)
+	bp.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	bp.button_down.connect(func(): pegar = true)
+	bp.visible = false; add_child(bp)
 
 func _input(e: InputEvent) -> void:
 	if e is InputEventScreenTouch:
@@ -66,12 +81,24 @@ func _process(_d: float) -> void:
 	if Input.is_key_pressed(KEY_SHIFT): esquivar = true
 	if Input.is_key_pressed(KEY_Q): usar_q = true
 	if Input.is_key_pressed(KEY_E): usar_e = true
+	if Input.is_key_pressed(KEY_F) and bp.visible: pegar = true
 
 func consumir_q() -> bool:
 	var v := usar_q; usar_q = false; return v
 
 func consumir_e() -> bool:
 	var v := usar_e; usar_e = false; return v
+
+func consumir_pegar() -> bool:
+	var v := pegar; pegar = false; return v
+
+# mostra/esconde o botão de pegar (com um pulinho ao aparecer)
+func mostrar_pegar(sim: bool) -> void:
+	if sim == bp.visible: return
+	bp.visible = sim
+	if not sim: pegar = false; return
+	bp.pivot_offset = bp.size / 2.0; bp.scale = Vector2(0.6, 0.6)
+	bp.create_tween().tween_property(bp, "scale", Vector2.ONE, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 func consumir_esquiva() -> bool:
 	var e := esquivar; esquivar = false; return e

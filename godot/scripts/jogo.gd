@@ -25,6 +25,7 @@ func _ready() -> void:
 	m = Estado.missao
 	if args.has("missao"): m = Estado.MISSOES[0] if args.missao == "plantas" else Estado.MISSOES[1]
 	mapa = Mapa.new(); add_child(mapa); mapa.montar(m.layout)
+	if args.has("colisao"): mapa.desenhar_colisoes()
 	_luz()
 	heroi = Heroi.new(); add_child(heroi)
 	heroi.position = Vector3(mapa.dados.start.x + 2.5, 0, mapa.dados.start.y + 2.5)
@@ -179,12 +180,17 @@ func _physics_process(delta: float) -> void:
 	_areas(delta)
 	if poeira: poeira.global_position = heroi.global_position + Vector3(0, 1.5, 0)
 	mapa.animar(delta, heroi, cam)
+	if m.plantas:
+		if args.has("pegar") and controles.bp.visible: controles.pegar = true; args.erase("pegar")
+		_colher()
 	controles.bq.definir(heroi.recarga_q / heroi.RECARGA_Q, heroi.recarga_q, heroi.mana >= heroi.CUSTO_Q)
 	controles.be.definir(heroi.recarga_e / heroi.RECARGA_E, heroi.recarga_e, heroi.mana >= heroi.CUSTO_E)
 	var alvo := heroi.global_position + Vector3(heroi.mira.x, 0, heroi.mira.z) * 0.9
 	var desejo := alvo + Vector3(1, 0, 1).normalized() * 30.0 * cos(deg_to_rad(30)) + Vector3.UP * 30.0 * sin(deg_to_rad(30))
 	cam.global_position = cam.global_position.lerp(desejo, min(1.0, delta * 6.0)) if cam.global_position != Vector3.ZERO else desejo
 	cam.look_at(cam.global_position - (desejo - alvo), Vector3.UP)
+	if args.has("ponto"):
+		var pp := String(args.ponto).split(","); heroi.global_position = Vector3(float(pp[0]), 0, float(pp[1])); args.erase("ponto")
 	if args.has("geral"):
 		var c := Vector3(mapa.dados.w / 2.0, 0, mapa.dados.h / 2.0); cam.size = 62.0
 		cam.global_position = c + Vector3(1, 0, 1).normalized() * 30.0 * cos(deg_to_rad(30)) + Vector3.UP * 30.0 * sin(deg_to_rad(30))
@@ -193,13 +199,30 @@ func _physics_process(delta: float) -> void:
 	cam.h_offset = randf_range(-1, 1) * tremor * 0.12; cam.v_offset = randf_range(-1, 1) * tremor * 0.12
 	_atualizar_hud()
 
-func _colher() -> void:
-	for f in flores.duplicate():
+const ALCANCE_PEGAR := 1.5
+# planta mais próxima ao alcance (ou null)
+func _flor_perto():
+	var melhor = null; var dm := ALCANCE_PEGAR
+	for f in flores:
 		var s: Sprite3D = f[0]
-		if Vector2(heroi.global_position.x - s.position.x, heroi.global_position.z - s.position.z).length() < 0.9:
-			colhidas += 1; Fx.faiscas(self, s.position, 22, Color(1, 0.6, 0.3), 3.5, 0.3)
-			s.queue_free(); f[1].queue_free(); flores.erase(f)
-			_faixa("Planta rara coletada (%d/%d)" % [min(colhidas, m.alvo), m.alvo])
+		var dd := Vector2(heroi.global_position.x - s.position.x, heroi.global_position.z - s.position.z).length()
+		if dd < dm: dm = dd; melhor = f
+	return melhor
+
+# só colhe quando o jogador aperta "Pegar" (botão na tela ou F no teclado)
+func _colher() -> void:
+	var f = _flor_perto() if heroi.vivo else null
+	controles.mostrar_pegar(f != null)
+	if f == null or not controles.consumir_pegar(): return
+	var s: Sprite3D = f[0]
+	colhidas += 1; flores.erase(f)
+	Fx.faiscas(self, s.position, 22, Color(1, 0.6, 0.3), 3.5, 0.3)
+	f[1].queue_free()
+	var tw := s.create_tween()
+	tw.tween_property(s, "position", s.position + Vector3(0, 1.2, 0), 0.35).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(s, "modulate:a", 0.0, 0.35)
+	tw.tween_callback(s.queue_free)
+	_faixa("Planta rara coletada (%d/%d)" % [min(colhidas, m.alvo), m.alvo])
 
 func _atualizar_hud() -> void:
 	_barra(hud_vida, heroi.vida / heroi.vida_max); _barra(hud_mana, heroi.mana / heroi.mana_max)
