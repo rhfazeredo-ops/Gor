@@ -74,6 +74,11 @@
 - **Filmar o golpe para ajustar**: `--golpe=leve1|combo` deixa o jogo lento (`Engine.time_scale` ≈ 0,16) e
   salva um PNG por quadro desenhado (≈ 1/30 s de jogo cada) → folha de contatos. Pose parada engana; o
   movimento só se avalia assim (ex.: a preparação saía da tela por vários quadros).
+- **Copiar golpe de um vídeo de referência**: ffmpeg recortando só a área do vídeo (`crop`), 24 quadros/s,
+  achar os trechos com movimento (diferença entre quadros), montar folhas de contatos e anotar: guarda, para
+  onde vai a preparação, quantos quadros dura o corte, onde termina e como volta. No vídeo de espada e escudo
+  do dono: guarda com a espada EM PÉ à direita e o escudo embaixo à esquerda; preparação rápida que tira a
+  espada da tela; corte de ~0,1 s atravessando a tela; termina fora da tela e volta SUBINDO por baixo.
 - Sensação de golpe: rastro da lâmina (faixa clara só na metade de fora da lâmina, some em 0,11 s) e a câmera
   vira 2–5° junto com o corte (yaw), além do pitch/roll.
 - Ações (escudada) = lista de [duração, pose, tranco da câmera]; golpe com easing "rápido no
