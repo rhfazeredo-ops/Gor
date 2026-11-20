@@ -71,6 +71,11 @@
   na frente); mão num Bézier quadrático passando à frente do corpo. Fases: preparação, corte, seguir, volta;
   o combo emenda do fim do golpe. Manter a lâmina visível: preparação com a mão em z ≈ -0,5 (não atrás da
   câmera), o meio do arco com componente para cima (senão a lâmina fica de ponta para a câmera).
+- **Filmar o golpe para ajustar**: `--golpe=leve1|combo` deixa o jogo lento (`Engine.time_scale` ≈ 0,16) e
+  salva um PNG por quadro desenhado (≈ 1/30 s de jogo cada) → folha de contatos. Pose parada engana; o
+  movimento só se avalia assim (ex.: a preparação saía da tela por vários quadros).
+- Sensação de golpe: rastro da lâmina (faixa clara só na metade de fora da lâmina, some em 0,11 s) e a câmera
+  vira 2–5° junto com o corte (yaw), além do pitch/roll.
 - Ações (escudada) = lista de [duração, pose, tranco da câmera]; golpe com easing "rápido no
   começo" (1-(1-u)^3), preparação com smoothstep; combo encadeia se apertar durante o golpe.
 - Sensação de peso: armas atrasam ao girar a câmera (sway), balanço do passo em figura de 8, respiração,
