@@ -110,6 +110,9 @@
   travessas em pedaços de 1 m seguindo o chão; colisão = caixa por trecho reto da altura mínima até a máxima
   do chão + altura da cerca (porteira aberta). Blocos soltos (ruínas) assentados no canto mais baixo.
   Teste `--andar=s` empurra o jogador para a frente e diz onde parou.
+- **Nada em cima da estrada:** `_longe_da_estrada(centro, meia, ang)` empurra a área da construção pelo
+  gradiente da distância à estrada até sobrar 1,5 m da beira (5×5 pontos da área); usado em toda casa e nos
+  campos com cerca, antes de aplanar. Teste `--estrada` lista o que ainda encosta na estrada.
 - Atenção: `rotation.y = a` gira (x,z) por **-a** em `Vector2.rotated`.
 - Jogador preso na região e fora da água funda: volta para a última posição boa.
 - Desenho de mapa de referência de jogo de terceiros: aproveitar só princípios (vila no cruzamento,
