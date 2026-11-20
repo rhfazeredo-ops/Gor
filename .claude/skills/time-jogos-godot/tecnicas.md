@@ -37,9 +37,9 @@
 
 ## Estilo pixel leve para vegetação
 - Grama: cada folha é **um retângulo** (2 triângulos) de ponta quadrada, cor da base à ponta em 4 degraus.
-- Folhas de verdade (perto, até ~75 m): cada folha um quadradinho fino em 3D (QuadMesh numa MultiMesh,
-  rotação aleatória nos 3 eixos, dupla face), ~50 por **tufo**, tufos nas pontas dos galhos da malha do tronco
-  + alguns extras; luz pela face (dois tons), miolo do tufo mais escuro, vento pelo centro do tufo
+- Folhas de verdade (perto, até ~60 m): cada folha um quadradinho fino em 3D (QuadMesh numa MultiMesh,
+  rotação aleatória nos 3 eixos, dupla face), ~56 folhas pequenas (0,15–0,21 m) por **tufo**, ~21 tufos por árvore (3 em volta de cada ponta de galho
+  + 9 pela copa); luz pela face (dois tons), miolo do tufo mais escuro, vento pelo centro do tufo
   (INSTANCE_CUSTOM). Montadas por pedaço perto do jogador; de longe ficam os splats.
 - Folhas de longe: splats **quadrados** (`quadrado = true` no splat.gdshader), girados um pouco cada um
   pela posição, canto inferior direito um tom mais escuro.
