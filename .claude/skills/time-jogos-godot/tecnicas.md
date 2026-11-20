@@ -37,7 +37,8 @@
 
 ## Árvores em "cartões" (alpha cards) — o jeito leve dos MMOs
 - Tronco simples (6 lados, abrindo na base) + copa de ~25 retângulos planos cruzados, cada um com o desenho de
-  um galho folhoso de fundo transparente (gerado em código: Image RGBA, folhinhas quadradas em tons de cinza;
+  um galho de fundo transparente (gerado em código: Image RGBA em tons de cinza; graveto curvo que afina e se
+  divide, cachos de folhas com formato de folha — oval de pontas finas com nervura —, claras no alto do cacho;
   a cor vem da instância). Pinheiro: 7 andares de cartões de agulhas caídos 18–32° + 2 cruzados na ponta.
   Arbusto: 5 cartões cruzados + 1 deitado.
 - Shader: corte duro do alfa (`discard` < 0,5 → opaco, sem ordenar), textura NEAREST com mipmaps, luz pela face
