@@ -64,7 +64,14 @@
 ## Braços em primeira pessoa (animação procedural, sem esqueleto)
 - Pivôs das mãos presos à câmera; poses como dados: espada = [posição do cabo, direção da lâmina, giro do fio]
   (montar a Basis a partir da direção é bem mais fácil de acertar do que ângulos de Euler).
-- Ações = lista de [duração, pose direita, pose esquerda, tranco da câmera]; golpe com easing "rápido no
+- **Golpes de espada sem "espada torta":** não interpolar Transform entre poses (o slerp da rotação gira a
+  lâmina em volta dela mesma). Guardar a mão como [posição do cabo, direção da lâmina, normal da face] e montar
+  a Basis (Y = lâmina, Z = face, X = guarda). Corte = arco: direção com dois slerps encadeados
+  (preparação → meio apontando para a frente/cima → fim) e a face fixa = normal do plano do arco (o fio vai
+  na frente); mão num Bézier quadrático passando à frente do corpo. Fases: preparação, corte, seguir, volta;
+  o combo emenda do fim do golpe. Manter a lâmina visível: preparação com a mão em z ≈ -0,5 (não atrás da
+  câmera), o meio do arco com componente para cima (senão a lâmina fica de ponta para a câmera).
+- Ações (escudada) = lista de [duração, pose, tranco da câmera]; golpe com easing "rápido no
   começo" (1-(1-u)^3), preparação com smoothstep; combo encadeia se apertar durante o golpe.
 - Sensação de peso: armas atrasam ao girar a câmera (sway), balanço do passo em figura de 8, respiração,
   tranco da câmera (pitch/roll/avanço) no impacto, afundar ao cair.
