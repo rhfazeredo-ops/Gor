@@ -105,6 +105,11 @@
   montar o terreno; a altura do piso é a média do chão nos cantos/centro e o terreno aplana o retângulo
   (+1 m de folga) e volta suave na margem. Alicerce descendo 1,2 m. Grupos juntos (acampamento) = um plano só
   (planos sobrepostos com alturas diferentes fazem degrau). Teste `--checar` mede o vão em cada canto.
+- **Cercas e muros sempre no chão e sólidos:** montar DEPOIS do terreno (lista de Callables), usando a altura
+  exata da malha (`altura_malha`, não a fórmula — os triângulos de 2 m diferem dela): mourões enterrados 0,6 m,
+  travessas em pedaços de 1 m seguindo o chão; colisão = caixa por trecho reto da altura mínima até a máxima
+  do chão + altura da cerca (porteira aberta). Blocos soltos (ruínas) assentados no canto mais baixo.
+  Teste `--andar=s` empurra o jogador para a frente e diz onde parou.
 - Atenção: `rotation.y = a` gira (x,z) por **-a** em `Vector2.rotated`.
 - Jogador preso na região e fora da água funda: volta para a última posição boa.
 - Desenho de mapa de referência de jogo de terceiros: aproveitar só princípios (vila no cruzamento,
