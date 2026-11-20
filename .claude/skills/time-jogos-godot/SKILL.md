@@ -18,6 +18,15 @@ com Gaussian splats). Detalhes técnicos em `tecnicas.md`; código reaproveitáv
 - Nunca pedir chave/segredo no chat: usar o formulário seguro de credencial do ambiente.
 - Gosta de técnicas novas (Gaussian splat, procedural, pixel art 3D); explicar custo/limites com honestidade
   e propor um teste pequeno antes de mudar tudo.
+- **Prompts sempre prontos**: quando pedir arte, mandar o prompt completo, para colar direto no ChatGPT,
+  sem partes para o dono editar. Um prompt por peça, em português, em bloco de código.
+- **Arte 2D → 3D**: imagem no ChatGPT (folha com 4 vistas ortográficas: frente, esquerda, costas, direita;
+  fundo cinza liso, luz neutra, sem sombra, sem perspectiva, cores chapadas) → prompt de "separar as vistas"
+  → Tripo 3D em **Multiview**, Low Poly, textura 1K, PBR desligado, sem rig (o rig é feito por nós), GLB.
+  Sempre dar junto as especificações do Tripo (faces por tipo de peça e tamanho real em metros).
+- Próximo projeto (planejado): jogo de fantasia medieval em **primeira pessoa**, visual "3D pintado com cara de
+  pixel art" (paleta reduzida, sombras em blocos, céu de tempestade, vale com vila), mundo em pixel splats
+  gerados por código e objetos do Tripo com o mesmo filtro.
 - Preferências de jogo do Terra de Gor: sem contadores (moedas/diamantes/chaves) na tela; música do título desde
   a abertura até o lobby; música do deserto só nos mapas de deserto, a partir dos 4 s.
 
