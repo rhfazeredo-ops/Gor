@@ -35,6 +35,19 @@
 - GDScript: `var x := array[i]` de Array sem tipo não compila → declarar o tipo (`var x: Color = ...`).
 - Gerar malhas por código: SurfaceTool com várias superfícies (uma por material) no mesmo ArrayMesh.
 
+## Árvores em "cartões" (alpha cards) — o jeito leve dos MMOs
+- Tronco simples (6 lados, abrindo na base) + copa de ~25 retângulos planos cruzados, cada um com o desenho de
+  um galho folhoso de fundo transparente (gerado em código: Image RGBA, folhinhas quadradas em tons de cinza;
+  a cor vem da instância). Pinheiro: 7 andares de cartões de agulhas caídos 18–32° + 2 cruzados na ponta.
+  Arbusto: 5 cartões cruzados + 1 deitado.
+- Shader: corte duro do alfa (`discard` < 0,5 → opaco, sem ordenar), textura NEAREST com mipmaps, luz pela face
+  em dois tons, vento maior no alto. A mesma árvore de perto e de longe (sem troca de detalhe).
+- MultiMesh separada para tronco (sem cor de instância — o shader PS1 multiplica COLOR) e cartões (com cor).
+- Pedaços de 128 m para ter poucos draw calls. Resultado: floresta densa com o FPS voltando de 2–3 para 5–7
+  (no container sem GPU), contra ~2.200 quadradinhos por árvore da versão "folhas de verdade".
+- Gravetos do desenho curtos e no meio do cartão: gravetos saindo da borda de baixo viram "guarda-chuva"
+  vistos de baixo.
+
 ## Estilo pixel leve para vegetação
 - Grama: cada folha é **um retângulo** (2 triângulos) de ponta quadrada, cor da base à ponta em 4 degraus.
 - Folhas de verdade (perto, até ~60 m): cada folha um quadradinho fino em 3D (QuadMesh numa MultiMesh,
