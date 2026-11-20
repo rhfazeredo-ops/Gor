@@ -154,6 +154,16 @@
   - Conferir sempre com `godot/ferramentas/ver_modelo.gd` (folha com 4 vistas + close).
   - No Godot: trocar o material do GLB pelo shader PS1 usando a `albedo_texture` original (`modelo_ps1()`).
   - Personagem do Tripo vem de frente para +X: girar -90° em Y para ficar de frente para +Z.
+- **NPC base com skins por cor (Dallarian):** o Tripo já entrega o personagem com esqueleto (78 ossos, nomes
+  L_Thigh/L_Calf/L_Upperarm/Head…), ~500 mil tris; `tripo-ps1.mjs` reduz para 2.200 mantendo pele e pesos.
+  Pele e túnica (e cabelo e couro) têm a MESMA cor na textura → separar pela parte do corpo: na carga, gravar
+  em COLOR de cada vértice o peso dos ossos da cabeça (r) e das mãos (g); o shader junta isso com a cor do
+  pixel (cinza = calça, escuro = couro/cabelo, claro = pele/túnica) e troca cada área pela cor sorteada,
+  mantendo o sombreado (brilho do pixel / brilho típico da área). Uma malha preparada é reaproveitada (static).
+- Animação procedural nos ossos: pose global = rotação (eixo do esqueleto) * repouso levado pelo pai;
+  local = global_do_pai⁻¹ * global. Conferir o eixo "para a frente" do modelo (este olha para +X).
+- NPC andando: CharacterBody3D em MOTION_MODE_FLOATING + altura do terreno a cada quadro (com gravidade, eles
+  caíam pelo chão antes dos pedaços de terreno com colisão existirem).
 - Monstro simples: animar por deformação de vértices no shader (escorpião) em vez de rig.
 
 ## Chão em Gaussian splats estilo pixel art (`codigo/splat_chao.gdshader`, `codigo/chao_splat.gd`)
