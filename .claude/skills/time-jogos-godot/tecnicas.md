@@ -448,3 +448,10 @@
   com a cor da névoa (senão o horizonte azul aparece atrás da névoa). Salvar em user://config.json.
 - Menu com o jogo pausado: `get_tree().paused = true` e process_mode ALWAYS no menu e nos botões.
 
+
+## Diálogo dublado: nunca cortar a voz
+- No celular o toque gera também um clique de mouse emulado: o toque que aperta CONVERSAR chegava na caixa de
+  diálogo recém-aberta e pulava a 1ª fala (a voz da heroína "não saía"). Tocar na caixa só avança se a voz
+  atual já terminou (e nunca nos primeiros 0,6 s); o avanço automático também espera a voz acabar; a conversa
+  só fecha no fim das falas (ou se o jogador se afastar bastante).
+
