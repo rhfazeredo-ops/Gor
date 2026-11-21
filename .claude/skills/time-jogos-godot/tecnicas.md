@@ -378,3 +378,18 @@
   (rajadas), loop cruzado de 3 s, loudnorm -22 LUFS; volume segue a força do vento.
 - Relógio clean: hora de 5 em 5 min embaixo da bússola, sol (círculo + raios) ou lua (draw_arc grosso).
 
+
+## Otimização para celular (medir antes de mexer)
+- Medir com `Performance.get_monitor` (RENDER_TOTAL_DRAW_CALLS_IN_FRAME, RENDER_TOTAL_PRIMITIVES_IN_FRAME,
+  TIME_PROCESS) num teste `--perf`, e o tempo de cada script trocando `_process` por um embrulho que soma
+  `Time.get_ticks_usec()` (tirar depois). Triângulos por sistema: somar malhas × instâncias por dono.
+- Metas de celular médio: ≲ 200 mil triângulos e ≲ 300 chamadas de desenho por quadro.
+- O que mais rendeu no Dallarian: (1) LOD das árvores de cartões — copa completa até ~90 m, versão com 9
+  cartões maiores depois (`visibility_range_end/begin` em dois MultiMesh com as mesmas posições); (2) alcance
+  menor de árvores/grama/splats escondido pela neblina mais perto (neb_fim 330 → 270); (3) blocos maiores de
+  grama/splats e terreno distante juntado em blocos 2×2 com `SurfaceTool.append_from`; (4) juntar peças
+  paradas do mesmo material por célula de 96 m; (5) animação de ossos dos NPCs a cada 3–5 quadros de longe
+  (tempo acumulado) e nada além de 95 m; lobos idem; (6) menos variedade por pedaço (2 copas, 1 flor).
+- Variável `celular` (OS.has_feature("mobile") ou `--celular` no PC) corta mais distância/densidade só no
+  celular.
+
