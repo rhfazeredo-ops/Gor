@@ -258,3 +258,17 @@
 - Crianças: pega-pega — pegador corre até o outro, o fugitivo foge em curva (vetor de fuga girado) e volta
   para o centro da área; ao pegar, trocam os papéis e o novo pegador "conta" 1,3 s. Corrida = mesma caminhada
   com passo maior, joelho mais dobrado, braços dobrados e tronco inclinado (`_corre` 0..1 pela velocidade).
+
+## Golpes em primeira pessoa (orientação da espada)
+- O dono quer a espada **em pé** parada, andando e correndo; no corte vertical ela fica em pé (componente x da
+  direção ≈ 0 o golpe todo) e no horizontal fica **deitada** (y ≈ 0). Armadilha de perspectiva: lâmina
+  apontando para a FRENTE com a mão abaixo dos olhos parece apontar para CIMA, e na altura dos olhos some.
+  No corte horizontal, a lâmina aponta para o lado do movimento (ex.: direita-frente) com a mão ainda à
+  esquerda, e só depois a mão atravessa — assim ela cruza a tela deitada.
+- Testar golpes com prints congelados (`--pose=d=golpe:fase:u`), vários de uma vez em paralelo e montados
+  numa folha.
+- Pulo no celular: guardar o pedido 0,2 s e aceitar até 0,15 s depois de sair do chão (terreno irregular
+  "descola" o corpo); garantir multitoque checando o retângulo do botão no `_input`.
+- Tripo: modelo "com animação" pode chegar só com o rig (sem `animations` no GLB) — conferir com gltf-transform
+  antes de prometer usar a animação.
+
