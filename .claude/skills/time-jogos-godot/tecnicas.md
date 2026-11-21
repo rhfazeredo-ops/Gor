@@ -162,6 +162,16 @@
   mantendo o sombreado (brilho do pixel / brilho típico da área). Uma malha preparada é reaproveitada (static).
 - Animação procedural nos ossos: pose global = rotação (eixo do esqueleto) * repouso levado pelo pai;
   local = global_do_pai⁻¹ * global. Conferir o eixo "para a frente" do modelo (este olha para +X).
+- **Personagem do Tripo SEM esqueleto (mesmo corpo base):** `tools/transferir-esqueleto.mjs base_rigado novo saida`
+  alinha os dois (altura/pés/centro) e cada vértice copia ossos+pesos dos 4 vértices mais próximos do base.
+- **Ferramenta na mão:** BoneAttachment3D no osso R_Hand; achar o eixo do cabo por PCA dos vértices, a cabeça
+  pelo trecho mais largo e a "face/lâmina" pelo vértice mais afastado do eixo nesse trecho; montar a Basis
+  (Y = cabo para a cabeça, Z = face) e alinhar com o desejado no espaço do esqueleto (cabo para a frente,
+  cabeça para baixo na pose de repouso); compensar a escala do modelo para o tamanho real.
+- **Profissões:** estado "trabalho" fixo no posto; golpe em ciclo (sobe devagar 62%, desce rápido, segura) que
+  dispara um Callable no impacto → CPUParticles3D one_shot `restart()` (faíscas na bigorna, lascas no tronco).
+  Fazendeiro dentro do campo: muda de canteiro a cada 10–20 s; agachado na terra arada, colhendo em pé no
+  trigo (agachado some no trigo alto).
 - **NPC com vida:** estados andar / atividade / conversa. A animação de andar pesa pela velocidade REAL
   (get_real_velocity), nunca pela intenção — senão ele "anda parado" quando trava; travado 0,8 s → desiste e faz
   outra coisa. Destinos em lugares de interesse (porta das casas, beira do poço, frente da ferraria) com
