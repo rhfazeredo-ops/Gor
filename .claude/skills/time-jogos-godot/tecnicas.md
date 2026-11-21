@@ -338,3 +338,10 @@
 - Ícones: usar `assets/ui/itens/<id>.png` se existir; senão desenhar um provisório no código (Image).
 - Retrato de NPC na janela: SubViewport com o modelo, câmera ortográfica no rosto (como o retrato do HUD).
 
+
+## Recortar folhas de ícones (PNG com transparência)
+- Separar as peças pelas colunas com alfa forte (alfa > 40) e recortar cada peça pelo bbox de alfa > 60:
+  o bbox com alfa > 0 pega um "brilho" quase invisível na folha inteira e o ícone fica minúsculo no espaço.
+- Ícones de item 128×128 quadrados (margem de 4%), moedas 64×64, símbolos de botão 160×160 com o mesmo
+  preenchimento dos outros (medir o bbox de um ícone que já existe).
+
