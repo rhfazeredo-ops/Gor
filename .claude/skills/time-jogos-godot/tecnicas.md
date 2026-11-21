@@ -410,3 +410,12 @@
   ficar abaixo do nível do mar. render_priority 1, depth_draw_never, alfa.
 - Ruído de valor quase nunca passa de 0,8: limiar ~0,66 para aparecer riscos.
 
+
+## Itens com status (estilo WoW Classic)
+- Item = dicionário com tipo (arma/escudo), dano_min/max, velocidade, armadura, bloqueio, nível; equipamento
+  salvo junto do progresso; EQUIPAR troca com o que está na mão; sinal `equipou` troca o modelo na mão.
+- Dano do jogador = arma + bônus por nível; crítico 5%. Redução por armadura do Classic:
+  `arm / (arm + 400 + 85 × nível do atacante)`. Bloqueio ativo: 1º golpe depois de levantar = bloqueio total.
+- Números de combate: guardar a posição 3D e a cada quadro `cam.unproject_position(pos) * REDUCAO` (a câmera
+  está na SubViewport reduzida); sobem e somem em ~1,3 s; tamanho ≥ 50 na tela de 1920 de base.
+
