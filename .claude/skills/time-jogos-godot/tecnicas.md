@@ -162,6 +162,13 @@
   mantendo o sombreado (brilho do pixel / brilho típico da área). Uma malha preparada é reaproveitada (static).
 - Animação procedural nos ossos: pose global = rotação (eixo do esqueleto) * repouso levado pelo pai;
   local = global_do_pai⁻¹ * global. Conferir o eixo "para a frente" do modelo (este olha para +X).
+- **NPC com vida:** estados andar / atividade / conversa. A animação de andar pesa pela velocidade REAL
+  (get_real_velocity), nunca pela intenção — senão ele "anda parado" quando trava; travado 0,8 s → desiste e faz
+  outra coisa. Destinos em lugares de interesse (porta das casas, beira do poço, frente da ferraria) com
+  atividade própria (olhar em volta, braços cruzados, mãos atrás, coçar a cabeça, debruçar no poço, agachar).
+  Conversa: um convida outro livre perto, os dois vão para pontos a 1,3 m um do outro, ficam de frente, quem
+  fala gesticula (braço sobe e mexe), quem ouve cruza os braços e balança a cabeça; trocam a vez a cada 2–5 s.
+  Poses em quatérnios por osso, suavizadas (slerp) — troca de pose sem estalo.
 - NPC andando: CharacterBody3D em MOTION_MODE_FLOATING + altura do terreno a cada quadro (com gravidade, eles
   caíam pelo chão antes dos pedaços de terreno com colisão existirem).
 - Monstro simples: animar por deformação de vértices no shader (escorpião) em vez de rig.
