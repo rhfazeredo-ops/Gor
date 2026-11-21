@@ -292,3 +292,15 @@
 - Testes: `--lobos=N --lobo_anim=correr|atacar:u|esquivar:u --lobo_um=0 --lobo_pos=x,z` (prints congelados) e
   `--lobo_log=1 --lutar=1` (estado da matilha por segundo e mordidas).
 
+
+## Fauna leve (peixes e pássaros)
+- Peixes = MultiMesh de quadrados deitados com a silhueta desenhada no shader (oval + cauda, pixels grandes,
+  cauda balançando por INSTANCE_CUSTOM), escuros e meio transparentes logo acima da água opaca (render_priority).
+  **Visto da beira o quadrado deitado vira um risco**: alargar a largura no vertex shader conforme o ângulo
+  da câmera (`VERTEX.z *= clamp(0.7/|v.y|, 1, 4)`).
+- Seguir o rio pela distância ao longo da linha (comprimento acumulado), com deslocamento lateral dentro da
+  largura; lago = volta em círculo entre a ilha e a margem.
+- Pássaros: corpo + duas asas em pivôs (rotation.z bate/plana); bando em V. Tudo perto do jogador: grupo que
+  fica longe renasce perto dele (não gasta nada no resto do mapa).
+- class_name novo só é achado pelo jogo depois de `godot --headless --import` (atualiza o cache de classes).
+
