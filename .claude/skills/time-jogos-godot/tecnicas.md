@@ -402,3 +402,11 @@
   O giro de lado é em volta do pé: tirar o "abaixar" enquanto tomba, senão o corpo entra no chão.
 - XP estilo WoW Classic: tabela do Classic + XP por bicho = 45 + 5×nível, ±por diferença de nível, zero se cinza.
 
+
+## Espuma nas beiradas da água
+- Faixa de malha ao longo da margem com UV.x = metros ao longo e UV.y = 0 (água) → 1 (margem) e um shader só:
+  modo ondas (cristas `fract(y - t)` andando para a margem + espuma na beira) e modo correnteza (riscos finos
+  em trilhas estreitas descendo o rio: ruído em x - t). Linha da praia achada andando em x até o chão
+  ficar abaixo do nível do mar. render_priority 1, depth_draw_never, alfa.
+- Ruído de valor quase nunca passa de 0,8: limiar ~0,66 para aparecer riscos.
+
