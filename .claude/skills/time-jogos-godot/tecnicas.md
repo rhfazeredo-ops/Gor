@@ -315,3 +315,13 @@
   some: usar escala ≥ 1.
 - `--desenhos` salva as texturas dos cartões em user:// para conferir lado a lado.
 
+
+## Progresso, bolsa e loja
+- Dinheiro guardado num inteiro só, em cobre (100 cobre = 1 prata, 100 prata = 1 ouro); converter só para mostrar.
+- Curva de níveis suave para nível máximo 30: XP(n) = 80·n^1,5 arredondado de 10 em 10 (multiplicar por 1,5 a
+  cada nível explode: 1,5^29). Ao carregar o jogo, recalcular vida/mana máximas pelo nível.
+- Salvar progresso em `user://progresso.json` (FileAccess + JSON) com atraso de 1 s depois de mudar; nos testes
+  com `--shot` não carregar nem salvar (resultado sempre igual).
+- Painéis de loja com PanelContainer + StyleBoxFlat (fundo escuro, borda dourada); desligar o `_input` dos
+  controles enquanto o painel está aberto (o toque no painel não mexe o joystick).
+
