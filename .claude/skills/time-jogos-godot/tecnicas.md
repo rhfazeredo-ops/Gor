@@ -228,3 +228,33 @@
 - APK do Godot no CI: Java 17, keystore de debug em cache (mesma assinatura → instala por cima),
   `editor_settings-4.5.tres` com caminhos do Android, `--export-debug "Android"`, release `apk-godot`.
 - Web: ler parâmetros do endereço com `JavaScriptBridge.eval("location.search")` (só se `OS.has_feature("web")`).
+
+## Dia e noite (sem luzes de verdade, leve no celular)
+- Relógio no script do mundo (1 h de jogo = 1 min). Uniforms **globais** (project.godot `[shader_globals]`):
+  `luz_ambiente` (vec3: branco de dia, laranja no crepúsculo, azul-escuro de noite), `noite` (0..1) e
+  `lanterna0..5` (vec4: posição + força) com as 6 lanternas/fogueiras mais perto do jogador (reordenar a
+  cada 0,25 s). Sem arrays globais no Godot: usar vários vec4.
+- Um include `shaders/noite.gdshaderinc` com `noite_cor(cor, pos_mundo)` e `noite_nevoa(neblina)`; em todo
+  shader do mundo a linha final vira `ALBEDO = mix(noite_cor(c, (INV_VIEW_MATRIX * vec4(VERTEX, 1.0)).xyz),
+  noite_nevoa(neblina), nb)` — a posição no mundo sai do VERTEX do fragment, sem mexer no vertex shader.
+- Luz das lanternas em faixas (`floor(q*6)/6`) = cara de pixel art. Chamas e lanternas usam `brilha = true`
+  (não escurecem). Céu: mistura para azul-marinho, estrelas por hash numa grade de ângulos, lua num ponto fixo.
+- Descansar (barraca): ColorRect preto com tween (escurece → muda a hora → aviso → clareia).
+
+## Armas e props do Tripo
+- **Eixo de uma arma/ferramenta**: `tools/eixo-ferramenta.mjs arquivo.glb` (PCA: eixo, ponta mín/máx, largura
+  por trecho — o trecho mais largo é a guarda/cabeça, e a direção dele dá a guarda). Montar a Basis
+  (guarda, lâmina, guarda×lâmina), transpor e pôr a origem no ponto do cabo: `Transform3D(r.scaled(k), -(r*cabo)*k)`.
+- Escudo: medir qual face tem o umbo (frente) e girar para a frente da mão; a alça atrás fica na luva.
+- Props com ponto especial (lanterna do poste): achar os vértices da peça no arquivo (filtro por região) e
+  guardar o centro; depois `mod.global_transform * ponto` dá a posição da luz no mundo.
+- Barracas/acampamentos: escolher candidatos (longe da vila, de estradas, rio, lago, lugares, campos, chão sem
+  desnível) e pegar os mais espalhados com escolha gulosa (cada nova o mais longe possível das escolhidas).
+
+## Variedade de NPCs
+- Cada corpo novo (mulher, gorda, velha, forte, velho, crianças) é um modelo próprio com o esqueleto do NPC
+  base transferido (`transferir-esqueleto.mjs --eixos`), então toda a animação procedural serve. Tipo define
+  altura e "ritmo" (velhos andam e balançam mais devagar); cache da malha com regiões por skin.
+- Crianças: pega-pega — pegador corre até o outro, o fugitivo foge em curva (vetor de fuga girado) e volta
+  para o centro da área; ao pegar, trocam os papéis e o novo pegador "conta" 1,3 s. Corrida = mesma caminhada
+  com passo maior, joelho mais dobrado, braços dobrados e tronco inclinado (`_corre` 0..1 pela velocidade).

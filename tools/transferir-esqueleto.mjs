@@ -1,10 +1,11 @@
 // Dá a um personagem SEM esqueleto o esqueleto de outro já rigado (mesmo corpo base do Tripo): alinha os dois
 // (pés no chão, mesma altura, centralizados), e cada vértice do novo copia os ossos e pesos dos 4 vértices mais
 // próximos do rigado (média pela distância). Grava um GLB com o esqueleto do base e a malha/textura do novo.
-// Uso: node tools/transferir-esqueleto.mjs base_rigado.glb novo_sem_esqueleto.glb saida.glb
+// Uso: node tools/transferir-esqueleto.mjs base_rigado.glb novo_sem_esqueleto.glb saida.glb [--eixos]
+// --eixos: ajusta largura e profundidade separadas da altura (corpos de outra proporção: crianças, gordos, idosos)
 import { NodeIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
-const [,, fBase, fNovo, fSai] = process.argv;
+const [,, fBase, fNovo, fSai, opc] = process.argv;
 const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
 const base = await io.read(fBase), novo = await io.read(fNovo);
 const pb = base.getRoot().listMeshes()[0].listPrimitives()[0];
@@ -18,12 +19,17 @@ const caixa = (acc, mat) => { const mn = [1e9, 1e9, 1e9], mx = [-1e9, -1e9, -1e9
     out.push(p); for (let k = 0; k < 3; k++) { mn[k] = Math.min(mn[k], p[k]); mx[k] = Math.max(mx[k], p[k]); } } return { mn, mx, out }; };
 const cb = caixa(posB), cn = caixa(pn.getAttribute('POSITION'), M);
 const s = (cb.mx[1] - cb.mn[1]) / (cn.mx[1] - cn.mn[1]);
+const sx = opc === '--eixos' ? (cb.mx[0] - cb.mn[0]) / (cn.mx[0] - cn.mn[0]) : s;
+const sz = opc === '--eixos' ? (cb.mx[2] - cb.mn[2]) / (cn.mx[2] - cn.mn[2]) : s;
+// pesos achados no espaço do base (ajustado); a malha final volta ao tamanho próprio (só escala uniforme)
+const alinharB = (p) => [(p[0] - (cn.mn[0] + cn.mx[0]) / 2) * sx + (cb.mn[0] + cb.mx[0]) / 2, (p[1] - cn.mn[1]) * s + cb.mn[1], (p[2] - (cn.mn[2] + cn.mx[2]) / 2) * sz + (cb.mn[2] + cb.mx[2]) / 2];
 const alinhar = (p) => [(p[0] - (cn.mn[0] + cn.mx[0]) / 2) * s + (cb.mn[0] + cb.mx[0]) / 2, (p[1] - cn.mn[1]) * s + cb.mn[1], (p[2] - (cn.mn[2] + cn.mx[2]) / 2) * s + (cb.mn[2] + cb.mx[2]) / 2];
 const novas = cn.out.map(alinhar);
+const busca = cn.out.map(alinharB);
 const jv = [0, 0, 0, 0], wv = [0, 0, 0, 0];
 const J = new Uint16Array(novas.length * 4), W = new Float32Array(novas.length * 4);
 for (let i = 0; i < novas.length; i++) {
-  const p = novas[i]; const melhores = [];
+  const p = busca[i]; const melhores = [];
   for (let k = 0; k < cb.out.length; k++) { const q = cb.out[k]; const d = (p[0]-q[0])**2 + (p[1]-q[1])**2 + (p[2]-q[2])**2;
     if (melhores.length < 4 || d < melhores[3][0]) { melhores.push([d, k]); melhores.sort((a, b) => a[0] - b[0]); if (melhores.length > 4) melhores.pop(); } }
   const acum = new Map();
