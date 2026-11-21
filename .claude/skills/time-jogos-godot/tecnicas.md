@@ -419,3 +419,12 @@
 - Números de combate: guardar a posição 3D e a cada quadro `cam.unproject_position(pos) * REDUCAO` (a câmera
   está na SubViewport reduzida); sobem e somem em ~1,3 s; tamanho ≥ 50 na tela de 1920 de base.
 
+
+## Mapa da região (estilo WoW)
+- Gerar a imagem com o PRÓPRIO terreno do jogo num script `extends SceneTree` rodado com
+  `godot --headless --script` (Regiao.new(): cor do chão, relevo sombreado pela derivada da altura, água,
+  matas) → acabamento em Python (tom de pergaminho, granulado, vinheta, pixels 2×). 768 px para 1,2 km.
+- Janela: Control que desenha a textura num quadrado com moldura, a posição do jogador convertida de mundo
+  para UV `(x + LIM) / (2·LIM)` e uma seta apontando para `-basis.z`. Esconder bússola/relógio com ele aberto.
+- Sem marcar lugares: a descoberta fica só na bússola (decisão do dono).
+
