@@ -369,3 +369,12 @@
 - Efeito longo (rosnado) vira 3 sons: um longo (alerta) e dois curtos (ataque), com fade de 0,08/0,25 s;
   tom mais grave para o líder (pitch 0,8) e espera mínima entre um som e outro do mesmo bicho.
 
+
+## Vento e relógio
+- Vento: uniform global `forca_vento` multiplicando o balanço que os shaders já tinham (grama, cartões,
+  splats); rajadas = soma de senos lentos no relógio da física; chuva soma mais vento. Folhinhas voando =
+  CPUParticles3D (local_coords false) atrás do jogador no sentido do vento, só nas rajadas e de dia.
+- Som de vento sem arquivo do dono: ffmpeg `anoisesrc=color=brown` + lowpass 700 Hz + volume oscilando
+  (rajadas), loop cruzado de 3 s, loudnorm -22 LUFS; volume segue a força do vento.
+- Relógio clean: hora de 5 em 5 min embaixo da bússola, sol (círculo + raios) ou lua (draw_arc grosso).
+
