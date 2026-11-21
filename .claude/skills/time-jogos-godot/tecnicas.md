@@ -455,3 +455,11 @@
   atual já terminou (e nunca nos primeiros 0,6 s); o avanço automático também espera a voz acabar; a conversa
   só fecha no fim das falas (ou se o jogador se afastar bastante).
 
+
+## Monstros que voltam (respawn)
+- Na morte, guardar uma Callable que recria o bicho com os mesmos dados (tipo, nível, grupo, posição de casa)
+  numa lista [segundos, Callable, grupo]; a cada quadro descontar; ao vencer, se o jogador estiver perto da
+  casa esperar mais 10 s (não "brotar" na cara dele); trocar os mortos do grupo pelo novo.
+- Chefe: volta muito depois (1 h) e no ponto da rota mais longe do jogador.
+- Grupo de bicho sozinho: o dicionário do grupo do bicho e o da lista de matilhas têm de ser O MESMO objeto.
+
