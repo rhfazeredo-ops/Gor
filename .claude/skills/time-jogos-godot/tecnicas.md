@@ -325,3 +325,16 @@
 - Painéis de loja com PanelContainer + StyleBoxFlat (fundo escuro, borda dourada); desligar o `_input` dos
   controles enquanto o painel está aberto (o toque no painel não mexe o joystick).
 
+
+## Inventário e vendedor estilo WoW (Godot, sem cena: tudo em código)
+- Bolsas = lista de 3 lugares; cada bolsa tem um array de espaços (null ou [id, qtd]); pegar() completa
+  pilhas e depois ocupa vazios e devolve o que não coube; salvar/carregar em JSON com migração do formato antigo.
+- Janelas: PanelContainer + StyleBoxFlat escuro com borda dourada; dicas em azul-escuro; nome na cor da
+  qualidade (cinza, branco, verde, azul); preço com moedinhas (só as moedas que aparecem); botões vermelhos.
+- Montagem manual das bolsas: da direita para a esquerda, de baixo para cima, usando
+  `get_combined_minimum_size()` para saber o tamanho antes de posicionar (coluna nova quando não cabe).
+- Vender no celular: tocar no item abre a dica com VENDER (evita vender sem querer). Recompra guarda os 12
+  últimos vendidos.
+- Ícones: usar `assets/ui/itens/<id>.png` se existir; senão desenhar um provisório no código (Image).
+- Retrato de NPC na janela: SubViewport com o modelo, câmera ortográfica no rosto (como o retrato do HUD).
+
