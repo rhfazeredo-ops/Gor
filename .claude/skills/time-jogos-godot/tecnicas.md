@@ -272,3 +272,23 @@
 - Tripo: modelo "com animação" pode chegar só com o rig (sem `animations` no GLB) — conferir com gltf-transform
   antes de prometer usar a animação.
 
+
+## Animar modelo do Tripo SEM esqueleto (quadrúpedes)
+- Marcar as partes nas **cores dos vértices** uma vez por tipo (GDScript, no carregamento): r = qual perna (pelos
+  4 pés achados nos vértices mais baixos, separados pelo x médio e pelo lado z), g = peso do ombro/quadril
+  (rampa pela altura), b = peso do joelho, a = 0,5 + cabeça / − cauda (rampa pelo comprimento). Pivôs saem da
+  mesma medição (pés, 55% e 27% da altura, 78% e 23,5% do comprimento).
+- No vertex shader: girar em volta dos pivôs (joelho primeiro, depois ombro), cabeça e cauda; o corpo inteiro
+  (pulo, agachar, rolar) mexe no nó visual. Material próprio por indivíduo (uniforms de pose).
+- Trote = pares diagonais; galope = dianteiras juntas e traseiras juntas, defasadas; joelho dobra só na fase
+  de voltar a perna. Ataque = agacha 0,3 s → salta 0,3 s (patas da frente esticadas, morde no meio) → cai.
+  Esquiva = pulo lateral com patas encolhidas e corpo inclinado.
+- **Armadilha:** zerar a velocity no fim do _physics_process apaga o salto do ataque — calcular a velocidade do
+  salto no mesmo lugar em que se monta a velocity final.
+- Pausas e relógios de IA: usar o relógio da física (`Engine.get_physics_frames()/ticks`), não Time do sistema —
+  com o jogo lento (teste sem GPU) o relógio do sistema corre na frente e a matilha ataca em rajada.
+- Matilha: dicionário compartilhado (casa, membros, alerta, atacante, pausa); cada lobo com seu ângulo na roda;
+  só o "atacante" vai para cima; força de separação de 2,6 m entre eles.
+- Testes: `--lobos=N --lobo_anim=correr|atacar:u|esquivar:u --lobo_um=0 --lobo_pos=x,z` (prints congelados) e
+  `--lobo_log=1 --lutar=1` (estado da matilha por segundo e mordidas).
+
