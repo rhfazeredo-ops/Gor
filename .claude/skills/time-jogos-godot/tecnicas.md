@@ -304,3 +304,14 @@
   fica longe renasce perto dele (não gasta nada no resto do mapa).
 - class_name novo só é achado pelo jogo depois de `godot --headless --import` (atualiza o cache de classes).
 
+
+## Vegetação de enfeite (arbustos, samambaias, taboas)
+- Mesmo sistema de cartões das árvores. Cartões que precisam de duas cores (folha verde + flor, folha + espiga
+  marrom) vêm com a textura JÁ colorida e a cor da instância perto do branco (só varia o tom); os cinzas
+  continuam recebendo a cor da instância.
+- Taboa/junco: textura de folhas compridas que curvam no alto + talos com espiga marrom; touceiras ao longo da
+  linha do rio (dos dois lados, na beira: meia largura −0,3 a +2,2 m) com falhas por ruído; volta do lago e da ilha.
+- Jardins: 1–3 arbustos floridos nas laterais/fundos das casas, nunca na rua. Na grama alta, arbusto pequeno
+  some: usar escala ≥ 1.
+- `--desenhos` salva as texturas dos cartões em user:// para conferir lado a lado.
+
