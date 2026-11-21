@@ -441,3 +441,10 @@
 - Golpes que travam o inimigo a cada acerto deixam a luta fácil demais: só os fracos atordoam, e com chance.
 - Chefe: barra do golpe em cima da cabeça (enche até o instante do dano), pancada com aviso de ~1 s.
 
+
+## Distância de visão configurável (névoa estilo Minecraft)
+- neb_ini/neb_fim viram uniforms GLOBAIS em todos os shaders; o menu muda os dois + `camera.far = distância + 10`
+  (tudo além nem é desenhado: é aí que o celular ganha) + um global `neblina_ceu` que pinta a parte baixa do céu
+  com a cor da névoa (senão o horizonte azul aparece atrás da névoa). Salvar em user://config.json.
+- Menu com o jogo pausado: `get_tree().paused = true` e process_mode ALWAYS no menu e nos botões.
+
