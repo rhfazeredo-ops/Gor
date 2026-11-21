@@ -20,6 +20,9 @@ com Gaussian splats). Detalhes técnicos em `tecnicas.md`; código reaproveitáv
   e propor um teste pequeno antes de mudar tudo.
 - **Prompts sempre prontos**: quando pedir arte, mandar o prompt completo, para colar direto no ChatGPT,
   sem partes para o dono editar. Um prompt por peça, em português, em bloco de código.
+- **Prompts de época:** no Dallarian (fantasia medieval) toda roupa e objeto é medieval — escrever no prompt
+  o que é de época (túnica de lã/linho, gibão, faixas nas pernas, sapatos de couro, cinto de corda) e proibir o
+  moderno (xadrez, suspensórios, botões, bolsos de calça).
 - **Arte 2D → 3D**: imagem no ChatGPT (folha com 4 vistas ortográficas: frente, esquerda, costas, direita;
   fundo cinza liso, luz neutra, sem sombra, sem perspectiva, cores chapadas) → prompt de "separar as vistas"
   → Tripo 3D em **Multiview**, Low Poly, textura 1K, PBR desligado, sem rig (o rig é feito por nós), GLB.
