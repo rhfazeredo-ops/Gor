@@ -206,6 +206,9 @@
 - **Mixagem no Godot (scripts/audio.gd):** buses Musica (EQ abrindo espaço nos médios), Voz (compressor +
   reverb de sala bem leve), Efeitos (reverb curto); limitador no Master. Música abaixa ~9 dB enquanto alguém
   fala (ducking) e volta devagar. Som 3D com filtro de distância (abafado ao longe).
+- **Som 3D com a câmera dentro de SubViewport (efeito pixel): `vp.audio_listener_enable_3d = true`**, senão
+  todo AudioStreamPlayer3D fica mudo (o "ouvido" é a câmera da tela de baixo). Atenuação: INVERSE_DISTANCE
+  com unit_size = raio de volume cheio (6 m) → -4 dB a 10 m, -10 a 20 m, -16 a 40 m.
 - O microfone do chat vira texto: áudio só chega como arquivo anexado.
 
 ## Publicação
