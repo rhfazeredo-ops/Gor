@@ -345,3 +345,16 @@
 - Ícones de item 128×128 quadrados (margem de 4%), moedas 64×64, símbolos de botão 160×160 com o mesmo
   preenchimento dos outros (medir o bbox de um ícone que já existe).
 
+
+## Ajustes de jogo (feedback do dono)
+- Inimigo NÃO foge depois de atacar: fica em "fúria" (colado no jogador, ataca de novo quando a recarga
+  acaba, no máximo 2 atacando juntos); esquiva só de lado, sem se afastar, e já volta atacando. Se o jogador
+  chega perto de um lobo da roda, ele não recua: encara e ataca.
+- Mancha preta em modelo do Tripo (ex.: orelha): achar os triângulos da região pelas posições, pegar os UVs,
+  pintar os pixels escuros dentro desses triângulos (um pouco aumentados) com o tom do pelo e trocar a imagem
+  dentro do GLB com gltf-transform; apagar `<nome>_Color_*` e `.godot/imported/<nome>*` e importar 2×.
+- Fogo bom e leve: labaredas desenhadas no shader (ruído subindo, forma de gota, cores em faixas, pixels
+  grandes) em 2–6 quadrados que giram para a câmera + CPUParticles3D de fagulhas subindo (preprocess para já
+  começar aceso).
+- Preço que não dá para pagar: só o número em vermelho (moedinha continua normal).
+
