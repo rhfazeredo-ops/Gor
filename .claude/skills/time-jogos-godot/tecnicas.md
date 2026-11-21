@@ -428,3 +428,16 @@
   para UV `(x + LIM) / (2·LIM)` e uma seta apontando para `-basis.z`. Esconder bússola/relógio com ele aberto.
 - Sem marcar lugares: a descoberta fica só na bússola (decisão do dono).
 
+
+## Monstros humanoides e aranha (Tripo)
+- Modelo do Tripo pode vir com o rig humanoide dele (mesmos 78 ossos do NPC base) mesmo sem animação: usar direto
+  com a animação procedural dos moradores. Sem rig: transferir o esqueleto do NPC (`--eixos`).
+- Arma presa na mão: o "cabo para a frente" vale para a pose de repouso (braço caído); se a pose de guarda
+  levanta o braço ~90°, a arma tem de apontar para BAIXO no repouso para ficar deitada na guarda.
+- Tripo multivisão às vezes gera DUAS cópias do objeto no mesmo arquivo (ex.: lança em duas alturas): cortar
+  os triângulos de uma delas pelo centroide (gltf-transform, reescrever os índices).
+- Aranha sem rig: classificar patas pelos vértices fora de dois elipsoides (abdômen e cefalotórax), qual pata
+  pela direção a partir da raiz comparada com as pontas medidas; gait em dois grupos alternados no shader.
+- Golpes que travam o inimigo a cada acerto deixam a luta fácil demais: só os fracos atordoam, e com chance.
+- Chefe: barra do golpe em cima da cabeça (enche até o instante do dano), pancada com aviso de ~1 s.
+
