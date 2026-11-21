@@ -393,3 +393,12 @@
 - Variável `celular` (OS.has_feature("mobile") ou `--celular` no PC) corta mais distância/densidade só no
   celular.
 
+
+## Armadilha da otimização "juntar peças"
+- Juntar só malhas do material de construção (shader PS1) que não sejam PrimitiveMesh: juntar a água do rio
+  com o plano do mar (PlaneMesh) fez o rio SUMIR. Depois de qualquer otimização, tirar print dos lugares
+  com coisas especiais (rio, lago, fogo, postes) para conferir.
+- Animação de morte de quadrúpede: tranco → patas cedem (frente primeiro) → corpo desce → tomba de lado.
+  O giro de lado é em volta do pé: tirar o "abaixar" enquanto tomba, senão o corpo entra no chão.
+- XP estilo WoW Classic: tabela do Classic + XP por bicho = 45 + 5×nível, ±por diferença de nível, zero se cinza.
+
