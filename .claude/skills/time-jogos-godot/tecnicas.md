@@ -200,6 +200,12 @@
 - Diálogo = lista de [quem, texto, áudio]; legenda com o nome colorido por personagem; passa sozinho quando o
   áudio termina (+0,6 s) ou no toque; sem áudio, tempo de leitura (1,5 s + 0,055 s por letra). NPC escuta de
   braços cruzados e gesticula na própria fala.
+- **Tratamento de voz (ffmpeg):** highpass 90 Hz → afftdn (ruído) → agate leve → EQ (-2 dB em 250 Hz tira
+  o "abafado", +3 dB em 3,2 kHz dá clareza, +1,5 dB agudos) → deesser → acompressor 3:1 → loudnorm -16 LUFS →
+  alimiter. Efeitos: loudnorm -14 + compressão leve; música -18 LUFS (fica atrás das vozes).
+- **Mixagem no Godot (scripts/audio.gd):** buses Musica (EQ abrindo espaço nos médios), Voz (compressor +
+  reverb de sala bem leve), Efeitos (reverb curto); limitador no Master. Música abaixa ~9 dB enquanto alguém
+  fala (ducking) e volta devagar. Som 3D com filtro de distância (abafado ao longe).
 - O microfone do chat vira texto: áudio só chega como arquivo anexado.
 
 ## Publicação
