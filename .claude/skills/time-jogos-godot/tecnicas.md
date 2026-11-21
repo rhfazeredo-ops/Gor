@@ -194,6 +194,14 @@
 - Splats finos e escuros (~8%) fazem as rachaduras. Chão base por baixo só com o tom médio.
 - Em primeira pessoa: splats menores perto da câmera, maiores longe; colisão com formas invisíveis simples.
 
+## Dublagem
+- O dono grava no gravador do celular (m4a/AAC) e manda zip; o Godot não lê m4a → ffmpeg para OGG Vorbis mono:
+  `silenceremove` no começo e no fim (com areverse), `highpass=f=80`, `loudnorm=I=-16:TP=-1.5` (volume igual).
+- Diálogo = lista de [quem, texto, áudio]; legenda com o nome colorido por personagem; passa sozinho quando o
+  áudio termina (+0,6 s) ou no toque; sem áudio, tempo de leitura (1,5 s + 0,055 s por letra). NPC escuta de
+  braços cruzados e gesticula na própria fala.
+- O microfone do chat vira texto: áudio só chega como arquivo anexado.
+
 ## Publicação
 - GitHub Pages: build da web (vite) + export Web do Godot em `/godot/`. O deploy às vezes falha com
   "No artifacts found": usar `continue-on-error` + espera + segunda tentativa (não re-rodar só o job falho,
