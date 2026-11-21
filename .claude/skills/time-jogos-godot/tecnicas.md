@@ -358,3 +358,14 @@
   começar aceso).
 - Preço que não dá para pagar: só o número em vermelho (moedinha continua normal).
 
+
+## Chuva e sons enviados pelo dono
+- Chuva: uniform global `chuva` (0..1, entra/sai em ~25 s); céu com mais nuvens cinzas, sem sol nem estrelas;
+  luz ambiente multiplicada por um cinza-azulado; CPUParticles3D (traços verticais, BILLBOARD_FIXED_Y,
+  local_coords = false) presa 13 m acima do jogador; som em loop com volume = linear_to_db(chuva).
+  CPUParticles3D NÃO tem amount_ratio no 4.5 — variar a opacidade do material.
+- Loop sem emenda de um som curto: cruzar os últimos 2 s com os primeiros 2 s (raiz quadrada nas curvas) no
+  Python e cortar o começo; loudnorm -20 LUFS para ambiente.
+- Efeito longo (rosnado) vira 3 sons: um longo (alerta) e dois curtos (ataque), com fade de 0,08/0,25 s;
+  tom mais grave para o líder (pitch 0,8) e espera mínima entre um som e outro do mesmo bicho.
+
