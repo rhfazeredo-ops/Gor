@@ -110,6 +110,10 @@
   travessas em pedaços de 1 m seguindo o chão; colisão = caixa por trecho reto da altura mínima até a máxima
   do chão + altura da cerca (porteira aberta). Blocos soltos (ruínas) assentados no canto mais baixo.
   Teste `--andar=s` empurra o jogador para a frente e diz onde parou.
+- **Vila em rua principal:** andar pela linha da estrada (`_ponto_na_linha`) a cada 10–13 m e pôr casas dos dois
+  lados com recuo e ângulo variados (porta para a rua), ~18% de vãos (quintais), vagas especiais (taverna,
+  igreja); trilhas estreitas (grade de distância própria, 1,3 m) para grupos de casas, hortas e o rio.
+  `--cima=altura,x,z` dá a vista de cima para conferir o desenho.
 - **Nada em cima da estrada:** `_longe_da_estrada(centro, meia, ang)` empurra a área da construção pelo
   gradiente da distância à estrada até sobrar 1,5 m da beira (5×5 pontos da área); usado em toda casa e nos
   campos com cerca, antes de aplanar. Teste `--estrada` lista o que ainda encosta na estrada.
