@@ -519,3 +519,15 @@
   o pescoço e as orelhas na frente; sem rig, a animação é o corpo todo subindo/descendo e balançando no passo.
 - Ícone da bússola pintado de cor no jogo: a arte vem branca com contorno preto e fundo transparente; o modulate
   vermelho deixa o branco vermelho e o contorno preto.
+- Ícone da bússola pintado de cor no jogo: a arte vem branca com contorno preto e fundo transparente; o modulate
+  vermelho deixa o branco vermelho e o contorno preto.
+
+## Imagem limpa x retrô (opções de Gráfico)
+- O pontilhado Bayer + paleta curta (9 níveis) sobre a imagem em 1/4 da tela parece DEFEITO para quem olha de
+  fora ("textura pontilhada sobre a cena inteira"). Padrão agora: pontilhado desligado e 32 níveis; opção
+  "Pontilhado retrô" no menu para quem quiser.
+- "Nitidez" no menu = stretch_shrink do SubViewportContainer (4 leve, 3 média, 2 alta); atualizar junto a escala
+  usada pelo HUD para projetar marcadores (unproject × escala). Celular começa em 3, PC em 2. Salvo no config.
+- Medir script por script: chamar de novo `_process/_physics_process` de cada nó com script e somar o tempo
+  (`--perfil`). No Dallarian os scripts somam ~3,5 ms; o peso é gráfico (TIME_PROCESS no llvmpipe inclui o render).
+- Não varrer `raiz.get_children()` a cada quadro para achar um NPC: guardar a referência uma vez.
