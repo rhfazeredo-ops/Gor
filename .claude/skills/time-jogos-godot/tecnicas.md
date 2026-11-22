@@ -485,3 +485,13 @@
   cais começa onde a areia acaba. Testar o porto com a câmera em terra (embaixo da água o print engana).
 - Com centenas de casas: juntar também malhas de várias superfícies (cada parte da casa no grupo do seu
   material) e indexar casas/lugares numa grade de 64 m para as buscas de "tem casa perto?".
+
+## Travar a mira e monstros fora da água
+- Travar a mira: alvo = inimigo do grupo com menor distância × (1 + (1 − frente)·1,5) até 30 m; a cada quadro
+  lerp_angle no yaw do corpo e lerp no pitch do pescoço até o alvo; ignorar o olhar do toque/mouse enquanto travado;
+  soltar se morrer ou passar de 40 m. HUD: X apagado no centro + triângulo vermelho e barra de vida em cima do alvo
+  (unproject × REDUCAO). Tab com detecção de borda; botão próprio no celular.
+- Monstro nunca na água: função na_agua (altura da malha < 0,35 ou abaixo do nível de água do lugar); ponto_seco
+  procura em espiral em volta da casa ao nascer/renascer; depois do move_and_slide, se entrou na água, volta para a
+  posição anterior. Teste `--checar_agua` conta os que estão na água no começo e depois de 20 s.
+- Sortear lugares: filtrar também altura < 1,5 (perto do mar a "floresta" do ruído continua alta e cai no mar).
