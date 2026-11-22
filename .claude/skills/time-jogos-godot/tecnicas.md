@@ -563,3 +563,11 @@
   (q' = R·q·R⁻¹, R = 90° em Y no sentido certo, conferido pelo lado do braço esquerdo), multiplicar os braços por
   uma rotação extra que leva o T até o A, e girar o nó do modelo 180° em vez de 90°.
 - Ajustar uma pose nova (mãos orando) com um parâmetro de teste na linha de comando e 3 prints lado a lado.
+
+## Estabilidade da imagem (o que parecia defeito no celular)
+- Tremido PS1 (vértices arredondados numa grade 320×180) faz casas e montanhas "dançarem" quando a câmera anda:
+  deixar como opção (uniform global tremor_ps1, padrão 0).
+- Textura "nearest" sem mipmap cintila de longe (moiré): gerar mipmaps na Image e usar filter_nearest_mipmap
+  (continua com pixels duros de perto).
+- Splats do chão que encolhiam perto da câmera viravam "bolhas" crescendo e diminuindo ao andar: tamanho fixo.
+- Poça com reflexo do céu (fbm de 5 oitavas por pixel) era cara e chamativa: cor chapada.
