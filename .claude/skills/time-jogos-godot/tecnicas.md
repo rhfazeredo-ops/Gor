@@ -495,3 +495,13 @@
   procura em espiral em volta da casa ao nascer/renascer; depois do move_and_slide, se entrou na água, volta para a
   posição anterior. Teste `--checar_agua` conta os que estão na água no começo e depois de 20 s.
 - Sortear lugares: filtrar também altura < 1,5 (perto do mar a "floresta" do ruído continua alta e cai no mar).
+
+## Rio de verdade e montarias
+- Segundo rio: mesma técnica do primeiro (polilinha → grade de distância e parâmetro t rasterizada uma vez),
+  com nível por vértice sempre descendo até o mar; o terreno é cavado só dentro da largura + margem, e
+  dist_rios() (mínimo dos dois) serve para floresta, monstros e grama. Ponte = vão maior que a largura no ponto.
+- Montaria em primeira pessoa: o modelo do cavalo vira filho do CharacterBody (frente = −Z, igual à câmera),
+  a altura do pescoço vai de 1,62 para ~2,55 com move_toward, os braços somem e a velocidade ×1,6.
+  O pescoço e a cabeça do cavalo aparecem embaixo na tela e balançam com a animação (pernas em diagonal).
+- Barra de "carregando" estilo WoW desenhada num Control (_draw): cancela se andar > 0,25 m, atacar ou sair do chão.
+- Loja genérica: abrir(npc, cfg) com nome, cargo, itens, retrato e falas — o mesmo painel serve a vários vendedores.
