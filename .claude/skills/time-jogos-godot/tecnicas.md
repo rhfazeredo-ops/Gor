@@ -555,3 +555,11 @@
   (u²) em ~1 s; braços descem para fora da tela; tremor na batida; sem entrada até reviver.
 - Tela: ColorRect vermelho embaixo do HUD (move_child para o índice do HUD) e texto grande no _draw do HUD; depois
   tween da cor para preto, teleporte para o ponto de renascer (de frente para a estátua) e o preto some.
+
+## NPC do Tripo com o mesmo esqueleto, mas outra orientação/pose de descanso
+- A freira veio com os mesmos nomes de ossos dos moradores, mas de frente para +Z e em pose de T; os moradores
+  olham para +X e descansam em pose de A (braços ~58° para baixo). Medir isso imprimindo get_bone_global_rest dos
+  dois esqueletos (ombro e mão). Correção: conjugar a rotação de cada osso pelo giro entre os espaços
+  (q' = R·q·R⁻¹, R = 90° em Y no sentido certo, conferido pelo lado do braço esquerdo), multiplicar os braços por
+  uma rotação extra que leva o T até o A, e girar o nó do modelo 180° em vez de 90°.
+- Ajustar uma pose nova (mãos orando) com um parâmetro de teste na linha de comando e 3 prints lado a lado.
