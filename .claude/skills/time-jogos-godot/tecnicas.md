@@ -463,3 +463,12 @@
 - Chefe: volta muito depois (1 h) e no ponto da rota mais longe do jogador.
 - Grupo de bicho sozinho: o dicionário do grupo do bicho e o da lista de matilhas têm de ser O MESMO objeto.
 
+
+## Aumentar o mapa sem desmontar a vila
+- O mapa foi desenhado em coordenadas fixas. Para dobrar o tamanho: uma função de "espalhar" W(p) que deixa
+  tudo até 150 m do centro igual e afasta o resto linearmente (W(r) = 150 + (r−150)·k), aplicada aos pontos do
+  desenho (estradas, rio, lago, campos, morros, lugares) e Ws(r) às distâncias fixas (costa, pântano, montanhas).
+  A vila, as trilhas e o píer continuam exatamente iguais. Tamanhos de coisas (lago, morros) crescem à parte.
+- Mais área = mais grupos de monstros (2–2,5×) e mais barracas; testar com `--estrada` que nada caiu na estrada.
+- Custo: floresta e terreno distante são montados no começo (4× mais pedaços): carregamento mais longo.
+
