@@ -543,3 +543,9 @@
 - Animação: fase acumulada pela velocidade (~2,6 m por passada), trote em diagonal (sen na coxa em torno do eixo
   lateral, canela dobra com max(0, cos)), pescoço balança no dobro da frequência, rabo levanta andando.
 - Conferir com `godot/ferramentas/ver_cavalo.gd` (6 momentos do passo de lado, ou `--frente`).
+
+## Coletar em instância de MultiMesh (arbusto de frutinhas)
+- Guardar, ao montar o pedaço, [MultiMesh, posições] dos arbustos coletáveis; a interação procura o mais perto
+  5×/s (não a cada quadro). Colhido = `set_instance_color` com um verde que escurece os pontinhos (parece arbusto
+  sem fruta) e volta ao branco depois do tempo. Como os pedaços são soltos e remontados, o estado "colhido" fica
+  num dicionário pela posição arredondada e é reaplicado ao remontar.
