@@ -574,3 +574,14 @@
 - Splats em blocos montados em volta do jogador "brotam" na borda: passar o alcance da camada por instância
   (custom data) e, no vertex, encolher a mancha até zero entre 62% e 92% do alcance (pela distância horizontal
   do centro até a câmera). Os blocos entram/saem onde as manchas já têm tamanho zero.
+
+## Save na nuvem com Supabase (login anônimo) direto do Godot
+- Sem SDK: HTTPRequest. Login anônimo = POST /auth/v1/signup com corpo {} (precisa ligar "Allow anonymous sign-ins"
+  em Authentication → Sign In / Providers). Guardar o refresh_token em user:// e renovar com
+  POST /auth/v1/token?grant_type=refresh_token. Header `apikey` = chave publishable (pública) + `Authorization: Bearer`.
+- Tabela saves(user_id uuid pk default auth.uid() references auth.users, dados jsonb) com RLS: select/insert/update
+  só quando auth.uid() = user_id. Upsert: POST /rest/v1/saves?on_conflict=user_id com
+  `Prefer: resolution=merge-duplicates`.
+- Save local continua; o save leva "salvo_em" (unix) e, ao abrir, o mais novo vence. Enviar no máximo a cada 30 s
+  e na hora em NOTIFICATION_APPLICATION_PAUSED (celular indo para o fundo) e WM_CLOSE_REQUEST.
+- Android: permissions/internet=true no export_presets.cfg, senão o APK não acessa a rede.
