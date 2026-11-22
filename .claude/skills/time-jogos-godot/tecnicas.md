@@ -513,3 +513,9 @@
   altura devolvida para tudo (cerca, telheiro, cavalos); registrar como "lugar" para a floresta não plantar árvores dentro.
 - Peixes e juncos em vários rios: guardar [linha, comprimentos acumulados, total, largura(t), nível(t)] por rio
   (Callables dos métodos da Regiao) e escolher o rio mais perto da jogadora quando um cardume renasce.
+- Cavalo do Tripo (sem rig): ~490 mil triângulos → `tools/tripo-ps1.mjs ... 3000 512` (fica ótimo). Vem com ~1 m de
+  comprimento e a cabeça para +X: girar +90° em Y (frente = −Z) e escalar ~2,7×; achar a sela pelo perfil de altura
+  ao longo de X (o ponto mais baixo das costas). Montado: Rachel um pouco atrás da sela e olhos a ~2,5 m, para ver
+  o pescoço e as orelhas na frente; sem rig, a animação é o corpo todo subindo/descendo e balançando no passo.
+- Ícone da bússola pintado de cor no jogo: a arte vem branca com contorno preto e fundo transparente; o modulate
+  vermelho deixa o branco vermelho e o contorno preto.
