@@ -549,3 +549,9 @@
   5×/s (não a cada quadro). Colhido = `set_instance_color` com um verde que escurece os pontinhos (parece arbusto
   sem fruta) e volta ao branco depois do tempo. Como os pedaços são soltos e remontados, o estado "colhido" fica
   num dicionário pela posição arredondada e é reaplicado ao remontar.
+
+## Morte em primeira pessoa
+- Cair morta: o nó do pescoço desce até ~0,26 m e gira ~1,3 rad no eixo Z (tomba de lado) com curva acelerada
+  (u²) em ~1 s; braços descem para fora da tela; tremor na batida; sem entrada até reviver.
+- Tela: ColorRect vermelho embaixo do HUD (move_child para o índice do HUD) e texto grande no _draw do HUD; depois
+  tween da cor para preto, teleporte para o ponto de renascer (de frente para a estátua) e o preto some.
