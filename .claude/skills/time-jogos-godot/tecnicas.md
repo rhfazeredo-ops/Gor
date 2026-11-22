@@ -585,3 +585,15 @@
 - Save local continua; o save leva "salvo_em" (unix) e, ao abrir, o mais novo vence. Enviar no máximo a cada 30 s
   e na hora em NOTIFICATION_APPLICATION_PAUSED (celular indo para o fundo) e WM_CLOSE_REQUEST.
 - Android: permissions/internet=true no export_presets.cfg, senão o APK não acessa a rede.
+
+## Atualização automática do APK sem loja (pacote .pck)
+- Cena de início (main_scene) confere um versao.json na Release do GitHub; se o número for maior que o do APK
+  (res://versao.json, gravado pelo workflow com GITHUB_RUN_NUMBER) e que o do pacote já baixado, baixa o .pck
+  (HTTPRequest.download_file, confere o tamanho) para user:// e chama ProjectSettings.load_resource_pack(arq, true)
+  antes de change_scene_to_file da cena principal. APK novo instalado por cima ganha do pacote antigo.
+- Workflow: `godot --export-pack "Android" dallarian.pck` + versao.json {n, tamanho} na mesma Release.
+- include_filter="versao.json" no export (arquivo que não é recurso não entra no export sem isso).
+- Testado: pacote com uma classe nova (class_name) carregado por cima do jogo antigo funciona no 4.5.
+- Supabase sem precisar do painel: em vez de auth anônima (tem que ligar no painel), perfil por aparelho
+  (uuid + segredo aleatório em user://) e funções security definer salvar_jogo/carregar_jogo que conferem o
+  segredo (crypt/bcrypt do pgcrypto); tabela com RLS e sem políticas (só as funções acessam).
