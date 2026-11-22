@@ -472,3 +472,16 @@
 - Mais área = mais grupos de monstros (2–2,5×) e mais barracas; testar com `--estrada` que nada caiu na estrada.
 - Custo: floresta e terreno distante são montados no começo (4× mais pedaços): carregamento mais longo.
 
+
+## Mapa retangular e cidade grande
+- Limites separados X0/X1/Z0/Z1 (e grades NX×NZ) em vez de um LIM só; terreno, floresta, mapa e sorteios usam
+  os limites; o plano do mar tem de ser deslocado para o centro do retângulo.
+- Floresta montada aos poucos em volta do jogador (um pedaço por 0,1 s, solta os longe): com o mapa grande,
+  montar tudo no começo dobrava o carregamento. No _ready do mundo o jogador ainda não está na árvore
+  (usar a posição inicial).
+- Cidade: retângulo com chão plano (terreno puxado para uma altura fixa até 60 m fora), casas com `chao_fixo`
+  (sem aplanar: 400 planos deixavam a altura lentíssima), muralha em trechos entre os portões + ameias, torres,
+  castelo, catedral, praça. Porto: puxar a linha da costa para perto da muralha leste só na faixa da cidade, e o
+  cais começa onde a areia acaba. Testar o porto com a câmera em terra (embaixo da água o print engana).
+- Com centenas de casas: juntar também malhas de várias superfícies (cada parte da casa no grupo do seu
+  material) e indexar casas/lugares numa grade de 64 m para as buscas de "tem casa perto?".
