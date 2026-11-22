@@ -571,3 +571,6 @@
   (continua com pixels duros de perto).
 - Splats do chão que encolhiam perto da câmera viravam "bolhas" crescendo e diminuindo ao andar: tamanho fixo.
 - Poça com reflexo do céu (fbm de 5 oitavas por pixel) era cara e chamativa: cor chapada.
+- Splats em blocos montados em volta do jogador "brotam" na borda: passar o alcance da camada por instância
+  (custom data) e, no vertex, encolher a mancha até zero entre 62% e 92% do alcance (pela distância horizontal
+  do centro até a câmera). Os blocos entram/saem onde as manchas já têm tamanho zero.
