@@ -505,3 +505,11 @@
   O pescoço e a cabeça do cavalo aparecem embaixo na tela e balançam com a animação (pernas em diagonal).
 - Barra de "carregando" estilo WoW desenhada num Control (_draw): cancela se andar > 0,25 m, atacar ou sair do chão.
 - Loja genérica: abrir(npc, cfg) com nome, cargo, itens, retrato e falas — o mesmo painel serve a vários vendedores.
+- Item que vira montaria: comprar põe na bolsa; toque duplo (mesmo espaço em < 450 ms) "aprende" (some da bolsa,
+  entra na lista de montarias) e mostra um recado grande no meio da tela; no menu, EQUIPAR escolhe a do botão.
+- NPC parado num posto (vendedor): profissão própria usa o estado "trabalho" (vai ao posto e olha para olhar_posto);
+  quando a profissão não tem modelo próprio, cair no modelo do tipo (MODELOS_PROF.has) e chamar montar() mesmo assim.
+- Construção fora da cidade em terreno irregular: reg.aplanar(centro, meia, ang) uma vez para a área toda e usar a
+  altura devolvida para tudo (cerca, telheiro, cavalos); registrar como "lugar" para a floresta não plantar árvores dentro.
+- Peixes e juncos em vários rios: guardar [linha, comprimentos acumulados, total, largura(t), nível(t)] por rio
+  (Callables dos métodos da Regiao) e escolher o rio mais perto da jogadora quando um cardume renasce.
