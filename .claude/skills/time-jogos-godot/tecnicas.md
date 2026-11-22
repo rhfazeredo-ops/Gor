@@ -531,3 +531,15 @@
 - Medir script por script: chamar de novo `_process/_physics_process` de cada nó com script e somar o tempo
   (`--perfil`). No Dallarian os scripts somam ~3,5 ms; o peso é gráfico (TIME_PROCESS no llvmpipe inclui o render).
 - Não varrer `raiz.get_children()` a cada quadro para achar um NPC: guardar a referência uma vez.
+
+## Rig automático de quadrúpede (cavalo do Tripo) no próprio Godot
+- `scripts/rig_cavalo.gd`: lê `surface_get_arrays`, acha as 4 patas pela média dos vértices do quarto de baixo
+  (frente/trás pelo meio do comprimento, esquerda/direita pelo sinal de Z), põe ossos de coxa (um pouco acima da
+  barriga) e canela (joelho a ~22% da altura), pescoço e rabo; pesos de até 2 ossos com smoothstep; grava
+  ARRAY_BONES/ARRAY_WEIGHTS numa ArrayMesh nova + Skin (bind = inverso da posição do osso) e põe o MeshInstance
+  dentro de um Skeleton3D (mi.skeleton = ".."). Malha e Skin guardados por arquivo; um esqueleto por cavalo.
+- Armadilha: os pelos dos cascos de trás passam do limite do rabo e iam junto com ele (fiapos esticados no
+  galope). Abaixo do joelho, quase tudo é pata (faixa larga); rabo só no meio (|z| pequeno) e bem atrás.
+- Animação: fase acumulada pela velocidade (~2,6 m por passada), trote em diagonal (sen na coxa em torno do eixo
+  lateral, canela dobra com max(0, cos)), pescoço balança no dobro da frequência, rabo levanta andando.
+- Conferir com `godot/ferramentas/ver_cavalo.gd` (6 momentos do passo de lado, ou `--frente`).
