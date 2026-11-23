@@ -33,8 +33,9 @@ com Gaussian splats). Detalhes técnicos em `tecnicas.md`; código reaproveitáv
 - Preferências de jogo do Terra de Gor: sem contadores (moedas/diamantes/chaves) na tela; música do título desde
   a abertura até o lobby; música do deserto só nos mapas de deserto, a partir dos 4 s.
 
-- **Links a cada atualização:** no fim de toda resposta com atualização, mandar o link do site E o do APK
-  (conferir antes que o workflow do APK terminou com sucesso; se ainda estiver gerando, avisar).
+- **Links só quando o dono pedir** (o APK se atualiza sozinho ao abrir). Continuar conferindo, a cada atualização,
+  que o workflow terminou e o `versao.json` subiu. Avisar só quando precisar instalar APK novo (mudou ícone, nome,
+  permissões, versão do Godot ou configuração de exportação — coisas fora do pacote .pck).
   Dallarian: site https://rhfazeredo-ops.github.io/Dallarian/ — APK
   https://github.com/rhfazeredo-ops/Dallarian/releases/download/apk/dallarian.apk
 
