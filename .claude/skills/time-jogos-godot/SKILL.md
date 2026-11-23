@@ -49,3 +49,5 @@ com Gaussian splats). Detalhes técnicos em `tecnicas.md`; código reaproveitáv
 ## Links do Terra de Gor
 - Site: https://rhfazeredo-ops.github.io/Gor/ (2D) e https://rhfazeredo-ops.github.io/Gor/godot/ (3D)
 - APKs: releases `apk` (2D, Capacitor) e `apk-godot` (3D, Godot)
+- **Dallarian — texturas do dono:** o telhado de ardósia azul (`assets/texturas/telhado_ardosia.png`) NUNCA muda.
+  Pedra, parede, estrada: arquivos em `assets/texturas/` (128 px); dá para trocar quando ele mandar outra.
