@@ -705,3 +705,10 @@
 - O teto só pode começar onde a encosta em volta já é mais alta que ele (medir a grade de alturas antes:
   `ferramentas/medir_area.gd`).
 - Rocha natural: material sem textura + cor por vértice com ruído (a textura de pedra parecia tijolo).
+- Caverna em terreno de altura: o chão cavado tem de ficar reto até ~3 m ATRÁS da parede (a malha do terreno é
+  mais grossa que a parede; se a encosta começa na borda, o triângulo atravessa para dentro e vira um "morro"
+  dentro do túnel). O teto cobre essa faixa (distância < 4,5 m).
+- Ambientação barata de caverna: MultiMesh de cones (estalactite = cone virado), cogumelos com material
+  unshaded (brilham no escuro), poças em disco escuro, ossadas de caixinhas; gotas = CPUParticles3D one_shot com
+  `restart()` + som 3D atrasado pelo tempo de queda; eco = subir `room_size`/`wet` do reverb do bus de efeitos
+  conforme "dentro". Sons gerados em Python (pingo: seno com tom caindo; ambiente: ruído marrom filtrado em loop).
