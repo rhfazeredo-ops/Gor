@@ -640,3 +640,12 @@
   "voo" com as patas recolhidas entre a frente sair e as de trás chegarem.
 - `gh release create` com vários arquivos pode deixar a Release como RASCUNHO (o link de download dá 404, mesmo
   com o workflow verde). Depois do create: `gh release edit TAG --draft=false` e conferir com `gh release view`.
+
+## Carregamento lento: medir cada etapa do _ready
+- Imprimir o tempo de cada etapa (`--carga`). No Dallarian: espuma da praia 12 s (laço "while altura > 0: x += 1"
+  por 2 km × 500 linhas), monstros 9 s (sorteio com 24 mil tentativas calculando a altura logo de cara + ~650 nós
+  criados antes da primeira imagem), terreno de longe 6 s.
+- Correções: busca em passos largos + refino (e começar perto da resposta da linha anterior); no sorteio, testes
+  baratos (grades, contas) antes da altura; criar os monstros por uma fila depois do carregamento (3 ms por quadro,
+  os mais perto da jogadora primeiro — o grupo existe já, os membros chegam); cálculo por pedaço em
+  WorkerThreadPool.add_group_task + wait (só ajuda se o cálculo não depender de dados que mudam).
