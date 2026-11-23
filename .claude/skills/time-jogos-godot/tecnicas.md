@@ -690,3 +690,18 @@
 - Converter para wav, medir a energia em janelas de 50 ms, cortar onde fica abaixo de -40 dB por ≥ 0,2 s
   (trechos ≥ 0,6 s), e trechos longos nos pontos mais quietos; fade de 30/120 ms + `loudnorm` e salvar ogg.
   No jogo, sortear um grito por vez em AudioStreamPlayer3D com tom levemente variado.
+
+## Caverna (DG aberta) num mundo de terreno por altura
+- Terreno de altura não tem buraco nem teto. Solução: o CHÃO da caverna é o próprio terreno, cavado num cânion
+  com o formato dos túneis e salas (campo de distância: segmentos com largura + círculos, com ruído para a borda
+  ficar irregular; `h = lerp(piso, h, smoothstep(-0.3, 5, d))`). Paredes e teto são malhas por cima:
+  - paredes: marching squares no campo de distância (grade de 1 m) → cada segmento da borda vira uma faixa
+    vertical com 3 alturas (a do meio estufada para dentro) + colisão `ConcavePolygonShape3D`;
+  - teto: quadrados de 2 m onde a distância < 2 m, altura com ruído; paredão de pedra sobre a boca;
+  - calcular tudo num `WorkerThreadPool` na carga e pôr na cena quando ficar pronto.
+- Vantagem: monstros, saque, renascimento e tudo que usa a altura do terreno funcionam lá dentro sem mudança.
+- Tirar de dentro: grama/manchas (`em_construcao`), árvores e moitas (`floresta` = -1 e filtro no sorteio);
+  cor do chão escura; com a Rachel dentro: luz ambiente baixa, lanternas/fogueiras acesas, sem chuva.
+- O teto só pode começar onde a encosta em volta já é mais alta que ele (medir a grade de alturas antes:
+  `ferramentas/medir_area.gd`).
+- Rocha natural: material sem textura + cor por vértice com ruído (a textura de pedra parecia tijolo).
