@@ -519,8 +519,6 @@
   o pescoço e as orelhas na frente; sem rig, a animação é o corpo todo subindo/descendo e balançando no passo.
 - Ícone da bússola pintado de cor no jogo: a arte vem branca com contorno preto e fundo transparente; o modulate
   vermelho deixa o branco vermelho e o contorno preto.
-- Ícone da bússola pintado de cor no jogo: a arte vem branca com contorno preto e fundo transparente; o modulate
-  vermelho deixa o branco vermelho e o contorno preto.
 
 ## Imagem limpa x retrô (opções de Gráfico)
 - O pontilhado Bayer + paleta curta (9 níveis) sobre a imagem em 1/4 da tela parece DEFEITO para quem olha de
@@ -655,3 +653,10 @@
   arquivo fica no .gitignore (sempre gerado igual ao código). Sem o arquivo, o jogo calcula como antes. 5,7 s → 0,8 s.
 - Folhagem em cinza tingida pela cor da instância "suja" detalhes coloridos (frutas): pintar o verde na própria
   textura e deixar a instância branca.
+
+## Galope de quadrúpede por perfil de apoio (lobo, cachorro)
+- Por pata: `u = fposmod(fase/TAU + deslocamento, 1)`; apoio `u < 0.34` com ângulo do quadril 1 → -1 (reta para
+  trás) e joelho quase reto; voo com `smoothstep` de volta e dobra `sin(πv)`. Deslocamentos do galope rotatório:
+  frente 0 e -0.08, trás -0.5 e -0.58 (frente e trás opostas = esticado ↔ recolhido).
+- Corpo: altura e inclinação pela fase global (`recolhe = 0.5+0.5cos(2π(u-0.45))`), cabeça quase nivelada.
+- Teste com quadro congelado: `--monstro=lobo_marrom --manim=correr:0.33` (u fixa a fase) e ver 6 quadros lado a lado.
