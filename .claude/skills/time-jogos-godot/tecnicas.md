@@ -607,3 +607,7 @@
   (fora do vão), e pintar o calçamento nesse corredor.
 - Animação de passo de quadrúpede: passada cresce com a velocidade (≈2,4 m andando, ≈6 m galopando); frequência
   = velocidade / passada. Galope = patas da frente quase juntas e depois as de trás (fases 0; 0,6; π; π+0,6).
+- Andadura natural de cavalo: a pata fica ~60% da passada no chão (vai reta da frente para trás) e ~40% no ar
+  (volta rápida com o joelho dobrando em sen(πv)) — bem melhor que um seno simétrico. Passo em 4 tempos com as
+  fases trás-esq 0, frente-esq ¼, trás-dir ½, frente-dir ¾; trote = diagonais; galope = frente juntas e trás juntas.
+  Referência em GIF: separar os quadros com PIL (ImageSequence) e medir o tempo de uma passada.
