@@ -634,3 +634,7 @@
 - ARMADILHA das tarefas em segundo plano: a tarefa não pode ler um Dictionary que o quadro principal está alterando
   (ex.: a camada com "ativos") — deu "corrupted size vs. prev_size" ao fechar. Passar uma cópia (duplicate) só com
   os dados de que ela precisa, e esperar todas as tarefas em _exit_tree.
+- Referência em vídeo (gravação de tela): ffmpeg crop na área do desenho + quadros na taxa original; achar o
+  período do ciclo pela diferença média entre o quadro i e o i+lag (o menor valor = período). Galope do vídeo:
+  12 quadros a 24 fps = 0,5 s; apoio curto (~30% por pata), fases trás 0,55/0,65 e frente 0/0,1 da passada,
+  "voo" com as patas recolhidas entre a frente sair e as de trás chegarem.
