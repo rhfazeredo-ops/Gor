@@ -638,3 +638,5 @@
   período do ciclo pela diferença média entre o quadro i e o i+lag (o menor valor = período). Galope do vídeo:
   12 quadros a 24 fps = 0,5 s; apoio curto (~30% por pata), fases trás 0,55/0,65 e frente 0/0,1 da passada,
   "voo" com as patas recolhidas entre a frente sair e as de trás chegarem.
+- `gh release create` com vários arquivos pode deixar a Release como RASCUNHO (o link de download dá 404, mesmo
+  com o workflow verde). Depois do create: `gh release edit TAG --draft=false` e conferir com `gh release view`.
