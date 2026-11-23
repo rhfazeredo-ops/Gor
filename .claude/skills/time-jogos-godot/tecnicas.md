@@ -672,3 +672,21 @@
   (`shader.get_shader_uniform_list()`) a cada quadro enquanto estiver selecionado.
 - Classe nova (`class_name`) só existe depois de `godot --headless --path . --import`; sem isso o teste trava em
   "Could not find type".
+
+## Arma que vem colada no personagem do Tripo
+- Depois de transferir o esqueleto, a lança/cajado copia pesos do corpo mais perto (cabeça, perna) e entorta.
+  Prender a arma inteira na mão também não serve: ela gira junto com o braço e, na estocada, a ponta vai para trás.
+- Solução: `tools/separar-arma.mjs entrada corpo.glb arma.glb` (a arma é a 2ª maior ilha de triângulos; vértices
+  soldados por posição por causa das costuras de UV). No jogo, a arma vai num pivô filho do modelo que segue só a
+  POSIÇÃO do osso da mão (`esqueleto_no_modelo * get_bone_global_pose(mão).origin`), com a inclinação controlada
+  à parte (em pé andando, deitada para a frente no golpe). A malha da arma fica deslocada por `-pega` (a mão no
+  repouso), assim no repouso ela cai exatamente onde estava no modelo.
+
+## Carga: não consultar a malha do terreno no sorteio
+- `na_agua`/`altura_malha` montam o pedaço de terreno inteiro na primeira consulta; num sorteio pelo mapa todo
+  isso custou 1,5 s. Para sortear, usar a altura da região direto (`reg.altura` + `reg.agua`): caiu para 30 ms.
+
+## Áudio com vários gritos num arquivo só
+- Converter para wav, medir a energia em janelas de 50 ms, cortar onde fica abaixo de -40 dB por ≥ 0,2 s
+  (trechos ≥ 0,6 s), e trechos longos nos pontos mais quietos; fade de 30/120 ms + `loudnorm` e salvar ogg.
+  No jogo, sortear um grito por vez em AudioStreamPlayer3D com tom levemente variado.
