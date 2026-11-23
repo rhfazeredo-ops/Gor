@@ -723,3 +723,7 @@
   arquivo (`get_image()`, `decompress()`, RGBA8, mipmaps) e o `mat(nome)` usa como as procedurais.
 - Tripo com a folha de 4 vistas numa imagem só pode devolver 4 objetos (um por vista): usar `tripo-ps1.mjs ... N`
   para ficar só com a peça boa e centralizar pelo cabo (o arquivo não vem centrado).
+- **Esconder a caverna dentro da montanha**: o terreno cavado deixa um cânion visível de fora. Por cima da parte
+  coberta, montar uma "capa" na altura ORIGINAL do terreno (`altura(x, z, cavar=false)`), com as cores do terreno
+  e colisão, sempre acima do teto; na linha onde a capa termina, uma face de pedra que desce da capa até o teto
+  da entrada (a boca) e até o chão dos lados. Sem muros na parte aberta da entrada.
