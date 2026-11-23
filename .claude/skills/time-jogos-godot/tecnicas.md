@@ -611,3 +611,15 @@
   (volta rápida com o joelho dobrando em sen(πv)) — bem melhor que um seno simétrico. Passo em 4 tempos com as
   fases trás-esq 0, frente-esq ¼, trás-dir ½, frente-dir ¾; trote = diagonais; galope = frente juntas e trás juntas.
   Referência em GIF: separar os quadros com PIL (ImageSequence) e medir o tempo de uma passada.
+
+## Trancos ao andar: montar o mundo em segundo plano (WorkerThreadPool)
+- Medir antes: embrulhar a montagem de cada pedaço com Time.get_ticks_usec e correr a cavalo (teste --picos). No
+  Dallarian cada pedaço levava 10–90 ms no quadro principal (o quadro de 60 FPS tem 16 ms).
+- Separar cada sistema em "dados" (só lê o mapa: posições, cores, arrays da malha) e "montar" (cria nós). Os dados
+  rodam em WorkerThreadPool.add_task; a cada quadro, is_task_completed → wait_for_task_completion → montar.
+  No máximo 3 tarefas juntas; resultado descartado se o pedaço já ficou longe. No carregamento monta tudo na hora.
+- MultiMesh: empacotar o buffer na tarefa (12 floats do Transform3D em linhas + 4 da cor + 4 do custom) e no
+  quadro principal só `instance_count` + `buffer` (rápido). Terreno: SurfaceTool.commit_to_arrays na tarefa;
+  colisão com ConcavePolygonShape3D.set_faces(vértices) em vez de create_trimesh_shape.
+- Cache compartilhado (alturas do terreno) com Mutex; grades de busca preguiçosas precisam estar completas antes.
+- Travar em 60 FPS (application/run/max_fps=60) e nitidez automática: média < 48 FPS por 4 s → baixa um nível.
