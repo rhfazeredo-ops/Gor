@@ -649,3 +649,9 @@
   baratos (grades, contas) antes da altura; criar os monstros por uma fila depois do carregamento (3 ms por quadro,
   os mais perto da jogadora primeiro — o grupo existe já, os membros chegam); cálculo por pedaço em
   WorkerThreadPool.add_group_task + wait (só ajuda se o cálculo não depender de dados que mudam).
+- Pré-calcular no build: o que é determinístico e caro (alturas e cores do terreno de longe) vai num arquivo gerado
+  no workflow (`godot --headless --path . res://cenas/mundo.tscn -- --gerar_terreno`, grava em res://dados com
+  FileAccess.open_compressed ZSTD + store_var) e entra no export pelo include_filter ("versao.json,dados/*"); o
+  arquivo fica no .gitignore (sempre gerado igual ao código). Sem o arquivo, o jogo calcula como antes. 5,7 s → 0,8 s.
+- Folhagem em cinza tingida pela cor da instância "suja" detalhes coloridos (frutas): pintar o verde na própria
+  textura e deixar a instância branca.
