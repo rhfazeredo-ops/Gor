@@ -597,3 +597,13 @@
 - Supabase sem precisar do painel: em vez de auth anônima (tem que ligar no painel), perfil por aparelho
   (uuid + segredo aleatório em user://) e funções security definer salvar_jogo/carregar_jogo que conferem o
   segredo (crypt/bcrypt do pgcrypto); tabela com RLS e sem políticas (só as funções acessam).
+
+## Armadilhas: portão na muralha em pedaços, ponte e passada do cavalo
+- Abrir o vão do portão testando só o MEIO de cada pedaço do muro falha quando o vão cai na junta entre dois
+  pedaços (ângulo do portão = múltiplo exato do passo): testar também as pontas do pedaço.
+- Peça girada com atan2: Basis(UP, θ) leva o eixo Z local para (sen θ, 0, cos θ); para alinhar com a tangente da
+  muralha (−sen a, cos a), θ = atan2(−sen a, cos a) — sem somar 90°.
+- Ponte na altura fixa da cidade e margem natural mais alta: aterrar um corredor da estrada até a altura da ponte
+  (fora do vão), e pintar o calçamento nesse corredor.
+- Animação de passo de quadrúpede: passada cresce com a velocidade (≈2,4 m andando, ≈6 m galopando); frequência
+  = velocidade / passada. Galope = patas da frente quase juntas e depois as de trás (fases 0; 0,6; π; π+0,6).
