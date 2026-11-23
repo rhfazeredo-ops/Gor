@@ -712,3 +712,14 @@
   unshaded (brilham no escuro), poças em disco escuro, ossadas de caixinhas; gotas = CPUParticles3D one_shot com
   `restart()` + som 3D atrasado pelo tempo de queda; eco = subir `room_size`/`wet` do reverb do bus de efeitos
   conforme "dentro". Sons gerados em Python (pingo: seno com tom caindo; ambiente: ruído marrom filtrado em loop).
+
+## Estrada com textura num terreno pintado por cor de vértice
+- A estrada era só uma faixa de cor no terreno (grade grossa = borda serrilhada). Para usar uma textura pintada:
+  faixa própria ao longo da linha da estrada (amostra a cada 1,5 m, 5 vértices na largura, altura da MALHA do
+  terreno + 5–9 cm), UV = (largura, comprimento)/2,8 m; em pedaços de ~90 m montados só quando a Rachel chega a
+  240 m (a altura da malha só existe perto dela) com `visibility_range_end`. Tirar grama e manchas do chão da
+  faixa (senão aparecem por cima das pedras).
+- Textura do dono em `assets/texturas/<nome>.png` (reduzida para 128 px): `Texturas.pegar(nome)` carrega o
+  arquivo (`get_image()`, `decompress()`, RGBA8, mipmaps) e o `mat(nome)` usa como as procedurais.
+- Tripo com a folha de 4 vistas numa imagem só pode devolver 4 objetos (um por vista): usar `tripo-ps1.mjs ... N`
+  para ficar só com a peça boa e centralizar pelo cabo (o arquivo não vem centrado).
