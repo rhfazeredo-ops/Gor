@@ -660,3 +660,15 @@
   frente 0 e -0.08, trás -0.5 e -0.58 (frente e trás opostas = esticado ↔ recolhido).
 - Corpo: altura e inclinação pela fase global (`recolhe = 0.5+0.5cos(2π(u-0.45))`), cabeça quase nivelada.
 - Teste com quadro congelado: `--monstro=lobo_marrom --manim=correr:0.33` (u fixa a fase) e ver 6 quadros lado a lado.
+
+## Contorno branco de seleção (corpo com saque) em shaders próprios
+- Corpo do shader num `.gdshaderinc` com `#ifdef CONTORNO`; dois arquivos `.gdshader` curtos: o normal
+  (`render_mode` de sempre + `#include`) e o de contorno (`unshaded, cull_front` + `#define CONTORNO` + `#include`).
+  Assim o contorno usa a MESMA deformação do vértice (patas dobradas no shader, esqueleto).
+- No contorno: cresce em pixels de tela (normal em view space → direção no clip, `* espessura * 2 / VIEWPORT_SIZE
+  * c.w`) e empurra a casca ~25 cm para trás (`vp.xyz += normalize(vp.xyz) * 0.25`) — sem isso aparecem riscos
+  brancos por dentro (dobras do pelo, cartões do modelo do Tripo). Fragmento: branco chapado.
+- Liga com `material.next_pass = ShaderMaterial(contorno)` e copia os uniforms
+  (`shader.get_shader_uniform_list()`) a cada quadro enquanto estiver selecionado.
+- Classe nova (`class_name`) só existe depois de `godot --headless --path . --import`; sem isso o teste trava em
+  "Could not find type".
