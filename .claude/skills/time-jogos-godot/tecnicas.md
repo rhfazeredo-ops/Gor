@@ -623,3 +623,14 @@
   colisão com ConcavePolygonShape3D.set_faces(vértices) em vez de create_trimesh_shape.
 - Cache compartilhado (alturas do terreno) com Mutex; grades de busca preguiçosas precisam estar completas antes.
 - Travar em 60 FPS (application/run/max_fps=60) e nitidez automática: média < 48 FPS por 4 s → baixa um nível.
+
+## Movimento fluido (travadinhas ao andar)
+- Movimento no _physics_process (60 Hz) e tela em outro ritmo = soluço quando o FPS oscila. Ligar
+  physics/common/physics_interpolation=true (Godot 4.4+, 3D) e: chamar reset_physics_interpolation() depois de
+  teletransportar; o que se mexe no _process (pássaros, chuva, folhas que seguem o jogador) fica com
+  physics_interpolation_mode = OFF, ou passa para _physics_process (animação do cavalo).
+- Velocidade com aceleração/freada exponencial (lerp com 1−exp(−k·dt)): a pé k≈14/18, a cavalo k≈4/6 ("peso"),
+  no ar k×0,35.
+- ARMADILHA das tarefas em segundo plano: a tarefa não pode ler um Dictionary que o quadro principal está alterando
+  (ex.: a camada com "ativos") — deu "corrupted size vs. prev_size" ao fechar. Passar uma cópia (duplicate) só com
+  os dados de que ela precisa, e esperar todas as tarefas em _exit_tree.
