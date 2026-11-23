@@ -727,3 +727,17 @@
   coberta, montar uma "capa" na altura ORIGINAL do terreno (`altura(x, z, cavar=false)`), com as cores do terreno
   e colisão, sempre acima do teto; na linha onde a capa termina, uma face de pedra que desce da capa até o teto
   da entrada (a boca) e até o chão dos lados. Sem muros na parte aberta da entrada.
+
+## Rocha nas montanhas (textura por inclinação) e peça modelada encaixada no terreno
+- Shader do terreno = o PS1 + `tex_rocha`: peso `1 - smoothstep(0.62, 0.8, normal.y)`; UV da rocha pela posição
+  no mundo projetada de lado (`zy` ou `xy` conforme o eixo dominante da normal) / 7 m; rocha × luz SEM a cor do
+  vértice (senão fica azulada) e neve por cima acima de ~45 m.
+- Textura do Tripo é um atlas embaralhado (não repete): para tirar uma textura de rocha, renderizar uma vista
+  do modelo (`ver_modelo.gd`), recortar um trecho de rocha e deixar repetível (mistura com a cópia deslocada meio
+  tile, peso pela distância da borda).
+- Peça grande do Tripo encostada na montanha (entrada de caverna): orientar pela vista em que a boca aparece
+  (Tripo: +X), escala pela largura, encolher a profundidade se precisar, fundo 1–2 m dentro da encosta. Se a toca
+  do modelo tem parede no fundo, apagar só os triângulos virados para a boca (n.x > 0,7) na metade de trás e no
+  meio-baixo — corte largo demais deixa a rocha serrilhada.
+- Cuidado ao editar por "achar texto e cortar até X": `s.index()` acha a PRIMEIRA ocorrência — se o trecho existe
+  em outra função, apaga código no meio. Usar textos únicos (com o nome da função) ou `git checkout` e refazer.
