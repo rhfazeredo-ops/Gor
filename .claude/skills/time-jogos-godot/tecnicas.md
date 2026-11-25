@@ -759,3 +759,21 @@
   a primeira cena do pacote novo (o mundo) volte para a tela de início. ATENÇÃO: voltar para o MESMO arquivo
   (inicio.tscn) reaproveita o script velho que já está na memória — usar uma cena/script com OUTRO nome
   (menu.tscn → menu_inicio.gd), e só marcar "passou pelo menu" no script novo.
+
+## Animações de outro esqueleto (Unreal/Unity) no esqueleto do Tripo — retarget (Dallarian)
+- Pacotes de animação comprados (ex.: Unity Asset Store) costumam vir em FBX no esqueleto do manequim do Unreal.
+  Os FBX pagos ficam numa pasta fora do git (`godot/_anim_src/` no .gitignore); só o resultado convertido vai pro repo.
+- Importar o FBX com `nodes/import_as_skeleton_bones=true` (senão não vem Skeleton3D).
+- Ferramenta `ferramentas/retarget.gd` (roda com `--headless --script`): mapa de ossos fonte → alvo; para cada
+  quadro, rotação GLOBAL de cada osso relativa à pose T do pacote, trocada de eixo (matriz C) e aplicada sobre o
+  repouso do alvo já "alinhado" à pose T (cada osso de braço/perna gira até a direção do mesmo osso na pose T);
+  converte de volta para local pelo pai mapeado mais próximo. Quadril ganha faixa de posição (em escala).
+- ARMADILHAS: (1) a raiz do FBX deita o esqueleto — trabalhar tudo RELATIVO À RAIZ (eixos: cima +Z, esquerda +X,
+  frente −Y no manequim); (2) depois de `seek` o cache global do Skeleton3D não atualiza — montar as globais a
+  partir de `get_bone_pose` e chamar `ap.advance(0)`; (3) conferir com uma folha de quadros (`ferramentas/ver_anim.gd`).
+- No jogo: AnimationPlayer filho do modelo com `root_node = ".."` (faixas "Armature/Skeleton3D:osso").
+- Golpes sincronizados com o dano: em vez de tocar o clipe solto, dar `seek` todo quadro na posição calculada do
+  relógio da ação do jogador (preparo+corte → 0..impacto do clipe; o resto → volta). Achar o impacto de cada clipe
+  na folha de quadros (leves ≈30%, corte girando ≈50%).
+- ARMADILHA: `speed_scale = 0` congela também a MISTURA (crossfade) — o clipe novo nunca aparece. Deixar a
+  velocidade 1 e dar `seek` por cima.
