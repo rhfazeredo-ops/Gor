@@ -777,3 +777,9 @@
   na folha de quadros (leves ≈30%, corte girando ≈50%).
 - ARMADILHA: `speed_scale = 0` congela também a MISTURA (crossfade) — o clipe novo nunca aparece. Deixar a
   velocidade 1 e dar `seek` por cima.
+- Sacar/guardar arma: dois "lugares" para cada arma (BoneAttachment na mão e outro no osso da coluna, nas
+  costas) e o modelo passa de um para o outro com `reparent(novo, false)` no instante em que a mão chega lá no
+  clipe (achar na folha de quadros: sacar ≈40%, guardar ≈50%). O botão de ataque durante o sacar vira o primeiro
+  golpe quando o sacar termina; se o botão continuar apertado, esperar soltar (senão sai golpe em dobro).
+- Pacotes vindos de sites como unityassetcollection.com (arquivo/README do site dentro do zip) são pirataria:
+  não usar; pedir o arquivo original da Asset Store.
