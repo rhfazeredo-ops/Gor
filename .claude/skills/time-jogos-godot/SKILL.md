@@ -51,6 +51,7 @@ com Gaussian splats). Detalhes técnicos em `tecnicas.md`; código reaproveitáv
 - APKs: releases `apk` (2D, Capacitor) e `apk-godot` (3D, Godot)
 - **Dallarian — mapa:** o dono quer refazer o mapa só com pacotes da Synty que ele comprar (Fantasy Kingdom etc.),
   mantendo o tamanho do mapa e os sistemas (lojas, montarias, herói). O telhado de ardósia azul pode mudar agora.
+  Visual: SEM filtro PS1 (o dono escolheu o visual original da Synty).
 - **Pacotes pagos — conferir a origem antes de usar:** pacote exportado pela Unity tem dono 0/0 no tar; dono com nome
   de pessoa (ex.: "ma053/staff", "kharma") e marcas `com.apple.quarantine` = pacote reempacotado por terceiros;
   nome no padrão `Nome.-.Low.Poly.3D.Art.by.Synty.v1.10` = site de repasse. Não usar; pedir o original (Synty Store
