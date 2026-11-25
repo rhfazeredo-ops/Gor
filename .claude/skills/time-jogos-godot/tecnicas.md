@@ -754,3 +754,6 @@
   original do modelo (o shader do mundo depende das luzes globais do mundo).
 - Modelo do Tripo SEM esqueleto + mesma pose do NPC base: `transferir-esqueleto.mjs base novo saida --eixos`.
   O modelo transferido fica com os pés na origem (o GLB cru é centralizado): acertar câmeras de menus.
+- **Atualização por .pck e a tela de início:** o script que já está rodando (a tela de início do APK) NÃO é trocado
+  pelo pacote novo — só o que é carregado depois. Mudança na tela de início só aparece com APK novo, a não ser que
+  a primeira cena do pacote novo (o mundo) volte para a tela de início (flag estática "já passou pelo menu").
