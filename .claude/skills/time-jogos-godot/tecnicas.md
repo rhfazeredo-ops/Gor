@@ -790,3 +790,8 @@
 - Animação de sacar que não combina com onde a arma fica (o pacote puxa do ombro, a espada está na cintura): tocar
   a guarda por baixo e um SkeletonModifier3D (roda DEPOIS do AnimationPlayer) que gira o braço até a direção da
   cintura com um peso 0..1 que sobe e desce no tempo do sacar; o modelo da arma troca de lugar no pico.
+- Pulo de pacote (clipe inteiro: agacha → sobe → cai → aterrissa, 2–3 s) num pulo de jogo curto (~0,75 s no ar):
+  medir no clipe convertido a altura do quadril (o agachamento antes e depois marca a saída e a chegada ao chão),
+  começar o clipe na saída e dar `seek` pelo andamento da velocidade vertical: u = (V_PULO − vy) / (2·V_PULO).
+- Rampa: inclinação na direção do movimento = −(n.x·d.x + n.z·d.z) / n.y com n = get_floor_normal(); acima de
+  ~0,22 usar o clipe "subindo", abaixo de −0,22 o "descendo".
