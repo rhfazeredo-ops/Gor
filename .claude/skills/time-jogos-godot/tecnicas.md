@@ -783,3 +783,10 @@
   golpe quando o sacar termina; se o botão continuar apertado, esperar soltar (senão sai golpe em dobro).
 - Pacotes vindos de sites como unityassetcollection.com (arquivo/README do site dentro do zip) são pirataria:
   não usar; pedir o arquivo original da Asset Store.
+- Retarget de dois pacotes com esqueletos diferentes: a mesma ferramenta, com mapa de ossos, matriz de eixos e
+  pose de referência por pacote. Synty Polygon: cima +Y, esquerda +X, frente +Z, e a referência pode ser o próprio
+  repouso do esqueleto (braços para baixo) — o alinhamento dos ossos funciona com qualquer pose de referência.
+  Pacotes com versão feminina e masculina: gerar uma biblioteca para cada modelo (heroi.res / heroi_m.res).
+- Animação de sacar que não combina com onde a arma fica (o pacote puxa do ombro, a espada está na cintura): tocar
+  a guarda por baixo e um SkeletonModifier3D (roda DEPOIS do AnimationPlayer) que gira o braço até a direção da
+  cintura com um peso 0..1 que sobe e desce no tempo do sacar; o modelo da arma troca de lugar no pico.
