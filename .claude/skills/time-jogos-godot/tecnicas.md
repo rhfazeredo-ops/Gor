@@ -741,3 +741,16 @@
   meio-baixo — corte largo demais deixa a rocha serrilhada.
 - Cuidado ao editar por "achar texto e cortar até X": `s.index()` acha a PRIMEIRA ocorrência — se o trecho existe
   em outra função, apaga código no meio. Usar textos únicos (com o nome da função) ou `git checkout` e refazer.
+
+## Terceira pessoa com corpo animado por código (Dallarian)
+- Câmera: `pescoco` (pitch) na altura dos ombros → `SpringArm3D` (4,2 m, esfera 0,25, exclui o próprio corpo) →
+  Camera3D. Montado: mais alto e 6 m. A lógica de combate não muda (golpes usam a frente do jogador = câmera).
+- Corpo (corpo.gd): braços por DIREÇÃO alvo (espaço do esqueleto: +X frente, +Y cima, +Z direita) — a cada osso,
+  `Quaternion(direção_atual, direção_alvo)` aplicado sobre a pose herdada; pernas/coluna por rotações. Golpes lêem
+  as fases do jogador (`_acao`, `_fase`, `_t_acao`) e interpolam preparação → fim do corte.
+- Armas: BoneAttachment3D na mão com o offset calculado no repouso (lâmina para a frente, face para fora) e um nó
+  com escala 1/k (o modelo está escalado); `trocar_equip` monta o modelo da arma nos dois lugares.
+- Telas de menu: o mesmo CorpoHeroi com um "Manequim" no lugar do jogador (mesma pose de guarda) e o material
+  original do modelo (o shader do mundo depende das luzes globais do mundo).
+- Modelo do Tripo SEM esqueleto + mesma pose do NPC base: `transferir-esqueleto.mjs base novo saida --eixos`.
+  O modelo transferido fica com os pés na origem (o GLB cru é centralizado): acertar câmeras de menus.
