@@ -870,3 +870,34 @@
 - Solução (Dallarian): cena principal do APK = "partida" com script que NÃO cita nenhuma classe do jogo (só
   Control/HTTPRequest/ProjectSettings): baixa, aplica o pacote e faz change_scene para o menu. Mudar a cena
   principal exige um APK novo uma vez; depois as atualizações pegam tudo.
+
+## Cena pronta do Unity (pacote da Synty) dentro do Godot — Altamar (Dallarian)
+- Os pacotes da Synty trazem cenas de demonstração (.unity, YAML de texto) feitas pelos artistas. Ler a cena e
+  remontar peça por peça dá uma cidade de verdade (muito melhor que gerar por código). tools/ler_cena_unity.py:
+  PrefabInstance (m_SourcePrefab guid → nome do prefab = nome do FBX), modificações da raiz (m_LocalPosition/
+  Rotation/Scale; o que faltar vem da Transform raiz do próprio prefab), hierarquia (m_TransformParent, Transform
+  "stripped" → raiz de outra instância), m_IsActive 0 = some. Unity é mão esquerda e importa o FBX negando X:
+  M_godot = Fx · M_unity · Fx (Fx = diag(-1,1,1)). Conferido: a cena montada bate com a do pacote.
+- Chão grande (SM_Generic_*): juntar numa malha só cortada por triângulo no recorte (sobra menos 12 m na borda:
+  ali entra o terreno do jogo para emendar). Altura do chão rasterizada (1 m) para o terreno escondido logo
+  abaixo e para pôr gente/objetos. Fora do recorte: média da borda (41 m) para não esticar cristas.
+- Colisão por nome: _Collision do pacote se existir (escadas, casas prontas), forma real (faces juntas por pedaço
+  do mapa num ConcavePolygonShape) para chão, pedras, escadas, portas, arcos, pisos, "Pillars", janelas; caixa
+  orientada para paredes; nada para telhado, vigas, plantas, pedras de caminho.
+- Visibilidade: objetos pequenos somem a 45 m, médios a 95 m, agrupados em pedaços de 24 m (o "some de longe"
+  mede até o centro do grupo: grupo grande = some até perto do jogador).
+- podar_arte.py precisa ler a lista da cena (os nomes não aparecem nos scripts).
+- Gente andando: as pedras de caminho da cena viram uma rede (vizinhas a até 4,5 m e 1,2 m de altura); o povo anda
+  de pedra em pedra interpolando a altura (sobe escada). A mesma rede serve de TESTE: a heroína anda sozinha por
+  ela (--rota=70, headless com --fixed-fps 60 para a física correr rápido) e anota onde travou ou caiu.
+- Personagem que empaca em quina baixa: subir degrau no CharacterBody3D (test_move à frente travado, 45 cm acima
+  livre → mede a altura descendo e sobe o corpo antes do move_and_slide).
+
+## Retarget certo entre esqueletos de mesmos nomes (Synty → Synty)
+- Copiar só a DIREÇÃO de cada osso perde a torção (andar e correr tortos). Certo: para cada osso, D = rotação no
+  mundo da pose animada em relação ao repouso da fonte; alvo = D · A · repouso do alvo, onde A gira a direção do
+  osso no repouso do alvo até a da fonte (corrige poses de descanso diferentes). Local = global do pai⁻¹ · global.
+  Quadril: deslocamento em relação ao repouso × (altura do quadril alvo / fonte). ferramentas/retarget_synty.gd.
+- Para comparar: o FBX de animação da Synty não tem malha; pôr o personagem convertido e olhar de lado.
+- O sprint da Synty é bem curvado: para o botão de correr, a corrida normal acelerada fica mais natural.
+- Teste de "andar" que mexe em controles.dir precisa desligar o processo dos controles (senão zera a cada quadro).
