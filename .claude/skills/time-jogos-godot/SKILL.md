@@ -57,3 +57,10 @@ com Gaussian splats). Detalhes técnicos em `tecnicas.md`; código reaproveitáv
   nome no padrão `Nome.-.Low.Poly.3D.Art.by.Synty.v1.10` = site de repasse. Não usar; pedir o original (Synty Store
   baixa .zip direto no celular; a Asset Store só baixa pelo editor da Unity).
   Pedra, parede, estrada: arquivos em `assets/texturas/` (128 px); dá para trocar quando ele mandar outra.
+
+## Faxina (preferência do dono)
+- Trocou uma coisa por outra (modelo, sistema, cena)? Apaga a antiga na mesma hora: arquivos, código de reserva
+  (fallback) e funções que ficaram sem ninguém chamando. Se um dia precisar de novo, refaz.
+- Achar funções/variáveis/constantes mortas: contar quantas vezes o nome aparece em todos os .gd/.tscn (só 1 =
+  só a declaração) e repetir em laço, porque apagar uma deixa outras órfãs. Depois compilar cada script com
+  `godot --headless --check-only -s arquivo.gd` e rodar o jogo nas telas principais.
