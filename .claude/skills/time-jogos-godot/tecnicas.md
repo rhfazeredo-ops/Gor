@@ -833,3 +833,12 @@
   próprio jogo (`--criacao --folha=pasta` tira uma foto de cada; o PIL monta a grade com os números).
 - Arquivos .json da arte entram no .pck mesmo sem estar no include_filter? Conferir: `strings jogo.pck | grep nome`.
   Rodar o .pck publicado localmente: `godot --main-pack jogo.pck -- <args de teste>` (prova o que o celular recebe).
+
+## ARMADILHA: atualização por .pck e class_name novo (Godot 4)
+- `ProjectSettings.load_resource_pack()` troca os arquivos, mas a lista de classes globais (class_name) continua a
+  do APK instalado. Script do pacote que cita uma classe NOVA não compila no celular ("sem modelo, sem botões"),
+  e no PC funciona (lá a lista é a nova). Sintoma típico: só parte da tela nova aparece.
+- Defesa (Dallarian, menu_inicio.gd): ler `res://.godot/global_script_class_cache.cfg` do pacote e, para cada
+  classe, compilar `GDScript.new()` com `return NomeDaClasse`; se `reload() != OK`, a classe falta → mostrar
+  "precisa do APK novo" com botão que abre o APK da Release.
+- Para não precisar de APK novo: em scripts novos, evitar class_name; usar `const X = preload("res://scripts/x.gd")`.
