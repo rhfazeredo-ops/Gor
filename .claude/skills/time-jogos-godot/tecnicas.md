@@ -842,3 +842,9 @@
   classe, compilar `GDScript.new()` com `return NomeDaClasse`; se `reload() != OK`, a classe falta → mostrar
   "precisa do APK novo" com botão que abre o APK da Release.
 - Para não precisar de APK novo: em scripts novos, evitar class_name; usar `const X = preload("res://scripts/x.gd")`.
+
+## ARMADILHA: chave de assinatura do APK no cache do GitHub Actions
+- `actions/cache` some após 7 dias sem uso; o workflow gera chave nova e o Android recusa instalar por cima
+  (no Xiaomi a mensagem é "pacote parece ser inválido"; a saída é desinstalar e perder o save local).
+  Melhor guardar a chave como segredo do repositório (base64 num secret) e o workflow sempre usar essa.
+- Conferir a chave de um APK: `unzip d.apk META-INF/*.RSA` + `openssl pkcs7 -inform DER -print_certs -text` (data de criação).
