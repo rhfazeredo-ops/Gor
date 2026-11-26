@@ -806,3 +806,18 @@
   ilhas). Solução: versão de longe = a malha `_Collision` (~450 tri) pintada face a face com a cor do ponto mais
   perto do modelo completo (lida no atlas), gravada offline (`ferramentas/longe_fk.gd`); perto/longe por
   `visibility_range`. Desenhar repetidos com MultiMesh por pedaço do mapa (juntar malhas grandes levava 12 s).
+
+## Personagem modular da Synty (Modular Fantasy Hero) como herói jogável (Dallarian)
+- `ModularCharacters.fbx` traz TODAS as peças (cabeças, troncos, braços, pernas, cabelos...) num só esqueleto.
+  Importar com `import_as_skeleton_bones=true`, instanciar e apagar (queue_free) os MeshInstance3D que não são da
+  combinação escolhida (ex.: Chr_Head_Female_00, Chr_Torso_Female_01, Chr_ArmUpperRight_Female_01... Chr_Hair_20).
+  Uma textura só (PolygonFantasyHero_Texture_01_A.png); a cor de vértice não serve → `sem_cor_vertice`.
+- Retarget para ele: mesmo `retarget.gd`, modo `--heroi_mh`: Sword&Shield com mapa de ossos Unreal→Synty, e a
+  Base Locomotion da Synty entra direto (mapa identidade). Uma biblioteca por gênero (heroi_mh_Masc/Femn.res).
+- Personagem da Synty olha para +Z (Tripo olhava para +X): para reaproveitar pontos de encaixe feitos no Tripo,
+  converter direções do esqueleto (frente, cima, direita) do Tripo (+X,+Y,+Z) para Synty (+Z,+Y,−X):
+  `Vector3(-v.z, v.y, v.x)`, e um mapa de nomes de ossos (R_Hand→Hand_R, R_Mid1→Finger_01_2, Hip→Hips,
+  Spine02→Spine_03, R_Upperarm→Shoulder_R, R_Forearm→Elbow_R).
+- Sentar no cavalo sem animação de montaria: tocar o parado e por cima um `SkeletonModifier3D` que gira coxas e
+  canelas para direções-alvo no espaço do esqueleto (Quaternion(atual, alvo) com peso), e subir o corpo 0,95 m.
+- Arte paga fica no repositório privado; o código checa `ResourceLoader.exists()` e cai no modelo antigo sem ela.
