@@ -917,3 +917,13 @@
   fica quase preto com luz de vértice — melhor marrom liso (~0.52, 0.37, 0.25).
 - Ao separar, apagar a cor dos vértices também da malha nova (a cor do "vento" multiplicada na luz deixa preto).
 - Conferir cada modelo numa foto isolada lado a lado (SceneTree com Camera3D + look_at_from_position), não no mapa.
+
+## Cavalo da Synty (POLYGON Horse) sem animação
+- O pacote só tem o modelo com esqueleto (35 ossos "Horsi_ ...") e uma "Take 001" PARADA; as animações são de outro
+  produto (Horse Animset Pro). Dá para animar por código: para cada osso, eixo do lado do modelo convertido para o
+  espaço do osso = inverse(get_bone_global_rest(i).basis) * eixo; pose = rest_rot * Quaternion(eixo_local, ang).
+  Frente: UpperArm/Forearm/Hand; trás: Thigh/Calf/HorseLink (o jarrete dobra ao contrário da canela).
+- Acessório (chifre) modelado na origem: BoneAttachment3D no osso + transform = global_rest(osso)⁻¹ * posição no modelo.
+- Montar: ajustar a altura do corpo sentado e o deslocamento da sela olhando de LADO (girar o cavalo junto no teste).
+- Ícones de montaria: SceneTree com root.transparent_bg = true, câmera do lado do sol (o shader de luz por vértice
+  deixa o outro lado escuro), recorte quadrado e resize 128.
