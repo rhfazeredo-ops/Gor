@@ -862,3 +862,11 @@
   colisão inclinadas (rampa até o meio e descendo) — o personagem atravessa subindo a corcova.
 - NPC parado em interior (y = -300): o Morador gruda no terreno a cada quadro; usar meta "y_fixo".
 - Vista de teste alta e inclinada: --cima=altura,x,z,giro,inclinação (ex.: 45,1985,170,225,-0.55).
+
+## ARMADILHA: atualização por .pck e scripts já carregados (Godot 4)
+- `load_resource_pack(pck, true)` só vale para o que for carregado DEPOIS. Um script que já estava na memória
+  (inclusive toda classe citada pelo script da cena inicial, que é compilada junto) continua com o código velho
+  — e o GDScript guarda as dependências no cache dele (CACHE_MODE_REPLACE não resolve).
+- Solução (Dallarian): cena principal do APK = "partida" com script que NÃO cita nenhuma classe do jogo (só
+  Control/HTTPRequest/ProjectSettings): baixa, aplica o pacote e faz change_scene para o menu. Mudar a cena
+  principal exige um APK novo uma vez; depois as atualizações pegam tudo.
