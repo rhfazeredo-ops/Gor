@@ -927,3 +927,10 @@
 - Montar: ajustar a altura do corpo sentado e o deslocamento da sela olhando de LADO (girar o cavalo junto no teste).
 - Ícones de montaria: SceneTree com root.transparent_bg = true, câmera do lado do sol (o shader de luz por vértice
   deixa o outro lado escuro), recorte quadrado e resize 128.
+
+## Casas enterradas em terreno com relevo
+- Teste numérico: para cada casa, altura do chão nas 4 quinas e no centro × a base (--casas_chao no Dallarian).
+  Pega na hora o que a foto só mostra de perto.
+- Armadilhas: (1) "chão já plano" com y fixo numa área que depois ganhou relevo; (2) aplainar pelo tamanho PEDIDO
+  e pôr um modelo maior (quinas enterradas); (3) a rampa de uma construção vizinha passando por cima da parte plana
+  de outra — dentro do miolo plano de uma construção, a altura dela vence; só fora as rampas se misturam.
