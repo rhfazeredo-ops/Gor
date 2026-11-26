@@ -909,3 +909,11 @@
 - Para dar nome a dezenas de modelos: folha com foto de cada um (câmera ortográfica do lado), número embaixo, e
   nomear olhando — nome dado às cegas sai errado ("escudo redondo" que era um escudo branco com cruz).
 - Itens gerados por tabela: static var ITENS := _montar() (const base + tabela); MIGRAR = id antigo → novo nos saves.
+
+## Árvores da Synty (Nature Biomes / Meadow Forest) com tronco verde
+- O tronco e as folhas são UMA malha com UM material; no Unity o shader de folhagem separa pela COR DO VÉRTICE:
+  verde = 0 e azul = 0 é madeira (o vermelho é o "vento"). No Godot: separar os triângulos com os 3 vértices assim
+  numa malha à parte. Bétula: textura Birch_Trunk; as outras: o UV do tronco cai num marrom escuro do atlas, que
+  fica quase preto com luz de vértice — melhor marrom liso (~0.52, 0.37, 0.25).
+- Ao separar, apagar a cor dos vértices também da malha nova (a cor do "vento" multiplicada na luz deixa preto).
+- Conferir cada modelo numa foto isolada lado a lado (SceneTree com Camera3D + look_at_from_position), não no mapa.
