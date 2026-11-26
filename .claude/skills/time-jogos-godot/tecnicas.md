@@ -826,3 +826,10 @@
   feminina se chama `Chr_Female_Eyebrow_NN`, no FBX `Chr_Eyebrow_Female_NN` (e não existe a _00 feminina).
   Guardei a lista em `arte/mh/presets.json` (repositório privado) e um seletor ◀ base N ▶ na criação de herói
   para o dono escolher olhando.
+- Personagens do Fantasy Kingdom também servem de herói jogável: mesmos nomes de ossos, eixos diferentes → retarget
+  próprio (`retarget.gd -- --heroi_fk` → heroi_fk_Masc/Femn.res). No CorpoHeroi o modelo é uma string:
+  `mh:Female:N` (preset N do Modular Hero) ou `fk:SM_Chr_Nun_01`.
+- Para o dono escolher entre muitos modelos: seletor ◀ N ▶ no jogo + uma folha de fotos numeradas gerada pelo
+  próprio jogo (`--criacao --folha=pasta` tira uma foto de cada; o PIL monta a grade com os números).
+- Arquivos .json da arte entram no .pck mesmo sem estar no include_filter? Conferir: `strings jogo.pck | grep nome`.
+  Rodar o .pck publicado localmente: `godot --main-pack jogo.pck -- <args de teste>` (prova o que o celular recebe).
