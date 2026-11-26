@@ -821,3 +821,8 @@
 - Sentar no cavalo sem animação de montaria: tocar o parado e por cima um `SkeletonModifier3D` que gira coxas e
   canelas para direções-alvo no espaço do esqueleto (Quaternion(atual, alvo) com peso), e subir o corpo 0,95 m.
 - Arte paga fica no repositório privado; o código checa `ResourceLoader.exists()` e cai no modelo antigo sem ela.
+- Os personagens prontos do pacote estão nos prefabs `Characters_Presets/Chr_FantasyHero_Preset_N.prefab` (YAML):
+  lista dos GameObjects com `m_IsActive: 1` = as peças daquele personagem. Atenção: no prefab a sobrancelha
+  feminina se chama `Chr_Female_Eyebrow_NN`, no FBX `Chr_Eyebrow_Female_NN` (e não existe a _00 feminina).
+  Guardei a lista em `arte/mh/presets.json` (repositório privado) e um seletor ◀ base N ▶ na criação de herói
+  para o dono escolher olhando.
