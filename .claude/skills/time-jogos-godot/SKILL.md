@@ -10,6 +10,9 @@ versão web Canvas2D antiga em `src/iso`). Vale para os próximos projetos (ex.:
 com Gaussian splats). Detalhes técnicos em `tecnicas.md`; código reaproveitável em `codigo/`.
 
 ## Como trabalhar com o dono
+- **O jogo é SÓ para celular.** Todo ajuste, teste e print é no MODO CELULAR (Dallarian: argumento `--celular`, tela
+  deitada de celular ~20:9, ex. 1280x576) e, quando der, rodando o PACOTE PUBLICADO (`--main-pack dallarian.pck`),
+  que é o que o celular baixa. Antes de dizer "funciona", conferir no modo celular.
 - Fala português do Brasil; responder em português, direto, com prints do jogo para mostrar o resultado.
 - Gosta de ver funcionando: rodar o jogo, tirar print, comparar antes × depois lado a lado.
 - Commit e push na branch de trabalho **e** no `main` (Pages e APKs saem do `main`); ele aprovou isso.
@@ -41,7 +44,7 @@ com Gaussian splats). Detalhes técnicos em `tecnicas.md`; código reaproveitáv
 
 ## Fluxo padrão
 1. Entender o pedido → olhar o código → fazer.
-2. Testar no Godot sem tela (ver `tecnicas.md` → "Godot sem tela") e **olhar os prints**.
+2. Testar no Godot sem tela **no modo celular** (ver `tecnicas.md` → "Godot sem tela") e **olhar os prints**.
 3. Para mapas/colisões: ferramentas de depuração (desenhar colisores, galeria de peças) antes de mexer.
 4. Commit em português explicando o porquê → push na branch e no `main` → conferir os workflows.
 5. Responder curto: o que mudou, como testar (link), o que ficou pendente.
