@@ -901,3 +901,11 @@
 - Para comparar: o FBX de animação da Synty não tem malha; pôr o personagem convertido e olhar de lado.
 - O sprint da Synty é bem curvado: para o botão de correr, a corrida normal acelerada fica mais natural.
 - Teste de "andar" que mexe em controles.dir precisa desligar o processo dos controles (senão zera a cada quadro).
+
+## Armas da Synty na mão do personagem
+- Armas do pacote: o CABO fica na origem do modelo e a lâmina aponta para +Y; escudo: a alça na origem, altura em
+  +Y e a frente em +Z. Encaixe: nó da mão com o seu próprio eixo (Dallarian: X = cima, Y = para fora) → no escudo
+  basis(model X→Z, Y→X, Z→Y). Nas costas, afastar ~20 cm do osso (senão o escudo entra no corpo).
+- Para dar nome a dezenas de modelos: folha com foto de cada um (câmera ortográfica do lado), número embaixo, e
+  nomear olhando — nome dado às cegas sai errado ("escudo redondo" que era um escudo branco com cruz).
+- Itens gerados por tabela: static var ITENS := _montar() (const base + tabela); MIGRAR = id antigo → novo nos saves.
