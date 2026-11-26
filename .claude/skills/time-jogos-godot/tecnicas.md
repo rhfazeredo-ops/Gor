@@ -848,3 +848,17 @@
   (no Xiaomi a mensagem é "pacote parece ser inválido"; a saída é desinstalar e perder o save local).
   Melhor guardar a chave como segredo do repositório (base64 num secret) e o workflow sempre usar essa.
 - Conferir a chave de um APK: `unzip d.apk META-INF/*.RSA` + `openssl pkcs7 -inform DER -print_certs -text` (data de criação).
+
+## Cidade medieval arrumada com peças prontas (Dallarian, Altamar)
+- Ruas como malhas próprias (SurfaceTool), não cor de vértice do terreno (a borda fica borrada): pista no meio
+  (+4 cm), calçada dos lados (+16 cm) com meio-fio (face vertical), UV = posição do mundo / escala. Calçada some
+  onde cruza outra rua, no canal e na praça; os trechos contínuos viram as linhas por onde o povo anda.
+- Casas em fileira: anda ao longo da rua, sorteia uma casa pronta, mede a caixa (Synty.caixa; a porta é +Z), põe
+  o centro a (meia pista + calçada + meia profundidade) do eixo, virada para a rua; avança a largura da casa.
+  Lote recusado (muralha, canal, praça, outra rua, outra casa — polígono com Geometry2D.intersect_polygons) → anda
+  1,5 m e tenta outra. Depois um segundo passe em grade (6 m) enche o miolo dos quarteirões.
+- Contar os motivos de recusa (dicionário impresso com --perf) mostra na hora por que uma fileira ficou com buracos.
+- Ponte em arco do pacote (SM_Env_Bridge_Stone_01): esticar na largura da rua, achatar (y 0,55) e pôr duas caixas de
+  colisão inclinadas (rampa até o meio e descendo) — o personagem atravessa subindo a corcova.
+- NPC parado em interior (y = -300): o Morador gruda no terreno a cada quadro; usar meta "y_fixo".
+- Vista de teste alta e inclinada: --cima=altura,x,z,giro,inclinação (ex.: 45,1985,170,225,-0.55).
