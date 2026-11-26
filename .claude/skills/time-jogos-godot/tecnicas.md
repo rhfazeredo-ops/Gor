@@ -795,3 +795,14 @@
   começar o clipe na saída e dar `seek` pelo andamento da velocidade vertical: u = (V_PULO − vy) / (2·V_PULO).
 - Rampa: inclinação na direção do movimento = −(n.x·d.x + n.z·d.z) / n.y com n = get_floor_normal(); acima de
   ~0,22 usar o clipe "subindo", abaixo de −0,22 o "descendo".
+
+## Pacotes Synty (POLYGON) no Godot — mapa inteiro com modelos comprados (Dallarian)
+- Arte paga fica num repositório PRIVADO (`dallarian-arte`), baixado pelo Actions em `godot/arte/` com um token
+  fine-grained só de leitura guardado como segredo (`ARTE_TOKEN`); `godot/arte/` no .gitignore do público.
+- Construções "Preset_*_Optimized" vêm com a malha `_Collision` (boa para colisão). Porta das casas para +Z.
+- Peças do castelo (`SM_Bld_Castle_*`) usam textura de tijolo repetida (Wall_Brick_01), não o atlas.
+- As CORES DOS VÉRTICES da Synty guardam o vento das árvores: ignorar (senão as árvores ficam pretas).
+- Casas têm ~26 mil triângulos: muitas = milhões. `generate_lods` do Godot NÃO reduz (atlas parte a malha em
+  ilhas). Solução: versão de longe = a malha `_Collision` (~450 tri) pintada face a face com a cor do ponto mais
+  perto do modelo completo (lida no atlas), gravada offline (`ferramentas/longe_fk.gd`); perto/longe por
+  `visibility_range`. Desenhar repetidos com MultiMesh por pedaço do mapa (juntar malhas grandes levava 12 s).
